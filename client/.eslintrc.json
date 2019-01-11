@@ -1,0 +1,28 @@
+{
+  "extends": [
+    "react-app",
+    "prettier"
+  ],
+  "plugins": ["babel"],
+  "rules": {
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "object-curly-spacing": ["error", "always"],
+    "keyword-spacing": ["error"],
+    "no-unused-vars": ["error"],
+    "jsx-quotes": ["error", "prefer-double"],
+    "babel/semi": ["error"],
+    "react/jsx-indent-props": ["error", 2],
+    "react/jsx-tag-spacing": ["error", { "beforeSelfClosing": "always" }],
+    "react/jsx-max-props-per-line": [
+      "error",
+      { "maximum": 1, "when": "multiline" }
+    ],
+    "quote-props": [
+      "error",
+      "as-needed",
+      { "keywords": false, "unnecessary": true, "numbers": false }
+    ],
+    "jsx-a11y/anchor-is-valid": ["disabled"],
+    "getter-return": "off"
+  }
+}

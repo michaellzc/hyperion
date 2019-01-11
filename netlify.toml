@@ -1,0 +1,9 @@
+[build]
+  base = "client"
+  command = "yarn build"
+  publish = "client/build/"
+
+[build.environment]
+  YARN_VERSION = "1.13.0"
+  NODE_VERSION = "10"
+  YARN_FLAGS = "--pure-lockfile --verbose"

@@ -1,0 +1,14 @@
+version: '3'
+services:
+  postgres:
+    image: docker.io/postgres:10.6
+    container_name: ${POSTGRES_CONTAINER_NAME:-postgres}
+    env_file: prod.env
+    environment:
+      - POSTGRES_PASSWORD
+      - POSTGRES_USER
+      - POSTGRES_DB
+    ports:
+      - "$POSTGRES_PORT:5432"
+    volumes:
+      - "$POSTGRES_DATA_PATH:/var/lib/postgresql/data"
