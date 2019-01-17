@@ -6,7 +6,7 @@ class AuthStore extends Container {
     user: null,
   };
 
-  user() {
+  get user() {
     if (window.localStorage.getItem('basic_auth')) {
       return { user: 'nobody' };
     } else return null;
