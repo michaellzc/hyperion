@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from .server import Server
 
 
 class UserProfile(models.Model):
@@ -13,6 +14,7 @@ class UserProfile(models.Model):
         display_name:
         website:
         bio:
+        host: if not None, this UserProfile' author is from other server
     methods:
         get_friends: return QuerySet of User 
         send_friend_request: create FriendRequest
@@ -33,6 +35,12 @@ class UserProfile(models.Model):
     display_name = models.CharField(max_length=20)
     website = models.URLField(verbose_name="personal website", blank=True)
     bio = models.CharField(max_length=100, blank=True)
+    host = models.ForeignKey(
+        'Server',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return super().__str__()+' user: '+str(self.author.pk)
@@ -58,6 +66,10 @@ class UserProfile(models.Model):
         # update FriendRequest
         # to_user is User object
         from hyperion.models import FriendRequest
+        if self.host:
+            raise ValidationError(
+                'Froeign user profile has not send_friend_request'
+            )
         FriendRequest.objects.create(
             from_profile=self, to_profile=to_profile)
         return
@@ -66,6 +78,10 @@ class UserProfile(models.Model):
         # if there is a request
         # from_user is User object
         from hyperion.models import Friend
+        if self.host:
+            raise ValidationError(
+                'Froeign user profile has not accept_friend_request'
+            )
         query = FriendRequest.objects.get(
             from_profile=from_profile, to_profile=self)
         if query:
@@ -75,12 +91,26 @@ class UserProfile(models.Model):
 
     def decline_friend_request(self, from_profile):
         # if there is a request, remove it
+        if self.host:
+            raise ValidationError(
+                'Froeign user profile has not decline_friend_request'
+            )
         query = FriendRequest.objects.get(
             from_profile=from_profile, to_profile=self)
         if query:
             query.delete()
         return
 
+    def save(self, *args, **kwargs):
+        '''
+        override save function
+        '''
+        if self.host and self.author:
+            raise ValidationError("Foreign UserProfile can't have author")
+        elif self.host is None and self.author is None:
+            raise ValidationError('UserProfile must have author')
+        else:
+            return super().save(*args, **kwargs)
 
 # set signal for auto-create authorProfile
 @receiver(post_save, sender=User)
