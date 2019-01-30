@@ -26,7 +26,10 @@ class UserProfile(models.Model):
     author = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name='profile')
+        related_name='profile',
+        null=True,
+        blank=True
+    )
     display_name = models.CharField(max_length=20)
     website = models.URLField(verbose_name="personal website", blank=True)
     bio = models.CharField(max_length=100, blank=True)
@@ -48,7 +51,7 @@ class UserProfile(models.Model):
         friends = self.get_friends()
         for f in friends:
             qs = qs | f.get_friends()
-        qs = qs.difference(UserProfile.objects.filter(pk=self.pk),friends)
+        qs = qs.difference(UserProfile.objects.filter(pk=self.pk), friends)
         return qs
 
     def send_friend_request(self, to_profile):
@@ -84,7 +87,7 @@ class UserProfile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(
-                author=instance,display_name=instance.username)
+            author=instance, display_name=instance.username)
 
 
 @receiver(post_save, sender=User)
