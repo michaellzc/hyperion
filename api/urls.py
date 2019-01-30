@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers, viewsets, routers
 from rest_framework.documentation import include_docs_urls
 
-from api.hyperion import views
+from hyperion import views
 
 # Routers provide a way of automatically determining the URL conf.
 router = routers.DefaultRouter(trailing_slash=False)
