@@ -113,3 +113,32 @@ class UserTestCase(TestCase):
         self.assertEquals(list(FriendRequest.objects.all()), [])
         self.assertEquals(list(u1.profile.get_friends()), [u2.profile])
         self.assertEquals(list(u3.profile.get_friends()), [])
+    
+
+    def test_friends_friends(self):
+        u1 = User.objects.create(
+            username='2haotianzhu',
+            first_name='haotian',
+            last_name='zhu'
+        )
+        u2 = User.objects.create(
+            username='1yutianzhang',
+            first_name='yutian',
+            last_name='zhang',
+        )
+        u3 = User.objects.create(
+            username='3zhili',
+            first_name='zhi',
+            last_name='li'
+        )
+        Friend.objects.create(profile1=u1.profile, profile2=u2.profile)
+        Friend.objects.create(profile1=u2.profile, profile2=u3.profile)
+        self.assertEquals(
+            list(u1.profile.get_friends_friends()), [u3.profile]
+        )
+
+        Friend.objects.create(profile1=u1.profile, profile2=u3.profile)
+        self.assertEquals(
+            list(u1.profile.get_friends_friends()), []
+        )
+            

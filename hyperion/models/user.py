@@ -40,6 +40,17 @@ class UserProfile(models.Model):
         return UserProfile.objects.filter(friends__profile1=self) | \
             UserProfile.objects.filter(friends_of__profile2=self)
 
+    def get_friends_friends(self):
+        # get all friends's friends into qs and remove self and friends
+        # from qs
+        from hyperion.models import UserProfile
+        qs = UserProfile.objects.none()
+        friends = self.get_friends()
+        for f in friends:
+            qs = qs | f.get_friends()
+        qs = qs.difference(UserProfile.objects.filter(pk=self.pk),friends)
+        return qs
+
     def send_friend_request(self, to_profile):
         # update FriendRequest
         # to_user is User object
