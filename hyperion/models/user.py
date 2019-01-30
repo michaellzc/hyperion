@@ -16,7 +16,7 @@ class UserProfile(models.Model):
     methods:
         get_friends: return QuerySet of User 
         send_friend_request: create FriendRequest
-        accept_friend_request: delete FriendRequest and create UserToUser
+        accept_friend_request: delete FriendRequest and create Friend
         decline_friend_request: delete FriendRequest
 
     '''
@@ -35,33 +35,34 @@ class UserProfile(models.Model):
         return super().__str__()+' user: '+str(self.author.pk)
 
     def get_friends(self):
-        # return queryset of all author's friends via UserToUser
-        return User.objects.filter(friends__user1=self.author) | \
-            User.objects.filter(friends_of__user2=self.author)
+        from hyperion.models import UserProfile
+        # return queryset of all author's friends via Friend
+        return UserProfile.objects.filter(friends__profile1=self) | \
+            UserProfile.objects.filter(friends_of__profile2=self)
 
-    def send_friend_request(self, to_user):
+    def send_friend_request(self, to_profile):
         # update FriendRequest
         # to_user is User object
         from hyperion.models import FriendRequest
         FriendRequest.objects.create(
-            from_user=self.author, to_user=to_user)
+            from_profile=self, to_profile=to_profile)
         return
 
-    def accept_friend_request(self, from_user):
+    def accept_friend_request(self, from_profile):
         # if there is a request
         # from_user is User object
-        from hyperion.models import UserToUser
+        from hyperion.models import Friend
         query = FriendRequest.objects.get(
-            from_user=from_user, to_user=self.author)
+            from_profile=from_profile, to_profile=self)
         if query:
-            UserToUser.objects.create(user1=self.author, user2=from_user)
+            Friend.objects.create(profile1=self, profile2=from_profile)
             query.delete()
         return
 
-    def decline_friend_request(self, from_user):
+    def decline_friend_request(self, from_profile):
         # if there is a request, remove it
         query = FriendRequest.objects.get(
-            from_user=from_user, to_user=self.author)
+            from_profile=from_profile, to_profile=self)
         if query:
             query.delete()
         return
@@ -71,7 +72,8 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(author=instance)
+        UserProfile.objects.create(
+                author=instance,display_name=instance.username)
 
 
 @receiver(post_save, sender=User)
@@ -79,41 +81,41 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-class UserToUser(models.Model):
+class Friend(models.Model):
     '''
     link table to track user's friends
     '''
 
-    user1 = models.ForeignKey(
-        User,
+    profile1 = models.ForeignKey(
+        'UserProfile',
         on_delete=models.CASCADE,
         related_name='friends_of')
-    user2 = models.ForeignKey(
-        User,
+    profile2 = models.ForeignKey(
+        'UserProfile',
         on_delete=models.CASCADE,
         related_name='friends')
 
     class Meta:
         app_label = 'hyperion'
-        unique_together = ('user1', 'user2',)
+        unique_together = ('profile1', 'profile2',)
 
     def __str__(self):
         return super().__str__()+' {} <-> {} '.format(
-            self.user1.username, self.user2.username)
+            self.profile1.display_name, self.profile2.display_name)
 
     def save(self, *args, **kwargs):
         '''
         override save function
-        check if user1 != user2 
-        switch postion if user1.username > user2.username
+        check if user1 != profile2 
+        switch postion if user1.username > profile2.username
         '''
         from copy import deepcopy
 
-        if self.user1.username > self.user2.username:
-            user3 = deepcopy(self.user1)
-            self.user1 = self.user2
-            self.user2 = user3
-        elif self.user1.username == self.user2.username:
+        if self.profile1.id > self.profile2.id:
+            profile3 = deepcopy(self.profile1)
+            self.profile1 = self.profile2
+            self.profile2 = profile3
+        elif self.profile1.id == self.profile2.id:
             raise ValidationError('You can not be a friend of yourself')
         else:
             pass
@@ -127,33 +129,33 @@ class FriendRequest(models.Model):
     from_user send friend request to to_user
     '''
 
-    from_user = models.ForeignKey(
-        User,
+    from_profile = models.ForeignKey(
+        'UserProfile',
         on_delete=models.CASCADE,
         related_name='sender')
 
-    to_user = models.ForeignKey(
-        User,
+    to_profile = models.ForeignKey(
+        'UserProfile',
         on_delete=models.CASCADE,
         related_name='receiver')
 
     class Meta:
         app_label = 'hyperion'
-        unique_together = ('from_user', 'to_user',)
+        unique_together = ('from_profile', 'to_profile',)
 
     def __str__(self):
         return super().__str__()+' {} -> {} '.format(
-            self.from_user.username, self.to_user.username)
+            self.from_user.display_name, self.to_profile.display_name)
 
     def save(self, *args, **kwargs):
         '''
         override save function
-        check if user1 != user2 
-        switch postion if user1.username > user2.username
+        check if profile1 != profile2 
+        switch postion if profile1.username > profile2.username
         '''
         from copy import deepcopy
 
-        if self.from_user.username == self.to_user.username:
+        if self.from_profile.id == self.to_profile.id:
             raise ValidationError("You can't send friend request to yourself")
         else:
             pass

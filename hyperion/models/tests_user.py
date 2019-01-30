@@ -3,7 +3,7 @@ from datetime import datetime
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from .user import UserProfile, UserToUser, FriendRequest
+from .user import UserProfile, Friend, FriendRequest
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.core.exceptions import ValidationError
@@ -43,32 +43,39 @@ class UserTestCase(TestCase):
         # you can not be a friend of yourself
         self.assertRaises(
             ValidationError,
-            UserToUser.objects.create,
-            user1=u1,
-            user2=u1)
+            Friend.objects.create,
+            profile1=u1.profile,
+            profile2=u1.profile)
 
-        # user1.username is always < user2.username
-        UserToUser.objects.create(user1=u1, user2=u2)
-        self.assertEquals(UserToUser.objects.get().user1.username, '1yutianzhang')
-        self.assertEquals(UserToUser.objects.get().user2.username, '2haotianzhu')
+        # profile1.id is always < profile2.id
+        if u1.profile.id <= u2.profile.id:
+            left = u1.username
+            right = u2.username
+        else:
+            left = u2.username
+            right = u1.username
+
+        Friend.objects.create(profile1=u1.profile, profile2=u2.profile)
+        self.assertEquals(Friend.objects.get().profile1.author.username, left)
+        self.assertEquals(Friend.objects.get().profile2.author.username, right)
 
         # get friends by calling profile's method get_friends
         u1_friends = u1.profile.get_friends()
 
-        self.assertEquals(list(u1_friends), [u2])
+        self.assertEquals(list(u1_friends), [u2.profile])
 
-        UserToUser.objects.create(user1=u1, user2=u3)
-        UserToUser.objects.create(user1=u2, user2=u3)
+        Friend.objects.create(profile1=u1.profile, profile2=u3.profile)
+        Friend.objects.create(profile1=u2.profile, profile2=u3.profile)
 
-        self.assertEquals(list(u1.profile.get_friends()), [u2, u3])
-        self.assertEquals(list(u2.profile.get_friends()), [u1, u3])
-        self.assertEquals(list(u3.profile.get_friends()), [u1, u2])
+        self.assertEquals(list(u1.profile.get_friends()), [u2.profile, u3.profile])
+        self.assertEquals(list(u2.profile.get_friends()), [u1.profile, u3.profile])
+        self.assertEquals(list(u3.profile.get_friends()), [u1.profile, u2.profile])
 
         # test delete
         u1.delete()
         self.assertEquals(len(UserProfile.objects.all()), 2)
-        self.assertEquals(list(u2.profile.get_friends()), [u3])
-        self.assertEquals(list(u3.profile.get_friends()), [u2])
+        self.assertEquals(list(u2.profile.get_friends()), [u3.profile])
+        self.assertEquals(list(u3.profile.get_friends()), [u2.profile])
 
     def test_friend_request(self):
         u1 = User.objects.create(
@@ -86,23 +93,23 @@ class UserTestCase(TestCase):
             last_name='li')
 
         # u1 tries to add u2
-        u1.profile.send_friend_request(u2)
-        self.assertEquals(FriendRequest.objects.get().from_user, u1)
-        self.assertEquals(FriendRequest.objects.get().to_user, u2)
+        u1.profile.send_friend_request(u2.profile)
+        self.assertEquals(FriendRequest.objects.get().from_profile, u1.profile)
+        self.assertEquals(FriendRequest.objects.get().to_profile, u2.profile)
 
         # u2 accepts
-        u2.profile.accept_friend_request(u1)
+        u2.profile.accept_friend_request(u1.profile)
         self.assertEquals(list(FriendRequest.objects.all()), [])
-        self.assertEquals(list(u1.profile.get_friends()), [u2])
-        self.assertEquals(list(u2.profile.get_friends()), [u1])
+        self.assertEquals(list(u1.profile.get_friends()), [u2.profile])
+        self.assertEquals(list(u2.profile.get_friends()), [u1.profile])
 
         # u1 tries to add u3
-        u1.profile.send_friend_request(u3)
-        self.assertEquals(FriendRequest.objects.get().from_user, u1)
-        self.assertEquals(FriendRequest.objects.get().to_user, u3)
+        u1.profile.send_friend_request(u3.profile)
+        self.assertEquals(FriendRequest.objects.get().from_profile, u1.profile)
+        self.assertEquals(FriendRequest.objects.get().to_profile, u3.profile)
 
         # u3 declines
-        u3.profile.decline_friend_request(u1)
+        u3.profile.decline_friend_request(u1.profile)
         self.assertEquals(list(FriendRequest.objects.all()), [])
-        self.assertEquals(list(u1.profile.get_friends()), [u2])
+        self.assertEquals(list(u1.profile.get_friends()), [u2.profile])
         self.assertEquals(list(u3.profile.get_friends()), [])
