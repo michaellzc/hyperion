@@ -43,13 +43,33 @@ class UserProfile(models.Model):
     )
 
     def __str__(self):
-        return super().__str__()+' user: '+str(self.author.pk)
+        if self.author:
+            return super().__str__()+' user: '+str(self.display_name)
+        else:
+            return super().__str__()+'foreign_user'+str(self.display_name)
 
-    def get_friends(self):
-        from hyperion.models import UserProfile
+    def get_type(self):
+        # return UserProfile class either host or foreign
+
+        if self.host and self.author is None:
+            return 'foreign'
+        elif self.author and self.host is None:
+            return 'host'
+        else:
+            raise ValidationError('both of user and host are None')
+
+    def get_friends(self, including='all'):
         # return queryset of all author's friends via Friend
-        return UserProfile.objects.filter(friends__profile1=self) | \
+        # including can be ['all','host','foreign']
+        from hyperion.models import UserProfile
+        qs = UserProfile.objects.filter(friends__profile1=self) | \
             UserProfile.objects.filter(friends_of__profile2=self)
+        if including == 'foreign':
+            return qs.difference(qs.filter(host=None))
+        elif including == 'host':
+            return qs.filter(host=None)
+        else:
+            return qs
 
     def get_friends_friends(self):
         # get all friends's friends into qs and remove self and friends
@@ -154,6 +174,11 @@ class Friend(models.Model):
         switch postion if user1.username > profile2.username
         '''
         from copy import deepcopy
+        if self.profile1.get_type() == 'foreign' and \
+                self.profile2.get_type() == 'foreign':
+            raise ValidationError(
+                'You cannot set two foreign user as friend'
+            )
 
         if self.profile1.id > self.profile2.id:
             profile3 = deepcopy(self.profile1)
