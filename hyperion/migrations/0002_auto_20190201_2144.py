@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='comment',
-            name='contentType',
+            name='content_type',
             field=models.CharField(choices=[('text/plain', 'text/plain'), ('text/markdown', 'text/markdown')], default='text/plain', max_length=20),
         ),
         migrations.AlterField(
