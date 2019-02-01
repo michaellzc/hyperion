@@ -24,7 +24,7 @@ class Comment(models.Model):
         ('text/markdown', 'text/markdown')
     )
 
-    contentType = models.CharField(
+    content_type = models.CharField(
         max_length=20,
         choices=COMMENT_CONTENT_TYPE_CHOICE,
         default='text/plain')
