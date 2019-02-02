@@ -1,0 +1,21 @@
+matrix:
+  include:
+    - language: python
+      sudo: yes
+      dist: xenial
+      python:
+        - "3.7"
+      install:
+        - pip install -r requirements.txt
+      script:
+        - pylint api && pylint hyperion
+    - language: node_js
+      node_js:
+        - "10"
+      cache: yarn
+      before_install:
+        - cd client
+      install:
+        - yarn install
+      script:
+        - yarn test
