@@ -1,10 +1,7 @@
 
-
-from datetime import datetime
 from django.db import models
 from django.utils import timezone
-from django.core.exceptions import ValidationError
-from .user import User
+from django.contrib.auth.models import User
 from .post import Post
 
 
