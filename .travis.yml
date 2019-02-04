@@ -5,9 +5,16 @@ matrix:
       dist: xenial
       python:
         - "3.7"
+      env:
+        - CMPUT404_POSTGRES_HOST
+        - CMPUT404_POSTGRES_PORT
+        - CMPUT404_POSTGRES_NAME
+        - CMPUT404_POSTGRES_USER
+        - CMPUT404_POSTGRES_PASSWORD
       install:
         - pip install -r requirements.txt
       script:
+        - python manage.py test
         - pylint api && pylint hyperion
     - language: node_js
       node_js:
