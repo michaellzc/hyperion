@@ -24,16 +24,18 @@ from rest_framework.documentation import include_docs_urls
 from hyperion import views
 
 # Routers provide a way of automatically determining the URL conf.
-ROUTER = routers.DefaultRouter(trailing_slash=False)
-ROUTER.register(r'users', views.UserViewSet)
-ROUTER.register(r'groups', views.GroupViewSet)
+# pylint: disable=invalid-name
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'users', views.UserViewSet)
+router.register(r'groups', views.GroupViewSet)
 
 
 # https://stackoverflow.com/a/51659083
-URL_PATTERNS = [
-    url(r'^', include(ROUTER.urls)),
+urlpatterns = [
+    url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('auth', csrf_exempt(views.AuthView.as_view())),
     path('admin/', admin.site.urls),
     url(r'^docs/', include_docs_urls(title='API Documentation'))
 ]
+# pylint: enable=invalid-name
