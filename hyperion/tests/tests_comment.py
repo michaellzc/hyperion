@@ -1,5 +1,6 @@
 from django.test import TestCase
-from hyperion.models import Comment, UserProfile, User, Post
+from hyperion.models import Comment, UserProfile, Post
+from django.contrib.auth.models import User
 
 
 class CommentTestCase(TestCase):

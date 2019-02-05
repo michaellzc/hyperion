@@ -3,7 +3,8 @@ from datetime import datetime
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from hyperion.models import Server, UserProfile, Friend, User
+from hyperion.models import Server, UserProfile, Friend
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 
