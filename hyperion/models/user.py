@@ -61,7 +61,7 @@ class UserProfile(models.Model):
         # return queryset of all author's friends via Friend
         # including can be ['all','host','foreign']
         # from hyperion.models import UserProfile
-        apps.get_model('hyerion', 'UserProfile')
+        apps.get_model('hyperion', 'UserProfile')
         query_set = UserProfile.objects.filter(friends__profile1=self) | \
             UserProfile.objects.filter(friends_of__profile2=self)
         if including == 'foreign':
@@ -75,7 +75,7 @@ class UserProfile(models.Model):
         # get all friends's friends into qs and remove self and friends
         # from qs
         # from hyperion.models import UserProfile
-        apps.get_model('hyerion', 'UserProfile')
+        apps.get_model('hyperion', 'UserProfile')
         query_set = UserProfile.objects.none()
         friends = self.get_friends()
         for friend in friends:
@@ -89,7 +89,7 @@ class UserProfile(models.Model):
         # update FriendRequest
         # to_profile is UserProfile object
         # from hyperion.models import FriendRequest
-        apps.get_model('hyerion', 'FriendRequest')
+        apps.get_model('hyperion', 'FriendRequest')
         if self.host:
             raise ValidationError(
                 'Froeign user profile has not send_friend_request'
@@ -101,7 +101,7 @@ class UserProfile(models.Model):
         # if there is a request
         # from_profile is UserProfile object
         # from hyperion.models import Friend
-        apps.get_model('hyerion', 'Friend')
+        apps.get_model('hyperion', 'Friend')
         if self.host:
             raise ValidationError(
                 'Froeign user profile has not accept_friend_request'

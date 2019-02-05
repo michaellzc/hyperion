@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 
-# python manage.py test -v=2 hyperion.models.tests_user
+# python manage.py test -v=2 hyperion.tests.tests_user
 
 class UserTestCase(TestCase):
     def setup(self):
