@@ -140,7 +140,9 @@ disable=print-statement,
         comprehension-escape,
         missing-docstring,
         duplicate-code,
-        no-else-return
+        no-else-return,
+        unused-wildcard-import,
+        wildcard-import,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
