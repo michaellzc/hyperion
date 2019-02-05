@@ -1,12 +1,10 @@
 
 from datetime import datetime
 from django.db import models
-from django.utils import timezone
 from django.core.exceptions import ValidationError
 from hyperion.models.user import UserProfile, Friend, FriendRequest
-from django.contrib.auth.models import User
-from django.test import TestCase
-from django.core.exceptions import ValidationError
+
+
 
 
 # python manage.py test -v=2 hyperion.models.tests_user
