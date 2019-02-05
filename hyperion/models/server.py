@@ -1,9 +1,10 @@
 from django.db import models
-from django.core.exceptions import ValidationError
+
 
 
 class Server(models.Model):
     '''
+    This class is to save foreign server information
     '''
 
     name = models.CharField(max_length=200)
