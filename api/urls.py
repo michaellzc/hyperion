@@ -18,20 +18,20 @@ from django.urls import path
 from django.conf.urls import url, include
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework import serializers, viewsets, routers
+from rest_framework import routers #viewsets, serializers
 from rest_framework.documentation import include_docs_urls
 
 from hyperion import views
 
 # Routers provide a way of automatically determining the URL conf.
-router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
+ROUTER = routers.DefaultRouter(trailing_slash=False)
+ROUTER.register(r'users', views.UserViewSet)
+ROUTER.register(r'groups', views.GroupViewSet)
 
 
 # https://stackoverflow.com/a/51659083
-urlpatterns = [
-    url(r'^', include(router.urls)),
+URL_PATTERNS = [
+    url(r'^', include(ROUTER.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('auth', csrf_exempt(views.AuthView.as_view())),
     path('admin/', admin.site.urls),
