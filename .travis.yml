@@ -14,7 +14,7 @@ matrix:
       install:
         - pip install -r requirements.txt
       script:
-        - python manage.py test
+        - python manage.py test --noinput
         - pylint api && pylint hyperion
     - language: node_js
       node_js:
