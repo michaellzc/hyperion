@@ -37,6 +37,8 @@ class UserProfile(models.Model):
     display_name = models.CharField(max_length=20)
     website = models.URLField(verbose_name="personal website", blank=True)
     bio = models.CharField(max_length=100, blank=True)
+    url = models.CharField(max_length=200, blank=True)
+    github = models.URLField(max_length=200, blank=True)
     host = models.ForeignKey(
         'Server',
         null=True,
