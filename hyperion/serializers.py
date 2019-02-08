@@ -17,20 +17,18 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
 
-    bio = serializers.CharField(source='profile.bio', allow_blank=True, max_length=100)
+    bio = serializers.CharField(source='profile.bio', allow_blank=True, max_length=100, required=False)
     host = serializers.CharField(source='profile.host.name', max_length=200, required=False)
     display_name = serializers.CharField(source='profile.display_name', max_length=20)
     id = serializers.CharField(source='profile.get_full_id')
-    url = serializers.CharField(source='profile.get_full_id')
+    url = serializers.CharField(source='profile.url', max_length=200)
+    github = serializers.CharField(source='profile.github', max_length=200, allow_blank=True, required=False)
 
     class Meta:
         model = User
-        # fields = ('id', 'email', 'bio',
-        #           'host', 'first_name', 'last_name',
-        #           'display_name', 'url', 'github')
         fields = ('id', 'email', 'bio',
                   'host', 'first_name', 'last_name',
-                  'display_name', 'url')
+                  'display_name', 'url', 'github')
 
     # Not sure if this solution effects create/update
     def to_representation(self, instance):

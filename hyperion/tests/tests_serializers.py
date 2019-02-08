@@ -10,16 +10,17 @@ class SerializerTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         s1 = Server.objects.create(
-            name="https://localhost:8080"
+            name="http://127.0.0.1:5454"
         )
         # user one (foreign user)
         cls.u1 = User.objects.create(
             username='2haotianzhu',
             first_name='haotian',
-            last_name='zhu'
+            last_name='zhu',
         )
         cls.u1.profile.display_name = "haotian"
         cls.u1.profile.host = s1
+        cls.u1.profile.url = "http://127.0.0.1:5454/author/1d698d25ff008f7538453c120f581471"
 
         # user two (local user)
         cls.u2 = User.objects.create(
@@ -28,6 +29,7 @@ class SerializerTestCase(TestCase):
             last_name='li'
         )
         cls.u2.profile.display_name = "zhili"
+        cls.u2.profile.url = cls.u2.profile.get_full_id()
 
     def test_remote_user_serializer(self):
         serializer = UserSerializer(instance=self.u1)
@@ -37,6 +39,7 @@ class SerializerTestCase(TestCase):
         self.assertEqual(data['first_name'], self.u1.first_name)
         self.assertEqual(data['last_name'], self.u1.last_name)
         self.assertEqual(data['display_name'], self.u1.profile.display_name)
+        self.assertEqual(data['url'], self.u1.profile.url)
         # print(data)
 
     def test_local_user_serializer(self):
@@ -47,6 +50,7 @@ class SerializerTestCase(TestCase):
         self.assertEqual(data['first_name'], self.u2.first_name)
         self.assertEqual(data['last_name'], self.u2.last_name)
         self.assertEqual(data['display_name'], self.u2.profile.display_name)
+        self.assertEqual(data['url'], self.u2.profile.url)
         # print(data)
 
     def test_comment_serializer(self):
