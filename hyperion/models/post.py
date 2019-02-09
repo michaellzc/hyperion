@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from .user import UserProfile
 
+
 class Post(models.Model):
     '''
     author: User
@@ -12,6 +13,7 @@ class Post(models.Model):
     '''
     class Meta:
         app_label = 'hyperion'
+
     title = models.CharField(max_length=100)
     author = models.OneToOneField(
         UserProfile,

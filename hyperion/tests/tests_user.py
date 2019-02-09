@@ -7,7 +7,7 @@ from hyperion.models.user import UserProfile, Friend, FriendRequest
 
 
 
-# python manage.py test -v=2 hyperion.models.tests_user
+# python manage.py test -v=2 hyperion.tests.tests_user
 
 class UserTestCase(TestCase):
     def setup(self):

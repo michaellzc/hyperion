@@ -18,12 +18,13 @@ from django.urls import path
 from django.conf.urls import url, include
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework import serializers, viewsets, routers
+from rest_framework import routers #viewsets, serializers
 from rest_framework.documentation import include_docs_urls
 
 from hyperion import views
 
 # Routers provide a way of automatically determining the URL conf.
+# pylint: disable=invalid-name
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
@@ -37,3 +38,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^docs/', include_docs_urls(title='API Documentation'))
 ]
+# pylint: enable=invalid-name
