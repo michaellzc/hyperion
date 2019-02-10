@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User, Group
-from rest_framework import serializers
-from hyperion.models import Comment
 from django.conf import settings
+
+from rest_framework import serializers
+
+from hyperion.models import Comment
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
@@ -45,9 +47,3 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ('id', 'content_type', 'comment',
                   'published', 'author')
-
-
-
-
-
-
