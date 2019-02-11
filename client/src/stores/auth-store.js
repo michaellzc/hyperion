@@ -7,8 +7,9 @@ class AuthStore extends Container {
   };
 
   get user() {
+    let { user } = this.state;
     if (window.localStorage.getItem('basic_auth')) {
-      return { user: 'nobody' };
+      return user ? user : { user: 'nobody' };
     } else return null;
   }
 
