@@ -1,3 +1,4 @@
+# pylint: disable=arguments-differ,unused-argument
 
 from django.db import models
 from django.apps import apps
@@ -5,7 +6,6 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
-from .server import Server
 from django.conf import settings
 
 
@@ -146,6 +146,8 @@ class UserProfile(models.Model):
             return super().save(*args, **kwargs)
 
 # set signal for auto-create authorProfile
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
