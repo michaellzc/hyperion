@@ -54,21 +54,21 @@ class PostsStore extends Container {
    * etch all public posts
    * @param {bool} cached - Whether or not to re-fetch posts from remote
    */
-  async getAll(cached = true) {}
+  getAll = async (cached = true) => {};
 
   // TODO
   /**
    * Fetch a post by post ID
    * @param {id} id - Post id
    */
-  async get(id) {}
+  get = async id => {};
 
   // TODO
   /**
    * Create a new post
    * @param {object} post - A post object
    */
-  async create(post) {}
+  create = async post => {};
 }
 
 export default PostsStore;

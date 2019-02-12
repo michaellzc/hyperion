@@ -13,7 +13,7 @@ class AuthStore extends Container {
     } else return null;
   }
 
-  async getUserInfo(cached = true) {
+  getUserInfo = async (cached = true) => {
     if (window.localStorage.getItem('basic_auth') && this.state.user) {
       if (cached) return this.state.user;
       let { user } = await API.Auth.getCurrentUser();
@@ -28,9 +28,9 @@ class AuthStore extends Container {
       Object.assign(error, { response: { status: 401 } });
       throw error;
     }
-  }
+  };
 
-  async login(username, password) {
+  login = async (username, password) => {
     try {
       let { user } = await API.Auth.login(username, password);
       window.localStorage.setItem(
@@ -41,12 +41,12 @@ class AuthStore extends Container {
     } catch (err) {
       console.error(err.response);
     }
-  }
+  };
 
-  logout() {
-    window.localStorage.removeItem('basic_auth');
+  logout = async () => {
     this.setState({ user: null });
-  }
+    window.localStorage.removeItem('basic_auth');
+  };
 }
 
 export default AuthStore;
