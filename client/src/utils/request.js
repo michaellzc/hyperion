@@ -1,4 +1,5 @@
-const API_ROOT = process.env.REACT_APP_API_ENDPOINT;
+let { host, protocol } = window.location;
+let API_ROOT = `${protocol}//${host}/api`;
 
 let getDefaultHeaders = () => {
   const token = window.localStorage.getItem('basic_auth');

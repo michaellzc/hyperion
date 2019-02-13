@@ -1,14 +1,11 @@
 from django.contrib.auth.models import User, Group
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework import viewsets, decorators, authentication, views
+from rest_framework import viewsets
 
 from .serializers import UserSerializer, GroupSerializer
 
