@@ -1,9 +1,6 @@
 {
-  "extends": [
-    "react-app",
-    "prettier"
-  ],
-  "plugins": ["babel"],
+  "extends": ["react-app", "prettier"],
+  "plugins": ["babel", "react-hooks"],
   "rules": {
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "object-curly-spacing": ["error", "always"],
@@ -23,6 +20,7 @@
       { "keywords": false, "unnecessary": true, "numbers": false }
     ],
     "jsx-a11y/anchor-is-valid": ["disabled"],
-    "getter-return": "off"
+    "getter-return": "off",
+    "react-hooks/rules-of-hooks": "error"
   }
 }
