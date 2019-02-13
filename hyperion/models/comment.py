@@ -1,7 +1,7 @@
 
 from django.db import models
 from django.utils import timezone
-from hyperion.models import UserProfile
+from .user import UserProfile
 from .post import Post
 
 
