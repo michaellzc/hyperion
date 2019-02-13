@@ -14,12 +14,12 @@ class CommentTestCase(TestCase):
             username="c1",
             first_name="c",
             last_name="1"
-        )
+        ).profile
         u2 = User.objects.create(
             username="c2",
             first_name="c",
             last_name="2"
-        )
+        ).profile
         p1 = Post.objects.create(
             author=u1,
             title="u1 post",
@@ -34,7 +34,7 @@ class CommentTestCase(TestCase):
         self.assertEquals(c1.author, u2)
         self.assertEquals(c1.post, p1)
         self.assertEquals(list(Comment.objects.filter(post=p1)), [c1])
-        self.assertEquals(list(Comment.objects.filter(author__username="c2")), [c1])
+        self.assertEquals(list(Comment.objects.filter(author__display_name="c2")), [c1])
         # how to find the comment from user object
 
     def test_multi_user_comment_in_same_post(self):
@@ -43,17 +43,17 @@ class CommentTestCase(TestCase):
             username="c1",
             first_name="c",
             last_name="1"
-        )
+        ).profile
         u2 = User.objects.create(
             username="c2",
             first_name="c",
             last_name="2"
-        )
+        ).profile
         u3 = User.objects.create(
             username="c3",
             first_name="c",
             last_name="3"
-        )
+        ).profile
         p1 = Post.objects.create(
             author=u1,
             title="u1 post",
@@ -82,12 +82,12 @@ class CommentTestCase(TestCase):
             username="c1",
             first_name="c",
             last_name="1"
-        )
+        ).profile
         u2 = User.objects.create(
             username="c2",
             first_name="c",
             last_name="2"
-        )
+        ).profile
         p1 = Post.objects.create(
             author=u1,
             title="u1 post",
@@ -104,7 +104,7 @@ class CommentTestCase(TestCase):
             post=p1
         )
         self.assertEquals(list(Comment.objects.filter(post=p1)), [c1, c2])
-        self.assertEquals(list(Comment.objects.filter(author__username="c2")), [c1, c2])
+        self.assertEquals(list(Comment.objects.filter(author__display_name="c2")), [c1, c2])
 
     # def test_same_user_comment_in_multi_post_by_same_author(self):
     #     u1 = User.objects.create(
@@ -146,17 +146,17 @@ class CommentTestCase(TestCase):
             username="c1",
             first_name="c",
             last_name="1"
-        )
+        ).profile
         u2 = User.objects.create(
             username="c2",
             first_name="c",
             last_name="2"
-        )
+        ).profile
         u3 = User.objects.create(
             username="c3",
             first_name="c",
             last_name="3"
-        )
+        ).profile
         p1 = Post.objects.create(
             author=u1,
             title="u1 post",
@@ -177,7 +177,7 @@ class CommentTestCase(TestCase):
             comment="u3 comment to p2 written by u2",
             post=p2
         )
-        self.assertEquals(list(Comment.objects.filter(author__username="c3")), [c1, c2])
+        self.assertEquals(list(Comment.objects.filter(author__display_name="c3")), [c1, c2])
 
     # def test_multi_user_comment_in_multi_post_by_different_author(self):
     #     pass

@@ -1,14 +1,14 @@
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from hyperion.models import UserProfile
 from .post import Post
 
 
 
 class Comment(models.Model):
     '''
-    author: User
+    author: UserProfile
     create_date: date
     post: Post
     id: UUID
@@ -28,7 +28,7 @@ class Comment(models.Model):
     comment = models.TextField()
     published = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(
-        User,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name='comments')
     post = models.ForeignKey(
