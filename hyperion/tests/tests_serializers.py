@@ -55,12 +55,12 @@ class SerializerTestCase(TestCase):
 
     def test_comment_serializer(self):
         p1 = Post.objects.create(
-            author=self.u1,
+            author=self.u1.profile,
             title="u1 post",
             content="test content"
         )
         c1 = Comment.objects.create(
-            author=self.u1,
+            author=self.u1.profile,
             comment="u1 comment",
             post=p1
         )
