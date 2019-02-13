@@ -1,9 +1,7 @@
 from django.contrib.auth.models import User, Group
 from django.conf import settings
-
 from rest_framework import serializers
 from hyperion.models import Comment, UserProfile
-from django.conf import settings
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
