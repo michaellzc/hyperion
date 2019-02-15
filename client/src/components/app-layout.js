@@ -8,7 +8,7 @@ import logo from '../assets/logo-horizontal.png';
 
 let { Header, Content, Footer } = Layout;
 
-const AppLayout = ({ children, stores: [authStore], header, className }) => {
+const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   // TODO - implment logout
   let menu = (
     <Menu className="menu" selectable={false}>
@@ -19,7 +19,7 @@ const AppLayout = ({ children, stores: [authStore], header, className }) => {
   );
 
   return (
-    <Layout style={{ height: '100vh' }} className={className}>
+    <Layout style={{ minHeight: '100vh', maxWidth: '100vw' }} {...props}>
       {header ? (
         <Header
           css={css`
@@ -54,7 +54,7 @@ const AppLayout = ({ children, stores: [authStore], header, className }) => {
           </Row>
         </Header>
       ) : null}
-      <Content style={{ padding: '20px 136px' }}>{children}</Content>
+      <Content style={{ padding: '20px 0' }}>{children}</Content>
       <Footer style={{ textAlign: 'center' }}>
         Copyright © 2019 CMPUT404W19T6
       </Footer>

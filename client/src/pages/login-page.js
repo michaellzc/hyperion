@@ -40,7 +40,7 @@ const LoginPage = ({
   return (
     <AppLayout header={false} className="login-page">
       <Row gutter={24} type="flex" justify="space-around" align="middle">
-        <Col span={6}>
+        <Col xs={20} sm={20} md={12} lg={10} xl={8} xxl={6}>
           <FormHeader>A Social Distributioin Project</FormHeader>
           <Form onSubmit={onLogin} className="login-form">
             <Form.Item>
