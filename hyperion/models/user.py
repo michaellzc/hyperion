@@ -1,3 +1,4 @@
+# pylint: disable=arguments-differ,unused-argument
 
 from django.db import models
 from django.apps import apps
@@ -5,6 +6,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 
 class UserProfile(models.Model):
@@ -35,6 +37,8 @@ class UserProfile(models.Model):
     display_name = models.CharField(max_length=20)
     website = models.URLField(verbose_name="personal website", blank=True)
     bio = models.CharField(max_length=100, blank=True)
+    url = models.CharField(max_length=200, blank=True)
+    github = models.URLField(max_length=200, blank=True)
     host = models.ForeignKey(
         'Server',
         null=True,
@@ -47,6 +51,13 @@ class UserProfile(models.Model):
             return super().__str__()+' user: '+str(self.display_name)
         else:
             return super().__str__()+'foreign_user'+str(self.display_name)
+
+    def get_full_id(self):
+        if self.host is None:
+            host_name = settings.HYPERION_HOSTNAME
+        else:
+            host_name = self.host.name
+        return "{}/author/{}".format(host_name, self.author.id)
 
     def get_type(self):
         # return UserProfile class either host or foreign
@@ -135,6 +146,8 @@ class UserProfile(models.Model):
             return super().save(*args, **kwargs)
 
 # set signal for auto-create authorProfile
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

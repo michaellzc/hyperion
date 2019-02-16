@@ -1,24 +1,20 @@
-import React, { Component } from 'react';
-import { Link } from '@reach/router';
-import logo from '../assets/logo.svg';
-import './app.css';
+import React from 'react';
+import { Row, Col } from 'antd';
+import AppLayout from '../components/app-layout';
+import PostsStream from '../components/posts-stream';
+import PostBox from '../components/post-box';
 
-class HomePage extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <Link to="dashboard" className="App-link">
-            Dashboard (Auth required)
-          </Link>
-        </header>
-      </div>
-    );
-  }
-}
+const HomePage = () => {
+  return (
+    <AppLayout className="home-page">
+      <Row gutter={24} type="flex" justify="space-around" align="middle">
+        <Col xs={20} sm={20} md={18} lg={12} xl={8} xxl={8}>
+          <PostBox />
+          <PostsStream />
+        </Col>
+      </Row>
+    </AppLayout>
+  );
+};
 
 export default HomePage;

@@ -11,7 +11,7 @@ class PrivateRoute extends Component {
     try {
       await authStore.getUserInfo();
     } catch (error) {
-      if (error.response && error.response.status === 401) {
+      if (error.response && error.response.status !== 200) {
         await navigate(`/login?from=${window.location.pathname}`);
       }
     }

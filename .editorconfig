@@ -25,5 +25,9 @@ max_line_length = null
 indent_style = space
 indent_size = 2
 
+[*.scss]
+indent_size = 4
+indent_style = space
+
 [Makefile]
 indent_style = tab
