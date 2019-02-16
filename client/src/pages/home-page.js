@@ -8,7 +8,7 @@ const HomePage = () => {
   return (
     <AppLayout className="home-page">
       <Row gutter={24} type="flex" justify="space-around" align="middle">
-        <Col xs={20} sm={20} md={12} lg={10} xl={8} xxl={8}>
+        <Col xs={20} sm={20} md={18} lg={12} xl={8} xxl={8}>
           <PostBox />
           <PostsStream />
         </Col>
