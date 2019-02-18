@@ -49,7 +49,7 @@ class PostTestCase(TestCase):
             content="test1"
         )
         post.visible_to_me()
-        self.assertEqual(list(post.visibleTo.all()), [self.u_1.profile])
+        self.assertEqual(list(post.visible_to.all()), [self.u_1.profile])
 
     def test_private_to_another_author(self):
         user_profile = self.u_5.profile
@@ -60,7 +60,7 @@ class PostTestCase(TestCase):
         )
         post.visible_to_me()
         post.visible_to_another_author(user_profile)
-        self.assertEqual(list(post.visibleTo.all()),[self.u_1.profile, self.u_5.profile])
+        self.assertEqual(list(post.visible_to.all()),[self.u_1.profile, self.u_5.profile])
 
     # # def test_private_to_my_friends(self):
     # #     p = Post.objects.create(
@@ -69,7 +69,7 @@ class PostTestCase(TestCase):
     # #     content = "test5" ,
     # #     )
     # #     p.visible_to_my_friends()
-    # #     self.assertEquals(list(p.visibleTo.all()),[self.u2])
+    # #     self.assertEquals(list(p.visible_to.all()),[self.u2])
 
     def test_private_to_friends_of_friends(self):
         post = Post.objects.create(
@@ -79,7 +79,7 @@ class PostTestCase(TestCase):
         )
         post.visible_to_me()
         post.visible_to_friends_of_friends()
-        self.assertEqual(list(post.visibleTo.all()), [self.u_1.profile, self.u_3.profile])
+        self.assertEqual(list(post.visible_to.all()), [self.u_1.profile, self.u_3.profile])
 
     def test_private_to_host_friends(self):
         post = Post.objects.create(
@@ -89,7 +89,7 @@ class PostTestCase(TestCase):
         )
         post.visible_to_me()
         post.visible_to_host_friends()
-        self.assertEqual(list(post.visibleTo.all()), \
+        self.assertEqual(list(post.visible_to.all()), \
             [self.u_1.profile, self.u_2.profile, self.u_4.profile])
 
     def test_public(self):
@@ -100,4 +100,4 @@ class PostTestCase(TestCase):
             )
         post.visible_to_me()
         post.visible_to_public()
-        self.assertEqual(list(post.visibleTo.all()), [])
+        self.assertEqual(list(post.visible_to.all()), [])

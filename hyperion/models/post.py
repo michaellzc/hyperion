@@ -21,6 +21,13 @@ class Post(models.Model):
         ('4', 'PRIVATE'),
         ('5', 'SERVERONLY'),
     )
+    CONTENT_TYPES = (
+        ('1', 'text/plain'),
+        ('2', 'text/markdown'),
+        ('3', 'image/png;base64'),
+        ('4', 'image/jpeg;base64'),
+        ('5', 'application/base64'),
+    )
 
     title = models.CharField(max_length=100)
     author = models.OneToOneField(
@@ -30,11 +37,13 @@ class Post(models.Model):
     content = models.TextField()
     create_date = models.DateTimeField(default=timezone.now)
     last_modify_date = models.DateTimeField(default=timezone.now)
+
+    content_type = models.CharField(
+        max_length=1, choices=CONTENT_TYPES, default='1'
+    )
     visibility = models.CharField(max_length=1, choices=CHOICES, default='1')
     visible_to = models.ManyToManyField(
         UserProfile,
-        # need to be fixed later
-        # on_delete=models.ForeignKey('Post', on_delete=models.CASCADE),
         related_name='visible'
     )
 
