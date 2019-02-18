@@ -14,6 +14,14 @@ class Post(models.Model):
     class Meta:
         app_label = 'hyperion'
 
+    CHOICES = (
+        ('1', 'PUBLIC'),
+        ('2', 'FOAF'),
+        ('3', 'FRIENDS'),
+        ('4', 'PRIVATE'),
+        ('5', 'SERVERONLY'),
+    )
+
     title = models.CharField(max_length=100)
     author = models.OneToOneField(
         UserProfile,
@@ -22,6 +30,7 @@ class Post(models.Model):
     content = models.TextField()
     create_date = models.DateTimeField(default=timezone.now)
     last_modify_date = models.DateTimeField(default=timezone.now)
+    visibility = models.CharField(max_length=1, choices=CHOICES, default='1')
     visible_to = models.ManyToManyField(
         UserProfile,
         # need to be fixed later

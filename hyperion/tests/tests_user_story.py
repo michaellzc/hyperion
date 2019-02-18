@@ -4,18 +4,26 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from hyperion.models import *
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 # python manage.py test -v=2 hyperion.models.tests_user_story
 
 class UserStoryTestCase(TestCase):
+    def setUp(self):
+        self.u = User.objects.create(
+            username='2haotianzhu',
+            first_name='haotian',
+            last_name='zhu')
 
     def test_1(self):
         # As an author I want to make posts.
+        
         return
     def test_2(self):
         # As an author, posts I create can link to images.
         return
+
     def test_3(self):
         # As a server admin, images can be hosted on my server.
         return
