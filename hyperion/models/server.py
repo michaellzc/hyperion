@@ -9,7 +9,7 @@ class Server(models.Model):
 
     name = models.CharField(max_length=200)
     accept = models.BooleanField(default=True)
-    password = models.CharField(max_length=20)
+    password = models.CharField(max_length=20, null=True)
 
     class Meta:
         app_label = 'hyperion'
