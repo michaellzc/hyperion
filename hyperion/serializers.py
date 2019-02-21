@@ -59,6 +59,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             data['host'] = settings.HYPERION_HOSTNAME
         return data
 
+    # https://stackoverflow.com/questions/47119879/how-to-get-specific-field-from-serializer-of-django-rest-framework
+    def get_field_names(self, *args, **kwargs):
+        field_names = self.context.get('fields', None)
+        if field_names:
+            return field_names
+
+        return super(UserProfileSerializer, self).get_field_names(*args, **kwargs)
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserProfileSerializer(read_only=True)
