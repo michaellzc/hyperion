@@ -10,7 +10,7 @@ let { Meta } = Card;
 const PostCard = ({ metaTitle, avatar, content, footer }) => (
   <Card bordered={false}>
     <Meta avatar={avatar} title={metaTitle} />
-    {content}
+    {content()}
     {footer}
   </Card>
 );
