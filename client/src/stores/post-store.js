@@ -1,4 +1,5 @@
 import { Container } from 'unstated';
+import posts from './post.fixture';
 
 // TODO
 // This should includes all post attributes
@@ -8,41 +9,7 @@ import { Container } from 'unstated';
 class PostsStore extends Container {
   state = {
     // TODO
-    posts: [
-      {
-        id: 1,
-        user: {
-          displayName: 'Michael Lin',
-          username: '@michael.lin',
-        },
-        title: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.',
-        body:
-          'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. ',
-        replies: [],
-      },
-      {
-        id: 2,
-        user: {
-          displayName: 'Lily',
-          username: '@lily',
-        },
-        title: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.',
-        body:
-          'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. ',
-        replies: [],
-      },
-      {
-        id: 3,
-        user: {
-          displayName: 'Haotian',
-          username: '@haotian',
-        },
-        title: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.',
-        body:
-          'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. ',
-        replies: [],
-      },
-    ],
+    posts: [],
   };
 
   get posts() {
@@ -54,7 +21,14 @@ class PostsStore extends Container {
    * etch all public posts
    * @param {bool} cached - Whether or not to re-fetch posts from remote
    */
-  getAll = async (cached = true) => {};
+  getAll = async (cached = true) => {
+    if (cached && this.state.posts.length > 0) return;
+    let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    await delay(400);
+    this.setState({
+      posts,
+    });
+  };
 
   // TODO
   /**

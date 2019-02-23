@@ -11,10 +11,10 @@ let Title = styled.div`
 // maybe tweak around line wrap
 let Body = styled.div``;
 
-const TextCardContent = ({ title, body }) => (
+const TextCardContent = ({ title, content }) => (
   <Fragment>
     <Title>{title}</Title>
-    <Body>{body}</Body>
+    <Body>{content}</Body>
   </Fragment>
 );
 
