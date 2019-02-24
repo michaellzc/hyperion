@@ -5,6 +5,8 @@ import styled, { css } from 'styled-components/macro';
 import { inject } from '../utils';
 import { AuthStore } from '../stores';
 import logo from '../assets/logo-horizontal.png';
+// import ProfileBox from '../components/profile-box';
+import UIcontainer from '../utils/uicontainer';
 
 let { Header, Content, Footer } = Layout;
 
@@ -52,14 +54,24 @@ let CustomFooter = styled(Footer)`
   text-align: center;
 `;
 
-const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
+const AppLayout = ({
+  children,
+  stores: [authStore, uicontainer],
+  header,
+  ...props
+}) => {
   // TODO - implment logout
   let menu = (
     <Menu className="menu" selectable={false}>
+      <Menu.Item key="Profile" onClick={() => {}}>
+        <Icon type="info-circle" />
+        User Profile
+      </Menu.Item>
       <Menu.Item key="logout" onClick={authStore.logout}>
         <Icon type="logout" />
         Logout
       </Menu.Item>
+      {/* <ProfileBox /> */}
     </Menu>
   );
 
@@ -116,4 +128,4 @@ AppLayout.defaultProps = {
   header: true,
 };
 
-export default inject([AuthStore])(AppLayout);
+export default inject([AuthStore, UIcontainer])(AppLayout);
