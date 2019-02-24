@@ -36,6 +36,15 @@ urlpatterns = [
     path('auth', csrf_exempt(auth_views.AuthView.as_view())),
     path('admin/', admin.site.urls),
     url(r'^docs/', include_docs_urls(title='API Documentation')),
-    path('author/<int:author_id>/friends', friend_views.friend_list, name='friend_list')
+    # friend URL
+    path('author/<int:author_id>/friends',
+         friend_views.friend_list,
+         name='friend_list'),
+    path('author/<int:author_id_1>/friends/<str:service2>/author/<str:author_id_2>',
+         friend_views.check_friendship,
+         name='check_friendship'),
+    path('friendrequest',
+         friend_views.send_friend_request,
+         name='send_friend_request'),
 ]
 # pylint: enable=invalid-name

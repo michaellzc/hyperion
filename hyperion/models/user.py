@@ -37,6 +37,7 @@ class UserProfile(models.Model):
     display_name = models.CharField(max_length=20)
     website = models.URLField(verbose_name="personal website", blank=True)
     bio = models.CharField(max_length=100, blank=True)
+    # url can't be blank otherwise foreign user will can not be identified
     url = models.CharField(max_length=200, blank=True)
     github = models.URLField(max_length=200, blank=True)
     host = models.ForeignKey(
@@ -53,11 +54,14 @@ class UserProfile(models.Model):
             return super().__str__()+'foreign_user'+str(self.display_name)
 
     def get_full_id(self):
-        if self.host is None:
-            host_name = settings.HYPERION_HOSTNAME
+        if self.author:
+            if self.host is None:
+                host_name = settings.HYPERION_HOSTNAME
+            else:
+                host_name = self.host.name
+            return "{}/author/{}".format(host_name, self.author.id)
         else:
-            host_name = self.host.name
-        return "{}/author/{}".format(host_name, self.author.id)
+            return self.url
 
     def get_type(self):
         # return UserProfile class either host or foreign
@@ -101,9 +105,14 @@ class UserProfile(models.Model):
         # to_profile is UserProfile object
         # from hyperion.models import FriendRequest
         apps.get_model('hyperion', 'FriendRequest')
-        if self.host:
+        # if self.host:
+        #     raise ValidationError(
+        #         'Froeign user profile has not send_friend_request'
+        #     )
+        # ISSUE TODO: only to_profile should be in host
+        if to_profile.host:
             raise ValidationError(
-                'Froeign user profile has not send_friend_request'
+                'the one get friend request should be our local author'
             )
         FriendRequest.objects.create(
             from_profile=self, to_profile=to_profile)
@@ -115,7 +124,7 @@ class UserProfile(models.Model):
         apps.get_model('hyperion', 'Friend')
         if self.host:
             raise ValidationError(
-                'Froeign user profile has not accept_friend_request'
+                'Foreign user profile has not accept_friend_request'
             )
         query = FriendRequest.objects.get(
             from_profile=from_profile, to_profile=self)
@@ -127,7 +136,7 @@ class UserProfile(models.Model):
         # if there is a request, remove it
         if self.host:
             raise ValidationError(
-                'Froeign user profile has not decline_friend_request'
+                'Foreign user profile has not decline_friend_request'
             )
         query = FriendRequest.objects.get(
             from_profile=from_profile, to_profile=self)
