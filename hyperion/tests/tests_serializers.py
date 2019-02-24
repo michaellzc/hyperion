@@ -1,10 +1,10 @@
 from django.test import TestCase
 from hyperion.models import UserProfile, Server, Post, Comment
-from hyperion.serializers import UserSerializer, CommentSerializer
+from hyperion.serializers import UserSerializer, CommentSerializer, PostSerializer
 from django.conf import settings
 from django.contrib.auth.models import User
 
-
+# python manage.py test -v=2 hyperion.tests.tests_serializers
 class SerializerTestCase(TestCase):
 
     @classmethod
@@ -76,3 +76,19 @@ class SerializerTestCase(TestCase):
         self.assertEqual(data['comment'], c1.comment)
         self.assertEqual(data['published'], c1.published.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
         # print(data)
+
+    def test_post_serializer(self):
+        post = Post.objects.create(
+            author=self.u1.profile,
+            title="u1_fof",
+            content="test3"
+        )
+        Comment.objects.create(
+            author=self.u1.profile,
+            comment="u1 comment",
+            post=post
+        )
+  
+        serializer = PostSerializer(post)
+        data = serializer.data
+        self.assertEqual(data['comments'][0]['comment'], 'u1 comment')

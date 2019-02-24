@@ -73,3 +73,6 @@ class Post(models.Model):
 
     def visible_to_public(self):
         self.visible_to.clear()
+
+    def get_comments(self):
+        return self.comments.all()
