@@ -2,11 +2,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import permissions
-from hyperion.serializers import UserProfileSerializer
+from hyperion.serializers import UserProfileSerializer,FriendRequestSerializer
 from django.contrib.auth.models import User
-from hyperion.models import UserProfile, Server
+from hyperion.models import UserProfile, Server, FriendRequest
 from django.conf import settings
-from django.forms import modelform_factory
 
 import json
 from urllib.parse import urlparse
@@ -101,78 +100,99 @@ def check_friendship(request, author_id_1, service2, author_id_2):
     except Exception as e:
         print(str(e))
         return Response(_get_error_response("friends", False, str(e)),
-                       status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['POST'])
-@permission_classes((permissions.AllowAny, ))
-def send_friend_request(request):
-    try:
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        if body['query'] == "friendrequest":
-            # print(body)
-
-            # check if the to_friend is local author
-            friend_id = int(body['friend']['id'].split("/")[-1])
-
-            # get to_friend profile
-            to_friend = User.objects.get(pk=friend_id)
-
-            # check if author is in our local host
-            if body['author']['host'] == settings.HYPERION_HOSTNAME:
-                author_id = int(body['author']['id'].split("/")[-1])
-                author = User.objects.get(pk=author_id)
-
-                # send request
-                author.profile.send_friend_request(to_friend.profile)
-            else:
-                # check if the author's host is trusted by us
-                try:
-                    server = Server.objects.get(name=body['author']['host'])
-                except Server.DoesNotExist:
-                    raise Exception("the author's server is not verified by us")
-
-                # check if we already have this remote user profile
-                try:
-                    author_profile = UserProfile.objects.get(url=body['author']['url'])
-                    has_author_profile = True
-                except UserProfile.DoesNotExist:
-                    # if we doesn't have this user profile
-                    # (may also check if user exist in remote server
-                    has_author_profile = False
-
-                if not has_author_profile:
-                    # https://stackoverflow.com/questions/9626535/get-protocol-host-name-from-url
-                    parsed_uri = urlparse(body['author']['url'])
-                    host_name = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
-                    if host_name != body['author']['host']:
-                        raise Exception("we cant save the profile which host != url.host")
-
-                    try:
-                        author_profile = UserProfile.objects.create(
-                            display_name=body['author']['display_name'],
-                            host=server,
-                            url=body['author']['url']
-                        )
-                    except Exception as e:
-                        raise Exception("create author profile failed, reason: " + str(e))
-
-                author_profile.send_friend_request(to_friend.profile)
-
-            content = {
-                "query": "friendrequest",
-                "success": True,
-                "message": "friendrequest sent"
-            }
-            return Response(json.dumps(content), status=status.HTTP_200_OK)
-
-        else:
-            raise Exception("query should be friendrequest")
-
-    except Exception as e:
-        return Response(_get_error_response("friendrequest", False, str(e)),
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes((permissions.AllowAny, ))
+def friend_request(request):
+
+    if request.method == 'GET':
+        if not request.user.is_authenticated:
+            return Response(_get_error_response("friendrequest", False, "Not login"),
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # get all friend request which to_friend would be request.user
+        friend_request_list = FriendRequest.objects.filter(to_profile=request.user.profile)
+
+        content = {
+            "query": "friendrequests",
+            'frinedrequests': FriendRequestSerializer(friend_request_list,
+                                                      many=True,
+                                                      context={
+                                                          'user_fields': ['id', "host", "display_name", "url"]
+                                                      }).data
+        }
+
+        return Response(json.dumps(content), content_type='application/json', status=status.HTTP_200_OK)
+
+    elif request.method == 'POST':
+        try:
+            body_unicode = request.body.decode('utf-8')
+            body = json.loads(body_unicode)
+            if body['query'] == "friendrequest":
+                # print(body)
+
+                # check if the to_friend is local author
+                friend_id = int(body['friend']['id'].split("/")[-1])
+
+                # get to_friend profile
+                to_friend = User.objects.get(pk=friend_id)
+
+                # check if author is in our local host
+                if body['author']['host'] == settings.HYPERION_HOSTNAME:
+                    author_id = int(body['author']['id'].split("/")[-1])
+                    author = User.objects.get(pk=author_id)
+
+                    # send request
+                    author.profile.send_friend_request(to_friend.profile)
+                else:
+                    # check if the author's host is trusted by us
+                    try:
+                        server = Server.objects.get(name=body['author']['host'])
+                    except Server.DoesNotExist:
+                        raise Exception("the author's server is not verified by us")
+
+                    # check if we already have this remote user profile
+                    try:
+                        author_profile = UserProfile.objects.get(url=body['author']['url'])
+                        has_author_profile = True
+                    except UserProfile.DoesNotExist:
+                        # if we doesn't have this user profile
+                        # (may also check if user exist in remote server
+                        has_author_profile = False
+
+                    if not has_author_profile:
+                        # https://stackoverflow.com/questions/9626535/get-protocol-host-name-from-url
+                        parsed_uri = urlparse(body['author']['url'])
+                        host_name = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
+                        if host_name != body['author']['host']:
+                            raise Exception("we cant save the profile which host != url.host")
+
+                        try:
+                            author_profile = UserProfile.objects.create(
+                                display_name=body['author']['display_name'],
+                                host=server,
+                                url=body['author']['url']
+                            )
+                        except Exception as e:
+                            raise Exception("create author profile failed, reason: " + str(e))
+
+                    author_profile.send_friend_request(to_friend.profile)
+
+                content = {
+                    "query": "friendrequest",
+                    "success": True,
+                    "message": "friendrequest sent"
+                }
+                return Response(json.dumps(content), status=status.HTTP_200_OK)
+
+            else:
+                raise Exception("query should be friendrequest")
+
+        except Exception as e:
+            return Response(_get_error_response("friendrequest", False, str(e)),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 

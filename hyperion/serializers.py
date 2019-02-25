@@ -80,6 +80,30 @@ class CommentSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     author = UserProfileSerializer(read_only=True)
     comments = CommentSerializer(source='get_comments', many=True, read_only=True)
+
     class Meta:
         model = Post
         fields = '__all__'
+
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    # https://stackoverflow.com/questions/30560470/context-in-nested-serializers-django-rest-framework
+    author = serializers.SerializerMethodField('get_author_profile_serializer')
+    friend = serializers.SerializerMethodField('get_friend_profile_serializer')
+
+    class Meta:
+        model = FriendRequest
+        fields = ('id', 'author', 'friend')
+
+    def get_author_profile_serializer(self, obj):
+        user_fields = self.context['user_fields']
+        serializer = UserProfileSerializer(obj.from_profile,
+                                           read_only=True, context={'fields': user_fields})
+        return serializer.data
+
+    def get_friend_profile_serializer(self, obj):
+        user_fields = self.context['user_fields']
+        serializer = UserProfileSerializer(obj.to_profile,
+                                           read_only=True, context={'fields': user_fields})
+        return serializer.data
+

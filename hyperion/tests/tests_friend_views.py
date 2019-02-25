@@ -151,7 +151,7 @@ class FriendViewTestCase(TestCase):
         response_data = json.loads(response.data)
         self.assertEqual(response_data['friends'], True)
 
-    def test_send_friend_request(self):
+    def test_friend_request_post(self):
         u1_serializer = UserProfileSerializer(self.u1.profile,
                                               context={'fields': ['id', "host", "display_name", "url"]})
 
@@ -224,4 +224,42 @@ class FriendViewTestCase(TestCase):
             id__in=list(FriendRequest.objects.filter(to_profile=self.u1.profile)
                         .values_list('from_profile', flat=True))))
         self.assertTrue(fu2 in author_list)
+
+    def test_friend_request_get(self):
+        # send request firstly
+        u1_serializer = UserProfileSerializer(self.u1.profile,
+                                              context={'fields': ['id', "host", "display_name", "url"]})
+
+        # scenario #1 u4 send request to u1
+        u4_serializer = UserProfileSerializer(self.u4.profile,
+                                              context={'fields': ['id', "host", "display_name", "url"]})
+
+        # print(type(author_serializer.data))
+        post_body = {
+            "query": "friendrequest",
+            "author": u4_serializer.data,
+            "friend": u1_serializer.data,
+        }
+        self.client.post("/friendrequest", post_body, content_type='application/json')
+
+        # scenario #2 remote fu1 (trusted server and exist profile) send request to u1
+        fu1_serializer = UserProfileSerializer(self.fu1,
+                                               context={'fields': ['id', "host", "display_name", "url"]})
+        post_body = {
+            "query": "friendrequest",
+            "author": fu1_serializer.data,
+            "friend": u1_serializer.data,
+        }
+        self.client.post("/friendrequest", post_body, content_type='application/json')
+
+        # then test get
+        response = self.client.get('/friendrequest')
+        self.assertEqual(response.status_code, 401)
+        self.client.login(username='testUser', password='test')
+        self.assertTrue(self.u1.is_authenticated)
+
+        response = self.client.get('/friendrequest')
+        self.assertEqual(response.status_code, 200)
+        # print(response.data)
+        self.client.logout()
 

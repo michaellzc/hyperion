@@ -44,7 +44,7 @@ urlpatterns = [
          friend_views.check_friendship,
          name='check_friendship'),
     path('friendrequest',
-         friend_views.send_friend_request,
-         name='send_friend_request'),
+         friend_views.friend_request,
+         name='friend_request'),
 ]
 # pylint: enable=invalid-name
