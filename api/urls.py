@@ -37,9 +37,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^docs/', include_docs_urls(title='API Documentation')),
 
-    path('auth/posts', post_views.PostViewSet.as_view({'get': 'get_auth_posts'})),
+    path('author/posts', post_views.PostViewSet.as_view(
+        {'get': 'get_auth_posts',
+         'post': 'create',
+        }
+    )),
     path('posts', post_views.PostViewSet.as_view({'get': 'list'})),
     path('posts/<int:pk>', post_views.PostViewSet.as_view({'get': 'retrieve'})),
-    path('auth/posts', post_views.PostViewSet.as_view({'post': 'create'})),
 ]
 # pylint: enable=invalid-name

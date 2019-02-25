@@ -70,8 +70,31 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = UserProfileSerializer(read_only=True)
+    '''
+    comments: read_only
+    visible_to: required in serializer, not required in deserializer
+    '''
     comments = CommentSerializer(source='get_comments', many=True, read_only=True)
+    visible_to = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        many=True,
+        required=False,
+    )
+
     class Meta:
         model = Post
         fields = '__all__'
+
+    def create(self, validated_data):
+        # if there are some visible_to user profiel
+        visible_to_data = validated_data.pop('visible_to', [])
+        post = Post.objects.create(**validated_data)
+        post.visible_to.set(visible_to_data)
+        post.save()
+        return post
+
+    def to_representation(self, instance):
+        userprofile_data = UserProfileSerializer(instance.author).data
+        data = super().to_representation(instance)
+        data['author'] = userprofile_data
+        return data
