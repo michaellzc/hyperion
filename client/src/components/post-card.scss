@@ -1,3 +1,8 @@
 .ant-card {
     border-bottom: 1px solid #e8e8e8;
+    cursor: pointer;
+
+    :hover {
+        background: #f3f7f9;
+    }
 }
