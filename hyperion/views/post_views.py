@@ -15,7 +15,6 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-
     @action(detail=True, methods=['GET'], name='get_auth_posts')
     def get_auth_posts(self, request):
         if request.user.id:
@@ -24,4 +23,14 @@ class PostViewSet(viewsets.ModelViewSet):
                 many=True
             )
             return Response(serializer.data)
-        
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+            

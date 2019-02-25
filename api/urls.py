@@ -57,10 +57,17 @@ urlpatterns = [
          ),
 =======
 
-    path('auth/posts', post_views.PostViewSet.as_view({'get': 'get_auth_posts'})),
+    path('author/posts', post_views.PostViewSet.as_view(
+        {'get': 'get_auth_posts',
+         'post': 'create',
+        }
+    )),
     path('posts', post_views.PostViewSet.as_view({'get': 'list'})),
     path('posts/<int:pk>', post_views.PostViewSet.as_view({'get': 'retrieve'})),
+<<<<<<< HEAD
     path('auth/posts', post_views.PostViewSet.as_view({'post': 'create'})),
 >>>>>>> add postviewset
+=======
+>>>>>>> feat:  POST/GET /author/posts, GET /posts, GET /posts/{id}
 ]
 # pylint: enable=invalid-name

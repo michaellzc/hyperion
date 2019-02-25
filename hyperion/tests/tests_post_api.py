@@ -1,6 +1,7 @@
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
 from hyperion.models import *
+from hyperion.serializers import PostSerializer, UserProfileSerializer
 from hyperion.views import post_views
 from rest_framework.test import APIClient
 from django.test import TestCase
@@ -22,6 +23,7 @@ class PostViewTestCase(APITestCase, TestCase):
         )
         self.factory = APIRequestFactory()
         self.client = APIClient()
+        self.client.force_authenticate(user=self.u_1)
 
     def test_get_one(self):
         Post.objects.create(
@@ -73,7 +75,7 @@ class PostViewTestCase(APITestCase, TestCase):
             title="6",
             content="test6"
         )
-        request = self.factory.get('/auth/posts')
+        request = self.factory.get('/author/posts')
         request.user = self.u_1
         view = post_views.PostViewSet.as_view({'get': 'get_auth_posts'})
         response = view(request)
@@ -81,12 +83,16 @@ class PostViewTestCase(APITestCase, TestCase):
 
     def test_auth_post_a_post(self):
         data = {
-            "title":"6",
-            "content":"test6",
+            "author": self.u_1.profile.pk,
+            "title": "test",
+            "content": "testtest",
         }
-        request = self.factory.post('/auth/posts', data)
-        request.user = self.u_1
-        view = post_views.PostViewSet.as_view({'post': 'post_auth_posts'})
-        response = view(request)
-        print(response)
-
+        response = self.client.post('/author/posts', data, format='json')
+        self.assertEqual(
+            response.data['author']['display_name'],
+            '2haotianzhu'
+        )
+        self.assertEqual(
+            Post.objects.get().author.display_name,
+            '2haotianzhu'
+        )
