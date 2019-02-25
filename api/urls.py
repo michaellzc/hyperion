@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers #viewsets, serializers
 from rest_framework.documentation import include_docs_urls
 
-from hyperion.views import user_views, auth_views
+from hyperion.views import user_views, auth_views, post_views
 
 # Routers provide a way of automatically determining the URL conf.
 # pylint: disable=invalid-name
@@ -35,6 +35,11 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('auth', csrf_exempt(auth_views.AuthView.as_view())),
     path('admin/', admin.site.urls),
-    url(r'^docs/', include_docs_urls(title='API Documentation'))
+    url(r'^docs/', include_docs_urls(title='API Documentation')),
+
+    path('auth/posts', post_views.PostViewSet.as_view({'get': 'get_auth_posts'})),
+    path('posts', post_views.PostViewSet.as_view({'get': 'list'})),
+    path('posts/<int:pk>', post_views.PostViewSet.as_view({'get': 'retrieve'})),
+    path('auth/posts', post_views.PostViewSet.as_view({'post': 'create'})),
 ]
 # pylint: enable=invalid-name
