@@ -1,11 +1,10 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from hyperion.models import UserProfile, Friend, FriendRequest, Server
-from hyperion.serializers import UserSerializer, UserProfileSerializer
+from hyperion.serializers import UserSerializer, UserProfileSerializer, FriendRequestSerializer
 
 import json
 import copy
-from urllib.parse import quote
 
 
 class FriendViewTestCase(TestCase):
@@ -52,6 +51,16 @@ class FriendViewTestCase(TestCase):
         cls.u4.profile.display_name = "gorilla"
         cls.u4.profile.url = cls.u4.profile.get_full_id()
         cls.u4.save()
+
+        # local user u5 (not friend with u1)
+        cls.u5 = User.objects.create_user(
+            username='apple',
+            first_name='a',
+            last_name='apple'
+        )
+        cls.u5.profile.display_name = "apple"
+        cls.u5.profile.url = cls.u5.profile.get_full_id()
+        cls.u5.save()
 
         # remote user fu1
         s1 = Server.objects.create(
@@ -262,4 +271,82 @@ class FriendViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         # print(response.data)
         self.client.logout()
+
+    def test_action_friend_request(self):
+        # first send friend request firstly
+        # send request firstly
+        u1_serializer = UserProfileSerializer(self.u1.profile,
+                                              context={'fields': ['id', "host", "display_name", "url"]})
+
+        # scenario #1 u4 send request to u1
+        u5_serializer = UserProfileSerializer(self.u5.profile,
+                                              context={'fields': ['id', "host", "display_name", "url"]})
+
+        # print(type(author_serializer.data))
+        post_body = {
+            "query": "friendrequest",
+            "author": u5_serializer.data,
+            "friend": u1_serializer.data,
+        }
+        self.client.post("/friendrequest", post_body, content_type='application/json')
+
+        # scenario #2 remote fu1 (trusted server and exist profile) send request to u1
+        fu1_serializer = UserProfileSerializer(self.fu1,
+                                               context={'fields': ['id', "host", "display_name", "url"]})
+        post_body = {
+            "query": "friendrequest",
+            "author": fu1_serializer.data,
+            "friend": u1_serializer.data,
+        }
+        self.client.post("/friendrequest", post_body, content_type='application/json')
+
+        # then test action
+        self.client.login(username='testUser', password='test')
+        self.assertTrue(self.u1.is_authenticated)
+
+        # accept action (u1 and u5)
+        friend_request_u5_u1 = FriendRequest.objects.get(to_profile=self.u1.profile, from_profile=self.u5.profile)
+        serializer = FriendRequestSerializer(friend_request_u5_u1,
+                                             context={'user_fields': ['id', "host", "display_name", "url"]})
+        put_body = {
+            "query": "friendrequestAction",
+            "friendrequest": serializer.data,
+            "accepted": True,
+        }
+        response = self.client.put('/friendrequest/{}'.format(friend_request_u5_u1.id),
+                                   json.dumps(put_body), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        # print(response.data)
+        with self.assertRaises(FriendRequest.DoesNotExist):
+            FriendRequest.objects.get(to_profile=self.u1.profile, from_profile=self.u5.profile)
+        # check friendship
+        url = "/author/{}/friends/cmput404-front.herokuapp.com/author/{}".format(self.u1.id, self.u5.id)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.data)
+        self.assertEqual(response_data['friends'], True)
+
+        # decline action (u1 and fu1)
+        friend_request_fu1_u1 = FriendRequest.objects.get(to_profile=self.u1.profile, from_profile=self.fu1)
+        serializer = FriendRequestSerializer(friend_request_fu1_u1,
+                                             context={'user_fields': ['id', "host", "display_name", "url"]})
+        put_body = {
+            "query": "friendrequestAction",
+            "friendrequest": serializer.data,
+            "accepted": False,
+        }
+        response = self.client.put('/friendrequest/{}'.format(friend_request_fu1_u1.id),
+                                   json.dumps(put_body), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        # print(response.data)
+        with self.assertRaises(FriendRequest.DoesNotExist):
+            FriendRequest.objects.get(to_profile=self.u1.profile, from_profile=self.fu1)
+        # check friendship
+        url = "/author/{}/friends/cmput404-front.herokuapp.com/author/1d698d25ff008f7538453c120f581471".format(self.u1.id)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.data)
+        self.assertEqual(response_data['friends'], False)
+
+
 

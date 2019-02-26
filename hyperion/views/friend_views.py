@@ -195,5 +195,40 @@ def friend_request(request):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PUT'])
+@permission_classes((permissions.IsAuthenticated,))
+def action_friend_request(request, friendrequest_id):
+    try:
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        # get the friend request first
+        friend_request_obj = FriendRequest.objects.get(pk=friendrequest_id)
+
+        # check the accepted information
+        if body['accepted']:
+            friend_request_obj.to_profile.accept_friend_request(friend_request_obj.from_profile)
+            msg = "accept the friend request"
+            accepted = True
+        else:
+            friend_request_obj.to_profile.decline_friend_request(friend_request_obj.from_profile)
+            msg = "decline the friend request"
+            accepted = False
+
+        serializer = FriendRequestSerializer(friend_request_obj,
+                                             context={'user_fields': ['id', "host", "display_name", "url"]})
+        content = {
+            "query": "friendrequestAction",
+            "friendrequest": serializer.data,
+            "accepted": accepted,
+            "success": True,
+            "message": msg
+        }
+        return Response(json.dumps(content), status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response(_get_error_response("friendrequestAction", False, str(e)),
+                        status=status.HTTP_400_BAD_REQUEST)
+
 
 
