@@ -8,7 +8,7 @@ let { Meta } = Card;
 // - text
 // - image
 const PostCard = ({ metaTitle, avatar, content, footer, ...props }) => (
-  <Card bordered={false} {...props}>
+  <Card className="post-card" bordered={false} {...props}>
     <Meta avatar={avatar} title={metaTitle} />
     {content()}
     {footer}
