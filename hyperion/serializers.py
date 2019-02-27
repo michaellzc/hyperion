@@ -16,7 +16,6 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     bio = serializers.CharField(source='profile.bio', allow_blank=True, max_length=100, required=False)
     host = serializers.CharField(source='profile.host.name', max_length=200, required=False)
     display_name = serializers.CharField(source='profile.display_name', max_length=20)
@@ -26,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'bio',
+        fields = ('id', 'username', 'email', 'bio',
                   'host', 'first_name', 'last_name',
                   'display_name', 'url', 'github')
 
