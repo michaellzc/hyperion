@@ -54,6 +54,16 @@ class PostsStore extends Container {
   create = async post => {};
 
   /**
+   * Delete a post
+   * @param {id} id - Post id
+   */
+  delete = async id => {
+    let { posts } = this.state;
+    posts.delete(id);
+    this.setState({ posts });
+  };
+
+  /**
    * Add a comment to a post
    * @param {string} postId - The post id
    */

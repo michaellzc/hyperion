@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
-import { Avatar, message } from 'antd';
-import { PostStore } from '../stores';
+import { Avatar, message, Icon, Tooltip, Dropdown, Menu } from 'antd';
+import { PostStore, AuthStore } from '../stores';
 import { inject } from '../utils';
 import PostCard from './post-card';
 import TextCardContent from './text-card-content';
@@ -10,7 +10,7 @@ import MarkdownCardContent from './markdown-card-content';
 import CardActionsFooter from './card-actions-footer';
 import PostOverlay from './post-overlay';
 
-const CardMetaTitle = ({ displayName, username }) => (
+const CardMetaTitle = ({ displayName, username, extra }) => (
   <Fragment>
     {displayName}{' '}
     <small
@@ -21,10 +21,11 @@ const CardMetaTitle = ({ displayName, username }) => (
     >
       {username}
     </small>
+    {extra}
   </Fragment>
 );
 
-const PostsStream = ({ stores: [postStore] }) => {
+const PostsStream = ({ stores: [postStore, authStore] }) => {
   let [isVisible, setVisibility] = useState(false);
   let [postId, setPostId] = useState(null);
 
@@ -56,6 +57,13 @@ const PostsStream = ({ stores: [postStore] }) => {
     setVisibility(!isVisible);
   };
 
+  let handleMenuClick = async (postId, { key, domEvent: e }) => {
+    e.stopPropagation();
+    if (key === 'delete') {
+      await postStore.delete(postId);
+    }
+  };
+
   let posts = postStore.posts.map(
     ({ id, contentType, author: user, ...props }) => (
       <PostCard
@@ -67,6 +75,24 @@ const PostsStream = ({ stores: [postStore] }) => {
           <CardMetaTitle
             displayName={user.displayName}
             username={`@${user.username}`}
+            extra={
+              user.id === authStore.user.id ? (
+                <Tooltip title="more">
+                  <Dropdown
+                    overlay={
+                      <Menu onClick={things => handleMenuClick(id, things)}>
+                        <Menu.Item key="delete">Delete Post</Menu.Item>
+                      </Menu>
+                    }
+                    onClick={e => e.stopPropagation()}
+                    trigger={['click']}
+                    placement="bottomRight"
+                  >
+                    <Icon style={{ float: 'right' }} type="down" />
+                  </Dropdown>
+                </Tooltip>
+              ) : null
+            }
           />
         }
         content={() => {
@@ -102,4 +128,4 @@ const PostsStream = ({ stores: [postStore] }) => {
   );
 };
 
-export default inject([PostStore])(PostsStream);
+export default inject([PostStore, AuthStore])(PostsStream);
