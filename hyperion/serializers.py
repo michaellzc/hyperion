@@ -60,12 +60,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return data
 
     # https://stackoverflow.com/questions/47119879/how-to-get-specific-field-from-serializer-of-django-rest-framework
-    def get_field_names(self, *args, **kwargs):
+    # https://github.com/encode/django-rest-framework/blob/master/rest_framework/serializers.py
+    def get_field_names(self, declared_fields, info):
         field_names = self.context.get('fields', None)
         if field_names:
             return field_names
 
-        return super(UserProfileSerializer, self).get_field_names(*args, **kwargs)
+        return super(UserProfileSerializer, self).get_field_names(declared_fields, info)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -106,4 +107,3 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         serializer = UserProfileSerializer(obj.to_profile,
                                            read_only=True, context={'fields': user_fields})
         return serializer.data
-
