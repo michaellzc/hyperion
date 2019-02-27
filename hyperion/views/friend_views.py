@@ -1,7 +1,8 @@
 # pylint: disable=broad-except, too-many-branches
 import json
 from urllib.parse import urlparse
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import BasicAuthentication
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -10,27 +11,23 @@ from django.conf import settings
 
 from hyperion.serializers import UserProfileSerializer, FriendRequestSerializer
 from hyperion.models import UserProfile, Server, FriendRequest
+from hyperion.authentication import HyperionBasicAuthentication
 
 
 def _get_error_response(query_name, is_success, message):
     content = {"query": query_name,
                "success": is_success,
                "message": message}
-    return json.dumps(content)
+    return content
 
 
 @api_view(['GET', 'POST'])
-@permission_classes((permissions.AllowAny,))
-# @permission_classes((permissions.IsAuthenticated,))
+@authentication_classes((HyperionBasicAuthentication,))
+@permission_classes((permissions.IsAuthenticated, permissions.AllowAny,))
 # don't know how to vendor error message to default error raise
 def friend_list(request, author_id):
 
     if request.method == "GET":
-        # only GET method needs authorized ??
-        if not request.user.is_authenticated:
-            return Response(_get_error_response("friends", False, "Not login"),
-                            status=status.HTTP_401_UNAUTHORIZED)
-
         # get all friends to this authenticated author
         friends = list(request.user.profile.get_friends())
         # https://stackoverflow.com/questions/47119879/how-to-get-specific-field-from-serializer-of-django-rest-framework
@@ -38,7 +35,7 @@ def friend_list(request, author_id):
                                            many=True,
                                            context={'fields': ['id', "host", "display_name", "url"]})
         content = {"query": "friends", "count": len(friends), "author": serializer.data}
-        return Response(json.dumps(content), content_type='application/json', status=status.HTTP_200_OK)
+        return Response(content, content_type='application/json', status=status.HTTP_200_OK)
 
     elif request.method == "POST":
         try:
@@ -59,7 +56,7 @@ def friend_list(request, author_id):
             # print(result_friend_list)
 
             content = {"query": "friends", "author": body['author'], "authors": result_friend_list}
-            return Response(json.dumps(content), content_type='application/json', status=status.HTTP_200_OK)
+            return Response(content, content_type='application/json', status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response(_get_error_response("friends", False, "the author is not exist"),
@@ -71,7 +68,8 @@ def friend_list(request, author_id):
 
 
 @api_view(["GET"])
-@permission_classes((permissions.AllowAny,))
+@authentication_classes((HyperionBasicAuthentication,))
+@permission_classes((permissions.IsAuthenticated, permissions.AllowAny,))
 def check_friendship(request, author_id_1, service2, author_id_2):
     # print("author1 ", author_id_1)
     author2 = "https://" + service2 + "/author/" + author_id_2
@@ -97,7 +95,7 @@ def check_friendship(request, author_id_1, service2, author_id_2):
         else:
             content["friends"] = False
 
-        return Response(json.dumps(content), content_type='application/json', status=status.HTTP_200_OK)
+        return Response(content, content_type='application/json', status=status.HTTP_200_OK)
 
     except User.DoesNotExist:
         return Response(_get_error_response("friends", False, "the author 1 is not exist"),
@@ -109,14 +107,11 @@ def check_friendship(request, author_id_1, service2, author_id_2):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes((permissions.AllowAny, ))
+@authentication_classes((HyperionBasicAuthentication,))
+@permission_classes((permissions.IsAuthenticated, permissions.AllowAny, ))
 def friend_request(request):
 
     if request.method == 'GET':
-        if not request.user.is_authenticated:
-            return Response(_get_error_response("friendrequest", False, "Not login"),
-                            status=status.HTTP_401_UNAUTHORIZED)
-
         # get all friend request which to_friend would be request.user
         friend_request_list = FriendRequest.objects.filter(to_profile=request.user.profile)
 
@@ -129,7 +124,7 @@ def friend_request(request):
                                                       }).data
         }
 
-        return Response(json.dumps(content), content_type='application/json', status=status.HTTP_200_OK)
+        return Response(content, content_type='application/json', status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
         try:
@@ -194,7 +189,7 @@ def friend_request(request):
                 "success": True,
                 "message": "friendrequest sent"
             }
-            return Response(json.dumps(content), status=status.HTTP_200_OK)
+            return Response(content, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response(_get_error_response("friendrequest", False, "the friend is not exist"),
@@ -206,7 +201,8 @@ def friend_request(request):
 
 
 @api_view(['PUT'])
-@permission_classes((permissions.IsAuthenticated,))
+@authentication_classes((HyperionBasicAuthentication,))
+@permission_classes((permissions.IsAuthenticated, permissions.IsAuthenticated,))
 def action_friend_request(request, friendrequest_id):
     try:
         body_unicode = request.body.decode('utf-8')
@@ -237,7 +233,7 @@ def action_friend_request(request, friendrequest_id):
             "success": True,
             "message": msg
         }
-        return Response(json.dumps(content), status=status.HTTP_200_OK)
+        return Response(content, status=status.HTTP_200_OK)
 
     except FriendRequest.DoesNotExist:
         return Response(_get_error_response("friendrequestAction", False, "friend request is not exist"),
