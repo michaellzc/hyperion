@@ -2,7 +2,7 @@ import json
 import copy
 import base64
 
-from django.test import TestCase, Client, RequestFactory
+from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from hyperion.models import UserProfile, Friend, FriendRequest, Server
 from hyperion.serializers import UserSerializer, UserProfileSerializer, FriendRequestSerializer
