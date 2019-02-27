@@ -46,7 +46,7 @@ const PostOverlay = ({ postId, isVisible, onCancel, stores: [postStore] }) => {
           dataSource={post.comments}
           renderItem={item => (
             <Comment
-              author={item.author}
+              author={item.author.displayName}
               avatar={item.avatar}
               content={item.content}
             />
