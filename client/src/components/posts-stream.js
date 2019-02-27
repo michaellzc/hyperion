@@ -56,37 +56,39 @@ const PostsStream = ({ stores: [postStore] }) => {
     setVisibility(!isVisible);
   };
 
-  let posts = postStore.posts.map(({ id, contentType, user, ...props }) => (
-    <PostCard
-      key={id}
-      id={id}
-      avatar={<Avatar icon="user" />}
-      onClick={() => handleOpenPost(id)}
-      metaTitle={
-        <CardMetaTitle
-          displayName={user.displayName}
-          username={user.username}
-        />
-      }
-      content={() => {
-        if (contentType === 'text/plain') {
-          return <TextCardContent {...props} />;
-        } else if (contentType.startsWith('image')) {
-          return <ImageCardContent {...props} />;
-        } else if (contentType === 'text/markdown') {
-          return <MarkdownCardContent {...props} />;
-        } else {
-          throw new Error('Unsupported post content type.');
+  let posts = postStore.posts.map(
+    ({ id, contentType, author: user, ...props }) => (
+      <PostCard
+        key={id}
+        id={id}
+        avatar={<Avatar icon="user" />}
+        onClick={() => handleOpenPost(id)}
+        metaTitle={
+          <CardMetaTitle
+            displayName={user.displayName}
+            username={`@${user.username}`}
+          />
         }
-      }}
-      footer={
-        <CardActionsFooter
-          onReply={e => handleReply(e, id)}
-          onShare={e => handleShare(e, id)}
-        />
-      }
-    />
-  ));
+        content={() => {
+          if (contentType === 'text/plain') {
+            return <TextCardContent {...props} />;
+          } else if (contentType.startsWith('image')) {
+            return <ImageCardContent {...props} />;
+          } else if (contentType === 'text/markdown') {
+            return <MarkdownCardContent {...props} />;
+          } else {
+            throw new Error('Unsupported post content type.');
+          }
+        }}
+        footer={
+          <CardActionsFooter
+            onReply={e => handleReply(e, id)}
+            onShare={e => handleShare(e, id)}
+          />
+        }
+      />
+    )
+  );
 
   return (
     <Fragment>
