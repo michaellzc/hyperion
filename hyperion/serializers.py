@@ -92,7 +92,11 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 186bd740f52190f6bef5bf9fa9ae495c33497f51
     def create(self, validated_data):
         # if there are some visible_to user profiel
         visible_to_data = validated_data.pop('visible_to', [])
@@ -106,6 +110,7 @@ class PostSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['author'] = userprofile_data
         return data
+<<<<<<< HEAD
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
@@ -128,3 +133,5 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         serializer = UserProfileSerializer(obj.to_profile,
                                            read_only=True, context={'fields': user_fields})
         return serializer.data
+=======
+>>>>>>> 186bd740f52190f6bef5bf9fa9ae495c33497f51

@@ -22,10 +22,14 @@ from rest_framework import routers #viewsets, serializers
 from rest_framework.documentation import include_docs_urls
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from hyperion.views import user_views, auth_views, friend_views
 =======
 from hyperion.views import user_views, auth_views, post_views
 >>>>>>> add postviewset
+=======
+from hyperion.views import user_views, auth_views, post_views
+>>>>>>> 186bd740f52190f6bef5bf9fa9ae495c33497f51
 
 # Routers provide a way of automatically determining the URL conf.
 # pylint: disable=invalid-name
@@ -40,6 +44,7 @@ urlpatterns = [
     path('auth', csrf_exempt(auth_views.AuthView.as_view())),
     path('admin/', admin.site.urls),
     url(r'^docs/', include_docs_urls(title='API Documentation')),
+<<<<<<< HEAD
 <<<<<<< HEAD
     # friend URL
     path('author/<int:author_id>/friends',
@@ -56,6 +61,8 @@ urlpatterns = [
          name='action_friend_request'
          ),
 =======
+=======
+>>>>>>> 186bd740f52190f6bef5bf9fa9ae495c33497f51
 
     path('author/posts', post_views.PostViewSet.as_view(
         {'get': 'get_auth_posts',
@@ -65,9 +72,12 @@ urlpatterns = [
     path('posts', post_views.PostViewSet.as_view({'get': 'list'})),
     path('posts/<int:pk>', post_views.PostViewSet.as_view({'get': 'retrieve'})),
 <<<<<<< HEAD
+<<<<<<< HEAD
     path('auth/posts', post_views.PostViewSet.as_view({'post': 'create'})),
 >>>>>>> add postviewset
 =======
 >>>>>>> feat:  POST/GET /author/posts, GET /posts, GET /posts/{id}
+=======
+>>>>>>> 186bd740f52190f6bef5bf9fa9ae495c33497f51
 ]
 # pylint: enable=invalid-name
