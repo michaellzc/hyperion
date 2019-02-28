@@ -1,13 +1,20 @@
+import json
+import copy
+import base64
+
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from hyperion.models import UserProfile, Friend, FriendRequest, Server
 from hyperion.serializers import UserSerializer, UserProfileSerializer, FriendRequestSerializer
 
-import json
-import copy
-
 
 class FriendViewTestCase(TestCase):
+    username = 'testUser'
+    password = 'test'
+
+    def setUp(self):
+        credentials = base64.b64encode('{}:{}'.format(self.username, self.password).encode()).decode()
+        self.client = Client(HTTP_AUTHORIZATION='Basic {}'.format(credentials))
 
     @classmethod
     def setUpTestData(cls):
@@ -82,9 +89,6 @@ class FriendViewTestCase(TestCase):
         return len(l1) == len(l2) and sorted(l1) == sorted(l2)
 
     def test_friend_list_get(self):
-        self.client.login(username='testUser', password='test')
-        self.assertTrue(self.u1.is_authenticated)
-
         response = self.client.get('/author/{}/friends'.format(self.u1.id))
         self.assertEqual(response.status_code, 200)
         friends = list(self.u1.profile.get_friends())
@@ -92,9 +96,7 @@ class FriendViewTestCase(TestCase):
                                            many=True,
                                            context={'fields': ['id', "host", "display_name", "url"]})
         content = {"query": "friends", "count": len(friends), "author": serializer.data}
-        self.assertEqual(response.data, json.dumps(content))
-        # print(response.data)
-        self.client.logout()
+        self.assertEqual(response.data, content)
 
     def test_friend_list_post(self):
         post_body = {
@@ -123,7 +125,7 @@ class FriendViewTestCase(TestCase):
         result_body["authors"].remove("https://cmput404-front-t2.herokuapp.com/author/100")
         # print(json.loads(response.data))
 
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertTrue(self._check_list_equal(result_body["authors"], response_data["authors"]))
         self.assertEqual(response_data["query"], "friends")
         self.assertEqual(response_data["author"], str(self.u1.id))
@@ -134,7 +136,7 @@ class FriendViewTestCase(TestCase):
             .format(self.u1.id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertEqual(response_data['friends'], False)
         # print(response.data)
 
@@ -143,21 +145,21 @@ class FriendViewTestCase(TestCase):
             .format(self.u1.id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertEqual(response_data['friends'], True)
 
         # check local friend (not friend with author1)
         url = "/author/{}/friends/cmput404-front.herokuapp.com/author/{}".format(self.u1.id, self.u4.id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertEqual(response_data['friends'], False)
 
         # check local friend (friend with author1)
         url = "/author/{}/friends/cmput404-front.herokuapp.com/author/{}".format(self.u1.id, self.u2.id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertEqual(response_data['friends'], True)
 
     def test_friend_request_post(self):
@@ -261,16 +263,8 @@ class FriendViewTestCase(TestCase):
         }
         self.client.post("/friendrequest", post_body, content_type='application/json')
 
-        # then test get
-        response = self.client.get('/friendrequest')
-        self.assertEqual(response.status_code, 401)
-        self.client.login(username='testUser', password='test')
-        self.assertTrue(self.u1.is_authenticated)
-
         response = self.client.get('/friendrequest')
         self.assertEqual(response.status_code, 200)
-        # print(response.data)
-        self.client.logout()
 
     def test_action_friend_request(self):
         # first send friend request firstly
@@ -300,10 +294,6 @@ class FriendViewTestCase(TestCase):
         }
         self.client.post("/friendrequest", post_body, content_type='application/json')
 
-        # then test action
-        self.client.login(username='testUser', password='test')
-        self.assertTrue(self.u1.is_authenticated)
-
         # accept action (u1 and u5)
         friend_request_u5_u1 = FriendRequest.objects.get(to_profile=self.u1.profile, from_profile=self.u5.profile)
         serializer = FriendRequestSerializer(friend_request_u5_u1,
@@ -323,7 +313,7 @@ class FriendViewTestCase(TestCase):
         url = "/author/{}/friends/cmput404-front.herokuapp.com/author/{}".format(self.u1.id, self.u5.id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertEqual(response_data['friends'], True)
 
         # decline action (u1 and fu1)
@@ -345,7 +335,7 @@ class FriendViewTestCase(TestCase):
         url = "/author/{}/friends/cmput404-front.herokuapp.com/author/1d698d25ff008f7538453c120f581471".format(self.u1.id)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.data)
+        response_data = response.data
         self.assertEqual(response_data['friends'], False)
 
 
