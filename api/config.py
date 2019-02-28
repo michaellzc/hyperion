@@ -11,7 +11,7 @@ POSTGRES_PORT = os.environ.get('CMPUT404_POSTGRES_PORT', None)
 POSTGRES_NAME = os.environ.get('CMPUT404_POSTGRES_NAME', None)
 POSTGRES_USER = os.environ.get('CMPUT404_POSTGRES_USER', None)
 POSTGRES_PASSWORD = os.environ.get('CMPUT404_POSTGRES_PASSWORD', None)
-
+TEST_POSTGRES_NAME = 'test_{}'.format(os.environ.get('TEST_POSTGRES_NAME', 'default'))
 
 ############ App environment variables ###################
 
