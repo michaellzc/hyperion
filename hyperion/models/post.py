@@ -1,8 +1,9 @@
 
 from django.db import models
 from django.utils import timezone
-from .user import UserProfile
 from django.conf import settings
+from hyperion.models.user import UserProfile
+
 
 
 class Post(models.Model):

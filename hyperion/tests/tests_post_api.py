@@ -104,4 +104,3 @@ class PostViewTestCase(APITestCase, TestCase):
             Post.objects.all()[0].author.display_name,
             '2haotianzhu'
         )
-        print(Post.objects.all()[0].content_type)
