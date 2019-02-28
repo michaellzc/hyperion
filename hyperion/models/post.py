@@ -2,6 +2,7 @@
 from django.db import models
 from django.utils import timezone
 from .user import UserProfile
+from django.conf import settings
 
 
 class Post(models.Model):
@@ -15,18 +16,18 @@ class Post(models.Model):
         app_label = 'hyperion'
 
     CHOICES = (
-        ('1', 'PUBLIC'),
-        ('2', 'FOAF'),
-        ('3', 'FRIENDS'),
-        ('4', 'PRIVATE'),
-        ('5', 'SERVERONLY'),
+        ('PUBLIC', 'PUBLIC'),
+        ('FOAF', 'FOAF'),
+        ('FRIENDS', 'FRIENDS'),
+        ('PRIVATE', 'PRIVATE'),
+        ('SERVERONLY', 'SERVERONLY'),
     )
     CONTENT_TYPES = (
-        ('1', 'text/plain'),
-        ('2', 'text/markdown'),
-        ('3', 'image/png;base64'),
-        ('4', 'image/jpeg;base64'),
-        ('5', 'application/base64'),
+        ('text/plain', 'text/plain'),
+        ('text/markdown', 'text/markdown'),
+        ('image/png;base64', 'image/png;base64'),
+        ('image/jpeg;base64', 'image/jpeg;base64'),
+        ('application/base64', 'application/base64'),
     )
 
     title = models.CharField(max_length=100)
@@ -37,15 +38,30 @@ class Post(models.Model):
     content = models.TextField()
     create_date = models.DateTimeField(default=timezone.now)
     last_modify_date = models.DateTimeField(default=timezone.now)
-
-    content_type = models.CharField(
-        max_length=1, choices=CONTENT_TYPES, default='1'
+    source = models.URLField(
+        max_length=200,
+        null=True,
+        blank=True
     )
-    visibility = models.CharField(max_length=1, choices=CHOICES, default='1')
+    origin = models.URLField(
+        max_length=200,
+        default=settings.HYPERION_HOSTNAME
+    )
+    content_type = models.CharField(
+        max_length=20,
+        choices=CONTENT_TYPES,
+        default='PUBLIC'
+    )
+    visibility = models.CharField(
+        max_length=20,
+        choices=CHOICES,
+        default='text/plain'
+    )
     visible_to = models.ManyToManyField(
         UserProfile,
         related_name='visible'
     )
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return super().__str__()+' post: '+str(self.author.pk)

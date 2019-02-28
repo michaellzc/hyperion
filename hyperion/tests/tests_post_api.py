@@ -5,6 +5,8 @@ from hyperion.serializers import PostSerializer, UserProfileSerializer
 from hyperion.views import post_views
 from rest_framework.test import APIClient
 from django.test import TestCase
+from django.conf import settings
+
 # python manage.py test -v=2 hyperion.tests.tests_post_api
 
 
@@ -32,8 +34,11 @@ class PostViewTestCase(APITestCase, TestCase):
             content="test1"
         )
         response = self.client.get('/posts')
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['author']['display_name'], '2haotianzhu')
+        self.assertEqual(len(response.data['posts']), 1)
+        self.assertEqual(
+            response.data['posts'][0]['author']['display_name'],
+            '2haotianzhu'
+        )
 
     def test_get_many(self):
         Post.objects.create(
@@ -47,7 +52,7 @@ class PostViewTestCase(APITestCase, TestCase):
             content="test3"
         )
         response = self.client.get('/posts')
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data['posts']), 2)
 
     def test_get_post_by_id(self):
         Post.objects.create(
@@ -59,7 +64,7 @@ class PostViewTestCase(APITestCase, TestCase):
         path = '/posts/{}'.format(the_id)
         response = self.client.get(path)
         self.assertEqual(
-            response.data['author']['display_name'],
+            response.data['post']['author']['display_name'],
             '2haotianzhu'
         )
 
@@ -79,20 +84,33 @@ class PostViewTestCase(APITestCase, TestCase):
         request.user = self.u_1
         view = post_views.PostViewSet.as_view({'get': 'get_auth_posts'})
         response = view(request)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['posts']), 1)
 
     def test_auth_post_a_post(self):
         data = {
-            "author": self.u_1.profile.pk,
-            "title": "test",
-            "content": "testtest",
+            "query": "createPost",
+            "post": {
+                "title": "test",
+                "content_type": "text/plain",
+                "content": "some post content",
+                "origin": settings.HYPERION_HOSTNAME,
+            }
         }
         response = self.client.post('/author/posts', data, format='json')
+        print(response.data)
+        serializer = PostSerializer(data=response.data)
+        serializer.is_valid()
+        print(serializer.data)
+
+        # self.assertEqual(
+        #     response.data['post']['display_name'],
+        #     '2haotianzhu'
+        # )
+        # self.assertEqual(
+        #     Post.objects.get().author.display_name,
+        #     '2haotianzhu'
+        # )
         self.assertEqual(
-            response.data['author']['display_name'],
-            '2haotianzhu'
-        )
-        self.assertEqual(
-            Post.objects.get().author.display_name,
+            Post.objects.all(),
             '2haotianzhu'
         )
