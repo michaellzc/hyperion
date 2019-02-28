@@ -17,11 +17,9 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
 from django.views.decorators.csrf import csrf_exempt
-
-from rest_framework import routers #viewsets, serializers
+from rest_framework import routers  # viewsets, serializers
 from rest_framework.documentation import include_docs_urls
-
-from hyperion.views import user_views, auth_views, friend_views
+from hyperion.views import user_views, auth_views, friend_views, post_views
 
 # Routers provide a way of automatically determining the URL conf.
 # pylint: disable=invalid-name
@@ -50,5 +48,12 @@ urlpatterns = [
          friend_views.action_friend_request,
          name='action_friend_request'
          ),
+    path('author/posts', post_views.PostViewSet.as_view(
+        {'get': 'get_auth_posts',
+         'post': 'post_auth_posts',
+         }
+    )),
+    path('posts', post_views.PostViewSet.as_view({'get': 'list'})),
+    path('posts/<int:pk>', post_views.PostViewSet.as_view({'get': 'retrieve'})),
 ]
 # pylint: enable=invalid-name

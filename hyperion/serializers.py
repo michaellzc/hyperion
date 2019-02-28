@@ -78,12 +78,31 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    '''
+    comments: read_only
+    visible_to: required in serializer, not required in deserializer
+    '''
     author = UserProfileSerializer(read_only=True)
     comments = CommentSerializer(source='get_comments', many=True, read_only=True)
+    visible_to = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        many=True,
+        required=False,
+    )
 
     class Meta:
         model = Post
         fields = '__all__'
+
+    def create(self, validated_data):
+        # https://stackoverflow.com/questions/30203652/how-to-get-request-user-in-django-rest-framework-serializer
+        # if there are some visible_to user profiel
+        user = self.context['request'].user
+        visible_to_data = validated_data.pop('visible_to', [])
+        post = Post.objects.create(author=user.profile, **validated_data)
+        post.visible_to.set(visible_to_data)
+        post.save()
+        return post
 
 
 class FriendRequestSerializer(serializers.ModelSerializer):
