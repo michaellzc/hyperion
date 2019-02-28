@@ -40,6 +40,14 @@
     "*.{json,md,scss,yaml,yml}": [
       "prettier --write",
       "git add"
+    ],
+    "../hyperion/**/*.py": [
+      "yapf -i ",
+      "git add"
+    ],
+    "../api/**/*.py": [
+      "yapf -i ",
+      "git add"
     ]
   },
   "husky": {
