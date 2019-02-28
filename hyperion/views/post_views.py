@@ -1,9 +1,11 @@
+# pylint: disable=arguments-differ
+
 from rest_framework.decorators import action
-from rest_framework.authentication import BasicAuthentication
-from hyperion.authentication import HyperionBasicAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
+
+from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post
 
@@ -78,13 +80,3 @@ class PostViewSet(viewsets.ModelViewSet):
         data = response.data
         response.data = {'query': 'post', 'post': data}
         return response
-
-    # def get_permissions(self):
-    #     """
-    #     Instantiates and returns the list of permissions that this view requires.
-    #     """
-    #     if self.action == 'list':
-    #         permission_classes = [IsAuthenticated]
-    #     else:
-    #         permission_classes = [IsAuthenticated]
-    #     return [permission() for permission in permission_classes]
