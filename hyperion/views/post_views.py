@@ -18,66 +18,65 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['POST'], name='post_auth_posts')
     def post_auth_posts(self, request):
         '''
-        response: {'status': 'success', 'post': data}
+        POST /author/posts
         '''
-        if request.user.id:
-            body = request.data
-            post_query = body.get('query', None)
-            post_data = body.get('post', None)
-            if post_query == 'createPost' and post_query:
-                post_data['visible_to'] = post_data.get('visible_to', [])
-                serializer = PostSerializer(data=post_data)
-                return Response(post_data)
-                if serializer.is_valid():
-                    return Response(
-                        {'status': 'success',
-                         'post': serializer.data
-                         })
-                else:
-                    return Response(
-                        {'status': 'failed',
-                         'errors': serializer.errors
-                         })
-
-        return Response({'status': '401'})
+        body = request.data
+        post_query = body.get('query', None)
+        post_data = body.get('post', None)
+        if post_query == 'createPost' and post_query:
+            post_data['visible_to'] = post_data.get('visible_to', [])
+            serializer = PostSerializer(data=post_data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    {'query': 'createPost',
+                     'success': True,
+                     'message': 'Author Post Created'
+                    })
+            else:
+                return Response(
+                    {'query': 'createPost',
+                     'success': False,
+                    'message': serializer.errors
+                    })
 
     @action(detail=True, methods=['GET'], name='get_auth_posts')
     def get_auth_posts(self, request):
         '''
-        response: {'status': 'success', 'posts': data}
+        GET /author/posts
         '''
-        if request.user.id:
-            serializer = PostSerializer(
-                self.queryset.filter(author=request.user.profile),
-                many=True
-            )
-            return Response({'status': 'success', 'posts': serializer.data})
-        else:
-            return Response({'status': '401'})
+        serializer = PostSerializer(
+            self.queryset.filter(author=request.user.profile),
+            many=True
+        )
+        return Response({
+            'query': 'visiblePosts',
+            'count': len(serializer.data),
+            'posts': serializer.data
+        })
 
     def list(self, request):
         '''
-        response: {'status': 'success', 'posts': data}
+        GET /posts
         '''
-        if request.user.id:
-            response = super().list(request)
-            data = response.data
-            response.data = {'status': 'success', 'posts': data}
-            return response
-        else:
-            return Response({'status': '401'})
+        response = super().list(request)
+        data = response.data
+        response.data = {
+            'query': 'publicPosts',
+            'count': len(data),
+            'posts': data
+            }
+        return response
 
     def retrieve(self, request, pk):
         '''
-        response: {'status': 'success', 'post': data}
+        GET posts/{id}
         '''
-        if request.user.id:
-            response = super().retrieve(request, pk)
-            data = response.data
-            response.data = {'status': 'success', 'post': data}
-            return response
-        else:
-            return Response({'status': '401'})
+        response = super().retrieve(request, pk)
+        data = response.data
+        response.data = {'query': 'post', 'post': data}
+        return response
+
 
     def get_permissions(self):
         """

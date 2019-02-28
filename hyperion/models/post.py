@@ -50,18 +50,19 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=20,
         choices=CONTENT_TYPES,
-        default='PUBLIC'
+        default='ext/plain'
     )
     visibility = models.CharField(
         max_length=20,
         choices=CHOICES,
-        default='text/plain'
+        default='PUBLIC'
     )
     visible_to = models.ManyToManyField(
         UserProfile,
         related_name='visible'
     )
     description = models.TextField(null=True, blank=True)
+    unlisted = models.BooleanField(default=False)
 
     def __str__(self):
         return super().__str__()+' post: '+str(self.author.pk)

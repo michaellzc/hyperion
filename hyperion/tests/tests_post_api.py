@@ -84,6 +84,7 @@ class PostViewTestCase(APITestCase, TestCase):
         request.user = self.u_1
         view = post_views.PostViewSet.as_view({'get': 'get_auth_posts'})
         response = view(request)
+        self.assertEqual(response.data['query'], 'visiblePosts')
         self.assertEqual(len(response.data['posts']), 1)
 
     def test_auth_post_a_post(self):
@@ -93,24 +94,14 @@ class PostViewTestCase(APITestCase, TestCase):
                 "title": "test",
                 "content_type": "text/plain",
                 "content": "some post content",
-                "origin": settings.HYPERION_HOSTNAME,
+                "origin": settings.HYPERION_HOSTNAME
             }
         }
         response = self.client.post('/author/posts', data, format='json')
-        print(response.data)
-        serializer = PostSerializer(data=response.data)
-        serializer.is_valid()
-        print(serializer.data)
-
-        # self.assertEqual(
-        #     response.data['post']['display_name'],
-        #     '2haotianzhu'
-        # )
-        # self.assertEqual(
-        #     Post.objects.get().author.display_name,
-        #     '2haotianzhu'
-        # )
+        self.assertEqual(response.data['query'], 'createPost') 
+        self.assertEqual(response.data['success'], True)
         self.assertEqual(
-            Post.objects.all(),
+            Post.objects.all()[0].author.display_name,
             '2haotianzhu'
         )
+        print(Post.objects.all()[0].content_type)
