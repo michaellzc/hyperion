@@ -93,7 +93,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-    
+
     def create(self, validated_data):
         # https://stackoverflow.com/questions/30203652/how-to-get-request-user-in-django-rest-framework-serializer
         # if there are some visible_to user profiel

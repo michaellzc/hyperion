@@ -98,7 +98,7 @@ class PostViewTestCase(APITestCase, TestCase):
             }
         }
         response = self.client.post('/author/posts', data, format='json')
-        self.assertEqual(response.data['query'], 'createPost') 
+        self.assertEqual(response.data['query'], 'createPost')
         self.assertEqual(response.data['success'], True)
         self.assertEqual(
             Post.objects.all()[0].author.display_name,

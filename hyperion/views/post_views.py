@@ -32,13 +32,13 @@ class PostViewSet(viewsets.ModelViewSet):
                     {'query': 'createPost',
                      'success': True,
                      'message': 'Author Post Created'
-                    })
+                     })
             else:
                 return Response(
                     {'query': 'createPost',
                      'success': False,
-                    'message': serializer.errors
-                    })
+                     'message': serializer.errors
+                     })
 
     @action(detail=True, methods=['GET'], name='get_auth_posts')
     def get_auth_posts(self, request):
@@ -65,7 +65,7 @@ class PostViewSet(viewsets.ModelViewSet):
             'query': 'publicPosts',
             'count': len(data),
             'posts': data
-            }
+        }
         return response
 
     def retrieve(self, request, pk):
@@ -76,7 +76,6 @@ class PostViewSet(viewsets.ModelViewSet):
         data = response.data
         response.data = {'query': 'post', 'post': data}
         return response
-
 
     def get_permissions(self):
         """
