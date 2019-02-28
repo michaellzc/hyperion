@@ -1,31 +1,33 @@
-from rest_framework.test import APIRequestFactory
+import base64
 from rest_framework.test import APITestCase
 from hyperion.models import *
 from hyperion.serializers import PostSerializer, UserProfileSerializer
 from hyperion.views import post_views
-from rest_framework.test import APIClient
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.conf import settings
 
 # python manage.py test -v=2 hyperion.tests.tests_post_api
 
 
-class PostViewTestCase(APITestCase, TestCase):
+class PostViewTestCase(TestCase):
+    username = '2haotianzhu'
+    password = '123456'
 
     def setUp(self):
-        self.u_1 = User.objects.create(
+        self.u_1 = User.objects.create_user(
             username='2haotianzhu',
             first_name='haotian',
-            last_name='zhu'
+            last_name='zhu',
+            password='123456'
         )
-        self.u_2 = User.objects.create(
+        self.u_2 = User.objects.create_user(
             username='hyuntian',
             first_name='yuntian',
-            last_name='zhang'
+            last_name='zhang',
+            password='123456'
         )
-        self.factory = APIRequestFactory()
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.u_1)
+        credentials = base64.b64encode('{}:{}'.format(self.username, self.password).encode()).decode()
+        self.client = Client(HTTP_AUTHORIZATION='Basic {}'.format(credentials))
 
     def test_get_one(self):
         Post.objects.create(
@@ -34,6 +36,7 @@ class PostViewTestCase(APITestCase, TestCase):
             content="test1"
         )
         response = self.client.get('/posts')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['posts']), 1)
         self.assertEqual(
             response.data['posts'][0]['author']['display_name'],
@@ -52,6 +55,7 @@ class PostViewTestCase(APITestCase, TestCase):
             content="test3"
         )
         response = self.client.get('/posts')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['posts']), 2)
 
     def test_get_post_by_id(self):
@@ -63,6 +67,7 @@ class PostViewTestCase(APITestCase, TestCase):
         the_id = Post.objects.get().pk
         path = '/posts/{}'.format(the_id)
         response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.data['post']['author']['display_name'],
             '2haotianzhu'
@@ -80,10 +85,8 @@ class PostViewTestCase(APITestCase, TestCase):
             title="6",
             content="test6"
         )
-        request = self.factory.get('/author/posts')
-        request.user = self.u_1
-        view = post_views.PostViewSet.as_view({'get': 'get_auth_posts'})
-        response = view(request)
+        response = self.client.get('/author/posts')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['query'], 'visiblePosts')
         self.assertEqual(len(response.data['posts']), 1)
 
@@ -94,10 +97,10 @@ class PostViewTestCase(APITestCase, TestCase):
                 "title": "test",
                 "content_type": "text/plain",
                 "content": "some post content",
-                "origin": settings.HYPERION_HOSTNAME
             }
         }
-        response = self.client.post('/author/posts', data, format='json')
+        response = self.client.post('/author/posts', data, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['query'], 'createPost')
         self.assertEqual(response.data['success'], True)
         self.assertEqual(

@@ -5,7 +5,6 @@ from django.conf import settings
 from hyperion.models.user import UserProfile
 
 
-
 class Post(models.Model):
     '''
     author: User

@@ -1,6 +1,7 @@
 from rest_framework.decorators import action
-# from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
+from hyperion.authentication import HyperionBasicAuthentication
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
 from hyperion.serializers import PostSerializer
@@ -13,6 +14,8 @@ class PostViewSet(viewsets.ModelViewSet):
     """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    authentication_classes = (HyperionBasicAuthentication,)
+    permission_classes = (IsAuthenticated, AllowAny)
 
     @action(detail=True, methods=['POST'], name='post_auth_posts')
     def post_auth_posts(self, request):
@@ -22,7 +25,7 @@ class PostViewSet(viewsets.ModelViewSet):
         body = request.data
         post_query = body.get('query', None)
         post_data = body.get('post', None)
-        if post_query == 'createPost' and post_query:
+        if post_query == 'createPost' and post_data:
             post_data['visible_to'] = post_data.get('visible_to', [])
             serializer = PostSerializer(data=post_data, context={'request': request})
             if serializer.is_valid():
@@ -76,12 +79,12 @@ class PostViewSet(viewsets.ModelViewSet):
         response.data = {'query': 'post', 'post': data}
         return response
 
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if self.action == 'list':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    # def get_permissions(self):
+    #     """
+    #     Instantiates and returns the list of permissions that this view requires.
+    #     """
+    #     if self.action == 'list':
+    #         permission_classes = [IsAuthenticated]
+    #     else:
+    #         permission_classes = [IsAuthenticated]
+    #     return [permission() for permission in permission_classes]
