@@ -50,7 +50,7 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=20,
         choices=CONTENT_TYPES,
-        default='ext/plain'
+        default='text/plain'
     )
     visibility = models.CharField(
         max_length=20,
