@@ -1,36 +1,34 @@
 import { Container } from 'unstated';
-import fakePosts from './post.fixture';
-
-// TODO
-// This should includes all post attributes
-// class Post {
-// }
+import camelcaseKeys from 'camelcase-keys';
+import snakecaseKeys from 'snakecase-keys';
+import * as API from '../api';
 
 class PostsStore extends Container {
   state = {
-    // TODO
     posts: new Map(),
   };
 
   get posts() {
-    return [...this.state.posts.values()];
+    let { posts } = this.state;
+    if (!posts) return null;
+    return [...posts.values()].sort(
+      (a, b) => new Date(b.lastModifyDate) - new Date(a.lastModifyDate)
+    );
   }
 
-  // TODO
   /**
    * etch all public posts
    * @param {bool} cached - Whether or not to re-fetch posts from remote
    */
   getAll = async (cached = true) => {
     if (cached && this.state.posts.length > 0) return;
-    let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-    await delay(400);
-    // let posts = new Map();
-    let { posts } = this.state;
-    fakePosts.map(post => posts.set(post.id, post));
-    this.setState({
-      posts,
-    });
+    let { posts: postsList, count } = await API.Post.fetchAll();
+    if (count > 0) {
+      let { posts } = this.state;
+      postsList = camelcaseKeys(postsList, { deep: true });
+      postsList.forEach(post => posts.set(post.id, post));
+      this.setState({ posts });
+    }
   };
 
   // TODO
@@ -46,12 +44,13 @@ class PostsStore extends Container {
     // return post;
   };
 
-  // TODO
   /**
    * Create a new post
    * @param {object} post - A post object
    */
-  create = async post => {};
+  create = async post => {
+    return API.Post.create(snakecaseKeys(post));
+  };
 
   /**
    * Delete a post

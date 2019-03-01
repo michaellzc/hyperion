@@ -94,7 +94,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
                     margin: '20px 8px 20px 0',
                   }}
                 />
-                <span className="name">{authStore.user.display_name}</span>
+                <span className="name">{authStore.user.displayName}</span>
               </span>
             </Dropdown>
           </RightContainer>
