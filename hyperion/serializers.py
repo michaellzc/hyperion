@@ -41,6 +41,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='get_full_id', allow_blank=True, max_length=100, required=False)
     author = serializers.PrimaryKeyRelatedField(read_only=True)
     email = serializers.CharField(source='author.email', allow_blank=True, max_length=100, required=False)
+    username = serializers.CharField(source='author.username', allow_blank=True, max_length=100, required=False)
     first_name = serializers.CharField(source='author.first_name', allow_blank=True, max_length=100, required=False)
     last_name = serializers.CharField(source='author.last_name', allow_blank=True, max_length=100, required=False)
     host = serializers.CharField(source='host.name', allow_blank=True, max_length=100, required=False)
@@ -49,7 +50,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ('id', 'email', 'bio', 'author',
                   'host', 'first_name', 'last_name',
-                  'display_name', 'url', 'github')
+                  'display_name', 'url', 'github', 'username')
 
     # Not sure if this solution effects create/update
     def to_representation(self, instance):
