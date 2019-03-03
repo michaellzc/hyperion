@@ -27,6 +27,7 @@ class App extends Component {
         <GlobalStyle />
         <Router>
           <PrivateRoute as={HomePage} path="/" />
+          <PrivateRoute as={HomePage} path="posts/:postId" />
           <LoginPage path="login" />
         </Router>
       </Provider>

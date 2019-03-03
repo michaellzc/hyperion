@@ -9,7 +9,9 @@ import CommentBox from './comment-box';
 
 const PostOverlay = ({ postId, isVisible, onCancel, stores: [postStore] }) => {
   useEffect(() => {
-    postStore.get(postId);
+    if (postId) {
+      postStore.get(postId);
+    }
   }, [postId]);
 
   let post = postStore.state.posts.get(postId);
