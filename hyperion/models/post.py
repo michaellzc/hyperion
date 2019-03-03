@@ -38,15 +38,6 @@ class Post(models.Model):
     content = models.TextField()
     create_date = models.DateTimeField(default=timezone.now)
     last_modify_date = models.DateTimeField(default=timezone.now)
-    source = models.URLField(
-        max_length=200,
-        null=True,
-        blank=True
-    )
-    origin = models.URLField(
-        max_length=200,
-        default=settings.HYPERION_HOSTNAME
-    )
     content_type = models.CharField(
         max_length=20,
         choices=CONTENT_TYPES,
@@ -93,3 +84,7 @@ class Post(models.Model):
 
     def get_comments(self):
         return self.comments.all()
+
+    def get_source(self):
+        host_name = settings.HYPERION_HOSTNAME
+        return '{}/posts/{}'.format(host_name, self.id)

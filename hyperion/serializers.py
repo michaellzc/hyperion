@@ -90,6 +90,8 @@ class PostSerializer(serializers.ModelSerializer):
         many=True,
         required=False,
     )
+    source = serializers.CharField(source='get_source', max_length=200, required=False)
+    origin = serializers.CharField(source='get_source', max_length=200, required=False)
 
     class Meta:
         model = Post
