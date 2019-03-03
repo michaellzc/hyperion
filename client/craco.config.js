@@ -7,6 +7,16 @@ const babelPlugins = [
     'babel-plugin-import',
     { libraryName: 'antd', libraryDirectory: 'es', style: true },
   ],
+  [
+    'babel-plugin-import',
+    {
+      libraryName: 'ant-design-pro',
+      libraryDirectory: 'lib',
+      style: true,
+      camel2DashComponentName: false,
+    },
+    'ant-design-pro',
+  ],
 ];
 
 const babelTestPlugins = [];

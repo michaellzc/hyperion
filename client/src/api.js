@@ -16,4 +16,18 @@ const Post = {
   create: post => request.post('/author/posts', { query: 'createPost', post }),
 };
 
-export { Auth, Post };
+const Friend = {
+  fetchFriendRequest: () => request.get('/friendrequest'),
+  acceptFriendRequest: id =>
+    request.put(`/friendrequest/${id}`, {
+      query: 'friendrequestAction',
+      accepted: true,
+    }),
+  declineFriendRequest: id =>
+    request.put(`/friendrequest/${id}`, {
+      query: 'friendrequestAction',
+      accepted: false,
+    }),
+};
+
+export { Auth, Post, Friend };
