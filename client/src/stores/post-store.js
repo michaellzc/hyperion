@@ -39,9 +39,11 @@ class PostsStore extends Container {
   get = async id => {
     let post = this.state.posts.get(id);
     if (!post) {
-      // TODO - fetch post if not exist
+      let { post: resp } = await API.Post.fetch(id);
+      post = camelcaseKeys(resp);
+      let { posts } = this.state;
+      posts.set(post.id, post);
     }
-    // return post;
   };
 
   /**

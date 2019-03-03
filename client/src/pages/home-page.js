@@ -4,13 +4,13 @@ import AppLayout from '../components/app-layout';
 import PostsStream from '../components/posts-stream';
 import PostBox from '../components/post-box';
 
-const HomePage = () => {
+const HomePage = ({ postId }) => {
   return (
     <AppLayout className="home-page">
       <Row gutter={24} type="flex" justify="space-around" align="middle">
         <Col xs={20} sm={20} md={18} lg={12} xl={8} xxl={8}>
           <PostBox />
-          <PostsStream />
+          <PostsStream postId={parseInt(postId)} />
         </Col>
       </Row>
     </AppLayout>

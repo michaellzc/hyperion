@@ -1,4 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
+import { number } from 'prop-types';
+import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import {
   Avatar,
@@ -45,7 +47,10 @@ const Loading = () => (
   </div>
 );
 
-const PostsStream = ({ stores: [postStore, authStore] }) => {
+const PostsStream = ({
+  postId: openPostId,
+  stores: [postStore, authStore],
+}) => {
   let [isVisible, setVisibility] = useState(false);
   let [postId, setPostId] = useState(null);
   let [isLoading, setLoading] = useState(false);
@@ -57,6 +62,10 @@ const PostsStream = ({ stores: [postStore, authStore] }) => {
   };
 
   useEffect(() => {
+    if (openPostId) {
+      setPostId(openPostId);
+      setVisibility(true);
+    }
     loadPosts();
   }, []);
 
@@ -68,20 +77,30 @@ const PostsStream = ({ stores: [postStore, authStore] }) => {
     console.info('click reply button');
   };
 
-  // TODO - copy link to clipboard
-  let handleShare = async (event, id) => {
+  let handleShare = async (event, origin) => {
     event.stopPropagation();
-    message.info('Copied to clipboard');
-    console.info('click share button');
+
+    let result = await navigator.permissions.query({ name: 'clipboard-write' });
+    if (result.state === 'granted' || result.state === 'prompt') {
+      try {
+        await navigator.clipboard.writeText(origin);
+        message.info('Copied to clipboard');
+      } catch (err) {
+        message.err('Oopps! Something went wrong');
+      }
+    } else {
+      message.error('Your browser does not support Clipboard API.');
+    }
   };
 
   let handleOpenPost = id => {
     setVisibility(true);
-    setPostId(id);
+    navigate(`/posts/${id}`);
   };
 
   let toggleOverlay = () => {
-    setVisibility(!isVisible);
+    navigate('/');
+    setVisibility(false);
   };
 
   let handleMenuClick = async (postId, { key, domEvent: e }) => {
@@ -94,7 +113,7 @@ const PostsStream = ({ stores: [postStore, authStore] }) => {
   let postsList = postStore.posts;
   let posts =
     postsList.length > 0 ? (
-      postsList.map(({ id, contentType, author: user, ...props }) => (
+      postsList.map(({ id, contentType, author: user, origin, ...props }) => (
         <PostCard
           key={id}
           id={id}
@@ -138,7 +157,7 @@ const PostsStream = ({ stores: [postStore, authStore] }) => {
           footer={
             <CardActionsFooter
               onReply={e => handleReply(e, id)}
-              onShare={e => handleShare(e, id)}
+              onShare={e => handleShare(e, origin)}
             />
           }
         />
@@ -151,12 +170,20 @@ const PostsStream = ({ stores: [postStore, authStore] }) => {
     <Fragment>
       {isLoading ? <Loading /> : posts}
       <PostOverlay
-        postId={postId}
+        postId={openPostId || postId}
         isVisible={isVisible}
         onCancel={toggleOverlay}
       />
     </Fragment>
   );
+};
+
+PostsStream.propTypes = {
+  postId: number,
+};
+
+PostStore.defaultProps = {
+  postId: null,
 };
 
 export default inject([PostStore, AuthStore])(PostsStream);
