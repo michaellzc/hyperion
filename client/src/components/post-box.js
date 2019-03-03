@@ -166,7 +166,7 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
     dispatch({ type: e.target.id || e.target.name, text: e.target.value });
 
   let onPost = async () => {
-    let { title, description, content } = state;
+    let { title, description, content, visibility } = state;
     let contentType = 'text/markdown';
     try {
       if (tabKey === 'text') {
@@ -176,7 +176,14 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
         contentType = `${file.type};base64`;
         content = fileList[0].thumbUrl;
       }
-      await postStore.create({ title, description, content, contentType });
+      await postStore.create({
+        title,
+        description,
+        content,
+        contentType,
+        visibility,
+      });
+      postStore.getAll();
       dispatch({ type: 'reset' });
       setEditorState(
         EditorState.push(editorState, ContentState.createFromText(''))

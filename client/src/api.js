@@ -10,4 +10,9 @@ const Auth = {
   getCurrentUser: () => request.get('/auth'),
 };
 
-export { Auth };
+const Post = {
+  fetchAll: () => request.get('/author/posts'),
+  create: post => request.post('/author/posts', { query: 'createPost', post }),
+};
+
+export { Auth, Post };

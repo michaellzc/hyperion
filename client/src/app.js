@@ -9,6 +9,8 @@ import HomePage from './pages/home-page';
 import LoginPage from './pages/login-page';
 
 if (process.env.NODE_ENV === 'development') {
+  UNSTATED.logStateChanges = true;
+} else {
   UNSTATED.logStateChanges = false;
 }
 
