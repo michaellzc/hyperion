@@ -58,29 +58,53 @@ class Post(models.Model):
     def __str__(self):
         return super().__str__()+' post: '+str(self.author.pk)
 
-    def visible_to_me(self):
-        self.visible_to.add(self.author)
+    # def visible_to_me(self):
+    #     self.visible_to.add(self.author)
 
-    def visible_to_another_author(self, user_profile):
-        self.visible_to.add(user_profile)
+    # def visible_to_another_author(self, user_profile):
+    #     self.visible_to.add(user_profile)
 
-    def visible_to_host_friends(self):
-        host_friends = self.author.get_friends(including='host')
-        for host_frend in host_friends:
-            self.visible_to.add(host_frend)
+    # def visible_to_host_friends(self):
+    #     host_friends = self.author.get_friends(including='host')
+    #     for host_frend in host_friends:
+    #         self.visible_to.add(host_frend)
+    def visible_to_friends(self,user_profile):
+        friends = user_profile.get_friends()
+        all_post = Post.objects.all()
+        friend_posts = []
 
-    def visible_to_my_friends(self):
-        friends = self.author.get_friends()
-        for friend in friends:
-            self.visible_to.add(friend)
+        for post in all_post:
+            if post.author in friends and post.visibility == 'FRIENDS':
+                friend_posts.append(post)
+        return friend_posts
 
-    def visible_to_friends_of_friends(self):
-        friends_of_friends = self.author.get_friends_friends()
-        for friend_of_friends in friends_of_friends:
-            self.visible_to.add(friend_of_friends)
+    def visible_to_friends_of_friends(self,user_profile):
+        friends_of_friends = user_profile.get_friends_friends()
+        all_post = Post.objects.all()
+        foaf_posts = []
 
-    def visible_to_public(self):
-        self.visible_to.clear()
+        for post in all_post:
+            if post.author in friends_of_friends and post.visibility == 'FOAF':
+                friend_posts.append(post)
+        return foaf_posts
+
+    def visible_to_public(self,user_profile):
+        all_post = Post.objects.all()
+        public_posts = []
+
+        for post in all_post:
+            if post.author in friends_of_friends and post.visibility == 'PUBLIC':
+                friend_posts.append(post)
+        return public_posts
+
+    def visible_to_private(self,user_profile):
+        all_post = Post.objects.all()
+        private_posts = []
+        
+        for post in all_post:
+            if  post.visibility == 'PRIVATE' and user_profile in post.visible_to:
+                friend_posts.append(post)
+        return private_posts
 
     def get_comments(self):
         return self.comments.all()

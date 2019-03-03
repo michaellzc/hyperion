@@ -42,25 +42,25 @@ class PostTestCase(TestCase):
         Friend.objects.create(profile1=self.u_1.profile, profile2=self.u_4.profile)
         Friend.objects.create(profile1=self.u_2.profile, profile2=self.u_3.profile)
 
-    def test_private_to_me(self):
-        post = Post.objects.create(
-            author=self.u_1.profile,
-            title="u1_private",
-            content="test1"
-        )
-        post.visible_to_me()
-        self.assertEqual(list(post.visible_to.all()), [self.u_1.profile])
+    # def test_private_to_me(self):
+    #     post = Post.objects.create(
+    #         author=self.u_1.profile,
+    #         title="u1_private",
+    #         content="test1"
+    #     )
+    #     post.visible_to_me()
+    #     self.assertEqual(list(post.visible_to.all()), [self.u_1.profile])
 
-    def test_private_to_another_author(self):
-        user_profile = self.u_5.profile
-        post = Post.objects.create(
-            author=self.u_1.profile,
-            title="u1_fof",
-            content="test3"
-        )
-        post.visible_to_me()
-        post.visible_to_another_author(user_profile)
-        self.assertEqual(list(post.visible_to.all()),[self.u_1.profile, self.u_5.profile])
+    # def test_private_to_another_author(self):
+    #     user_profile = self.u_5.profile
+    #     post = Post.objects.create(
+    #         author=self.u_1.profile,
+    #         title="u1_fof",
+    #         content="test3"
+    #     )
+    #     post.visible_to_me()
+    #     post.visible_to_another_author(user_profile)
+    #     self.assertEqual(list(post.visible_to.all()),[self.u_1.profile, self.u_5.profile])
 
     # # def test_private_to_my_friends(self):
     # #     p = Post.objects.create(
@@ -71,33 +71,33 @@ class PostTestCase(TestCase):
     # #     p.visible_to_my_friends()
     # #     self.assertEquals(list(p.visible_to.all()),[self.u2])
 
-    def test_private_to_friends_of_friends(self):
-        post = Post.objects.create(
-            author=self.u_1.profile,
-            title="u1_fof",
-            content="test3"
-        )
-        post.visible_to_me()
-        post.visible_to_friends_of_friends()
-        self.assertEqual(list(post.visible_to.all()), [self.u_1.profile, self.u_3.profile])
+    # def test_private_to_friends_of_friends(self):
+    #     post = Post.objects.create(
+    #         author=self.u_1.profile,
+    #         title="u1_fof",
+    #         content="test3"
+    #     )
+    #     post.visible_to_me()
+    #     post.visible_to_friends_of_friends()
+    #     self.assertEqual(list(post.visible_to.all()), [self.u_1.profile, self.u_3.profile])
 
-    def test_private_to_host_friends(self):
-        post = Post.objects.create(
-            author=self.u_1.profile,
-            title="u1_host_friends",
-            content="test2"
-        )
-        post.visible_to_me()
-        post.visible_to_host_friends()
-        self.assertEqual(list(post.visible_to.all()), \
-            [self.u_1.profile, self.u_2.profile, self.u_4.profile])
+    # def test_private_to_host_friends(self):
+    #     post = Post.objects.create(
+    #         author=self.u_1.profile,
+    #         title="u1_host_friends",
+    #         content="test2"
+    #     )
+    #     post.visible_to_me()
+    #     post.visible_to_host_friends()
+    #     self.assertEqual(list(post.visible_to.all()), \
+    #         [self.u_1.profile, self.u_2.profile, self.u_4.profile])
 
-    def test_public(self):
-        post = Post.objects.create(
-            author=self.u_1.profile,
-            title="u1_public",
-            content="test4"
-            )
-        post.visible_to_me()
-        post.visible_to_public()
-        self.assertEqual(list(post.visible_to.all()), [])
+    # def test_public(self):
+    #     post = Post.objects.create(
+    #         author=self.u_1.profile,
+    #         title="u1_public",
+    #         content="test4"
+    #         )
+    #     post.visible_to_me()
+    #     post.visible_to_public()
+    #     self.assertEqual(list(post.visible_to.all()), [])

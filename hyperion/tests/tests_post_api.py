@@ -102,17 +102,18 @@ class PostViewTestCase(TestCase):
         #foaf
         Post.objects.create(
             author=self.u_4.profile, title="8", content="test",visibility ="FOAF")
-        #private cant see
-        Post.objects.create(
-            author=self.u_5.profile, title="9", content="test",visibility ="PRIVATE")
+   
         #private can see
         Post.objects.create(
             author=self.u_6.profile, title="10", content="test",visibility ="PRIVATE",visible_to = [self.u_1.profile])
-
+            
+        #private cant see
+        Post.objects.create(
+            author=self.u_5.profile, title="9", content="test",visibility ="PRIVATE")
         response = self.client.get('/author/posts')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['query'], 'posts')
-        self.assertEqual(len(response.data['posts']), 6)
+        self.assertEqual(len(response.data['posts']), 5)
 
     def test_auth_post_a_post(self):
         data = {
