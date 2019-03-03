@@ -14,16 +14,46 @@ class PostViewTestCase(TestCase):
     password = '123456'
 
     def setUp(self):
+        #friend of hyuntian
         self.u_1 = User.objects.create_user(
             username='2haotianzhu',
             first_name='haotian',
             last_name='zhu',
             password='123456')
+        # friend of 2haotianzhu
         self.u_2 = User.objects.create_user(
             username='hyuntian',
             first_name='yuntian',
             last_name='zhang',
             password='123456')
+        Friend.objects.create(profile1=self.u_1.profile, profile2=self.u_2.profile)
+        # foaf 2haotianzhu friend of hyuntian
+        self.u_3 = User.objects.create_user(
+            username='yuntian1',
+            first_name='yuntian',
+            last_name='zhang',
+            password='123456')
+        Friend.objects.create(profile1=self.u_2.profile, profile2=self.u_3.profile)
+        # foaf 2haotianzhu friend of hyuntian
+        self.u_4 = User.objects.create_user(
+            username='yuntian2',
+            first_name='yuntian',
+            last_name='zhang',
+            password='123456')
+        Friend.objects.create(profile1=self.u_2.profile, profile2=self.u_4.profile)
+        # public stranger
+        self.u_5 = User.objects.create_user(
+            username='stranger',
+            first_name='yuntian',
+            last_name='zhang',
+            password='123456')
+        # private stranger
+        self.u_6 = User.objects.create_user(
+            username='_stranger',
+            first_name='yuntian',
+            last_name='zhang',
+            password='123456')
+
         credentials = base64.b64encode('{}:{}'.format(
             self.username, self.password).encode()).decode()
         self.client = Client(HTTP_AUTHORIZATION='Basic {}'.format(credentials))
@@ -58,14 +88,31 @@ class PostViewTestCase(TestCase):
 
     def test_get_auth_posts(self):
         # get post by auth
+
+        #own
         Post.objects.create(
-            author=self.u_1.profile, title="5", content="test5")
+            author=self.u_1.profile, title="5", content="test",visibility ="PRIVATE",visible_to = [self.u_1.profile])
+        
+        #public
         Post.objects.create(
-            author=self.u_2.profile, title="6", content="test6")
+            author=self.u_5.profile, title="6", content="test",visibility ="PUBLIC")
+        #friends
+        Post.objects.create(
+            author=self.u_2.profile, title="7", content="test",visibility ="FRIENDS")
+        #foaf
+        Post.objects.create(
+            author=self.u_4.profile, title="8", content="test",visibility ="FOAF")
+        #private cant see
+        Post.objects.create(
+            author=self.u_5.profile, title="9", content="test",visibility ="PRIVATE")
+        #private can see
+        Post.objects.create(
+            author=self.u_6.profile, title="10", content="test",visibility ="PRIVATE",visible_to = [self.u_1.profile])
+
         response = self.client.get('/author/posts')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['query'], 'posts')
-        self.assertEqual(len(response.data['posts']), 1)
+        self.assertEqual(len(response.data['posts']), 6)
 
     def test_auth_post_a_post(self):
         data = {

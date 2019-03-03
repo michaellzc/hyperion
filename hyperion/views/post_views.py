@@ -50,8 +50,14 @@ class PostViewSet(viewsets.ModelViewSet):
         '''
         GET /author/posts
         '''
-        serializer = PostSerializer(
-            self.queryset.filter(author=request.user.profile), many=True)
+        query = self.queryset.filter(author=request.user.profile) | \
+            self.queryset.filter(visibility ='PUBLIC') | \
+            self.queryset.filter(visibility ='FOAF',request.user.profile in visible_to_friends_of_friends()) | \
+            self.queryset.filter(visibility ='FRIENDS',request.user.profile in visible_to_my_friends()) | \
+            self.queryset.filter(visibility ='PRIVATE',request.user.profile in visible_to)
+
+        serializer = PostSerializer(query, many=True)
+        # self.queryset.filter(author=request.user.profile), many=True)
         return Response({
             'query': 'posts',
             'count': len(serializer.data),
