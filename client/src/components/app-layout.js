@@ -1,9 +1,10 @@
 import React from 'react';
 import { bool, node, array } from 'prop-types';
-import { Layout, Dropdown, Avatar, Menu, Badge, Icon, Popover } from 'antd';
+import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
 import { inject } from '../utils';
 import { AuthStore } from '../stores';
+import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 // import ProfileBox from '../components/profile-box';
 import UIcontainer from '../utils/uicontainer';
@@ -13,17 +14,6 @@ let { Header, Content, Footer } = Layout;
 let RightContainer = styled.div`
   display: flex;
   align-items: center;
-`;
-
-let CustomBadge = styled(Badge)`
-  margin-right: 18px;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 24px;
-  cursor: pointer;
 `;
 
 let CustomLayout = styled(Layout)`
@@ -92,11 +82,7 @@ const AppLayout = ({
             `}
           />
           <RightContainer>
-            <Popover content="Coming soon">
-              <CustomBadge count={12} offset={[-10, 10]}>
-                <Icon style={{ fontSize: '24px' }} type="bell" />
-              </CustomBadge>
-            </Popover>
+            <Notification />
             <Dropdown overlay={menu}>
               <span className="action account">
                 <Avatar
@@ -106,7 +92,7 @@ const AppLayout = ({
                     margin: '20px 8px 20px 0',
                   }}
                 />
-                <span className="name">{authStore.user.display_name}</span>
+                <span className="name">{authStore.user.displayName}</span>
               </span>
             </Dropdown>
           </RightContainer>

@@ -1,4 +1,5 @@
 import { Container } from 'unstated';
+import camelcaseKeys from 'camelcase-keys';
 import * as API from '../api';
 
 class AuthStore extends Container {
@@ -21,6 +22,7 @@ class AuthStore extends Container {
       return user;
     } else if (window.localStorage.getItem('basic_auth')) {
       let { user } = await API.Auth.getCurrentUser();
+      user = camelcaseKeys(user);
       this.setState({ user });
       return user;
     } else {

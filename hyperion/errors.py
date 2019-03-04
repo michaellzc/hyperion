@@ -1,0 +1,2 @@
+class FriendAlreadyExist(Exception):
+    pass

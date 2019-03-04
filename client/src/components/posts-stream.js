@@ -1,15 +1,28 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
+import { number } from 'prop-types';
+import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
-import { Avatar, message } from 'antd';
-import { PostStore } from '../stores';
+import {
+  Avatar,
+  message,
+  Icon,
+  Tooltip,
+  Dropdown,
+  Menu,
+  Empty,
+  Spin,
+} from 'antd';
+import { PostStore, AuthStore } from '../stores';
 import { inject } from '../utils';
 import PostCard from './post-card';
 import TextCardContent from './text-card-content';
 import ImageCardContent from './image-card-content';
 import MarkdownCardContent from './markdown-card-content';
 import CardActionsFooter from './card-actions-footer';
+import PostOverlay from './post-overlay';
 
-const CardMetaTitle = ({ displayName, username }) => (
+// Comment out username for now as API does not supply this field
+const CardMetaTitle = ({ displayName, username, extra }) => (
   <Fragment>
     {displayName}{' '}
     <small
@@ -20,53 +33,157 @@ const CardMetaTitle = ({ displayName, username }) => (
     >
       {username}
     </small>
+    {extra}
   </Fragment>
 );
 
-const PostsStream = ({ stores: [postStore] }) => {
+const Loading = () => (
+  <div
+    css={css`
+      text-align: center;
+    `}
+  >
+    <Spin size="large" />
+  </div>
+);
+
+const PostsStream = ({
+  postId: openPostId,
+  stores: [postStore, authStore],
+}) => {
+  let [isVisible, setVisibility] = useState(false);
+  let [postId, setPostId] = useState(null);
+  let [isLoading, setLoading] = useState(false);
+
+  let loadPosts = async () => {
+    setLoading(true);
+    await postStore.getAll();
+    setLoading(false);
+  };
+
   useEffect(() => {
-    postStore.getAll();
-  });
+    if (openPostId) {
+      setPostId(openPostId);
+      setVisibility(true);
+    }
+    loadPosts();
+  }, []);
 
   // TODO - implement reply
-  const handleReply = async () => {
+  let handleReply = async (event, id) => {
+    // https://stackoverflow.com/a/2385180
+    // Prevent onClick event propagation to outter div
+    event.stopPropagation();
     console.info('click reply button');
   };
 
-  // TODO - copy link to clipboard
-  const handleShare = async () => {
-    message.info('Copied to clipboard');
-    console.info('click share button');
+  let handleShare = async (event, origin) => {
+    event.stopPropagation();
+
+    let result = await navigator.permissions.query({ name: 'clipboard-write' });
+    if (result.state === 'granted' || result.state === 'prompt') {
+      try {
+        await navigator.clipboard.writeText(origin);
+        message.info('Copied to clipboard');
+      } catch (err) {
+        message.err('Oopps! Something went wrong');
+      }
+    } else {
+      message.error('Your browser does not support Clipboard API.');
+    }
   };
 
-  return postStore.posts.map(({ id, contentType, user, ...props }) => {
-    return (
-      <PostCard
-        key={id}
-        avatar={<Avatar icon="user" />}
-        metaTitle={
-          <CardMetaTitle
-            displayName={user.displayName}
-            username={user.username}
-          />
-        }
-        content={() => {
-          if (contentType === 'text/plain') {
-            return <TextCardContent {...props} />;
-          } else if (contentType.startsWith('image')) {
-            return <ImageCardContent {...props} />;
-          } else if (contentType === 'text/markdown') {
-            return <MarkdownCardContent {...props} />;
-          } else {
-            throw new Error('Unsupported post content type.');
+  let handleOpenPost = id => {
+    setVisibility(true);
+    navigate(`/posts/${id}`);
+  };
+
+  let toggleOverlay = () => {
+    navigate('/');
+    setVisibility(false);
+  };
+
+  let handleMenuClick = async (postId, { key, domEvent: e }) => {
+    e.stopPropagation();
+    if (key === 'delete') {
+      await postStore.delete(postId);
+    }
+  };
+
+  let postsList = postStore.posts;
+  let posts =
+    postsList.length > 0 ? (
+      postsList.map(({ id, contentType, author: user, origin, ...props }) => (
+        <PostCard
+          key={id}
+          id={id}
+          avatar={<Avatar icon="user" />}
+          onClick={() => handleOpenPost(id)}
+          metaTitle={
+            <CardMetaTitle
+              displayName={user.displayName}
+              username={`@${user.username}`}
+              extra={
+                user.id === authStore.user.id ? (
+                  <Tooltip title="more">
+                    <Dropdown
+                      overlay={
+                        <Menu onClick={things => handleMenuClick(id, things)}>
+                          <Menu.Item key="delete">Delete Post</Menu.Item>
+                        </Menu>
+                      }
+                      onClick={e => e.stopPropagation()}
+                      trigger={['click']}
+                      placement="bottomRight"
+                    >
+                      <Icon style={{ float: 'right' }} type="down" />
+                    </Dropdown>
+                  </Tooltip>
+                ) : null
+              }
+            />
           }
-        }}
-        footer={
-          <CardActionsFooter onReply={handleReply} onShare={handleShare} />
-        }
-      />
+          content={() => {
+            if (contentType === 'text/plain') {
+              return <TextCardContent {...props} />;
+            } else if (contentType.startsWith('image')) {
+              return <ImageCardContent {...props} />;
+            } else if (contentType === 'text/markdown') {
+              return <MarkdownCardContent {...props} />;
+            } else {
+              throw new Error('Unsupported post content type.');
+            }
+          }}
+          footer={
+            <CardActionsFooter
+              onReply={e => handleReply(e, id)}
+              onShare={e => handleShare(e, origin)}
+            />
+          }
+        />
+      ))
+    ) : (
+      <Empty />
     );
-  });
+
+  return (
+    <Fragment>
+      {isLoading ? <Loading /> : posts}
+      <PostOverlay
+        postId={openPostId || postId}
+        isVisible={isVisible}
+        onCancel={toggleOverlay}
+      />
+    </Fragment>
+  );
 };
 
-export default inject([PostStore])(PostsStream);
+PostsStream.propTypes = {
+  postId: number,
+};
+
+PostStore.defaultProps = {
+  postId: null,
+};
+
+export default inject([PostStore, AuthStore])(PostsStream);

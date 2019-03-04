@@ -5,6 +5,7 @@ let Title = styled.div`
   margin: 16px 0;
   color: rgba(0, 0, 0, 0.85);
   font-weight: 500;
+  font-size: 19px;
 `;
 
 let Content = styled.img`

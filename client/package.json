@@ -4,7 +4,9 @@
   "private": true,
   "dependencies": {
     "@reach/router": "^1.2.1",
+    "ant-design-pro": "^2.2.1",
     "antd": "^3.13.0",
+    "camelcase-keys": "^5.0.0",
     "draft-js": "^0.10.5",
     "draft-js-markdown-plugin": "^3.0.5",
     "draft-js-plugins-editor": "^2.1.1",
@@ -18,8 +20,10 @@
     "react-remarkable": "^1.1.3",
     "react-scripts": "2.1.3",
     "react-testing-library": "^5.9.0",
+    "snakecase-keys": "^2.1.0",
     "styled-components": "^4.1.3",
-    "unstated": "^2.1.1"
+    "unstated": "^2.1.1",
+    "unstated-debug": "^0.3.2"
   },
   "scripts": {
     "dev": "HOST=127.0.0.1 craco start",
@@ -39,11 +43,20 @@
     "*.{json,md,scss,yaml,yml}": [
       "prettier --write",
       "git add"
+    ],
+    "../hyperion/**/*.py": [
+      "yapf -i ",
+      "git add"
+    ],
+    "../api/**/*.py": [
+      "yapf -i ",
+      "git add"
     ]
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "post-merge": "yarn install"
     }
   },
   "engines": {

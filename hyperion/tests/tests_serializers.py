@@ -1,6 +1,6 @@
 from django.test import TestCase
 from hyperion.models import UserProfile, Server, Post, Comment
-from hyperion.serializers import UserSerializer, CommentSerializer, PostSerializer
+from hyperion.serializers import *
 from django.conf import settings
 from django.contrib.auth.models import User
 
@@ -92,3 +92,7 @@ class SerializerTestCase(TestCase):
         serializer = PostSerializer(post)
         data = serializer.data
         self.assertEqual(data['comments'][0]['comment'], 'u1 comment')
+    
+    def test_userprofile_username(self):
+        serializer = UserProfileSerializer(self.u2.profile)
+        self.assertEqual(serializer.data['username'],'6zhi')
