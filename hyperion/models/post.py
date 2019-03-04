@@ -64,11 +64,6 @@ class Post(models.Model):
     def visible_to_another_author(self, user_profile):
         self.visible_to.add(user_profile)
 
-    # def visible_to_host_friends(self):
-    #     host_friends = self.author.get_friends(including='host')
-    #     for host_frend in host_friends:
-    #         self.visible_to.add(host_frend)
-
     @staticmethod
     def visible_to_friends(user_profile):
         friends = user_profile.get_friends()

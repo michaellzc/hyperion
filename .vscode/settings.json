@@ -1,5 +1,5 @@
 {
-  "python.pythonPath": "/cshome/yuntian1/python/bin/python",
+  "python.pythonPath": "python.pythonPath": "venv/bin/python",
   "python.formatting.autopep8Args": ["--max-line-length=120"],
   "python.linting.pylintArgs": [
     "--load-plugins=pylint_django"
