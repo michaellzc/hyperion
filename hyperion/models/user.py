@@ -8,6 +8,8 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
+from hyperion.errors import FriendAlreadyExist
+
 
 class UserProfile(models.Model):
     '''
@@ -24,6 +26,7 @@ class UserProfile(models.Model):
         decline_friend_request: delete FriendRequest
 
     '''
+
     class Meta:
         app_label = 'hyperion'
 
@@ -32,8 +35,7 @@ class UserProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='profile',
         null=True,
-        blank=True
-    )
+        blank=True)
     display_name = models.CharField(max_length=20)
     website = models.URLField(verbose_name="personal website", blank=True)
     bio = models.CharField(max_length=100, blank=True)
@@ -41,17 +43,13 @@ class UserProfile(models.Model):
     url = models.CharField(max_length=200, blank=True)
     github = models.URLField(max_length=200, blank=True)
     host = models.ForeignKey(
-        'Server',
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE
-    )
+        'Server', null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         if self.author:
-            return super().__str__()+' user: '+str(self.display_name)
+            return super().__str__() + ' user: ' + str(self.display_name)
         else:
-            return super().__str__()+'foreign_user'+str(self.display_name)
+            return super().__str__() + 'foreign_user' + str(self.display_name)
 
     def get_full_id(self):
         if self.author:
@@ -96,8 +94,7 @@ class UserProfile(models.Model):
         for friend in friends:
             query_set = query_set | friend.get_friends()
         query_set = query_set.difference(
-            UserProfile.objects.filter(pk=self.pk), friends
-        )
+            UserProfile.objects.filter(pk=self.pk), friends)
         return query_set
 
     def send_friend_request(self, to_profile):
@@ -112,10 +109,17 @@ class UserProfile(models.Model):
         # ISSUE TODO: only to_profile should be in host
         if to_profile.host:
             raise ValidationError(
-                'the one get friend request should be our local author'
-            )
-        FriendRequest.objects.create(
-            from_profile=self, to_profile=to_profile)
+                'the one get friend request should be our local author')
+
+        # if they are already friend => raise error
+        # https://stackoverflow.com/questions/42206351/django-checking-if-objects-exists-and-raising-error-if-it-does
+        qs1 = Friend.objects.filter(profile1=self, profile2=to_profile)
+        qs2 = Friend.objects.filter(profile1=to_profile, profile2=self)
+        if qs1.exists() or qs2.exists():
+            raise FriendAlreadyExist
+        else:
+            FriendRequest.objects.create(
+                from_profile=self, to_profile=to_profile)
 
     def accept_friend_request(self, from_profile):
         # if there is a request
@@ -124,8 +128,7 @@ class UserProfile(models.Model):
         apps.get_model('hyperion', 'Friend')
         if self.host:
             raise ValidationError(
-                'Foreign user profile has not accept_friend_request'
-            )
+                'Foreign user profile has not accept_friend_request')
         query = FriendRequest.objects.get(
             from_profile=from_profile, to_profile=self)
         if query:
@@ -136,8 +139,7 @@ class UserProfile(models.Model):
         # if there is a request, remove it
         if self.host:
             raise ValidationError(
-                'Foreign user profile has not decline_friend_request'
-            )
+                'Foreign user profile has not decline_friend_request')
         query = FriendRequest.objects.get(
             from_profile=from_profile, to_profile=self)
         if query:
@@ -153,6 +155,7 @@ class UserProfile(models.Model):
             raise ValidationError('UserProfile must have author')
         else:
             return super().save(*args, **kwargs)
+
 
 # set signal for auto-create authorProfile
 
@@ -175,20 +178,19 @@ class Friend(models.Model):
     '''
 
     profile1 = models.ForeignKey(
-        'UserProfile',
-        on_delete=models.CASCADE,
-        related_name='friends_of')
+        'UserProfile', on_delete=models.CASCADE, related_name='friends_of')
     profile2 = models.ForeignKey(
-        'UserProfile',
-        on_delete=models.CASCADE,
-        related_name='friends')
+        'UserProfile', on_delete=models.CASCADE, related_name='friends')
 
     class Meta:
         app_label = 'hyperion'
-        unique_together = ('profile1', 'profile2',)
+        unique_together = (
+            'profile1',
+            'profile2',
+        )
 
     def __str__(self):
-        return super().__str__()+' {} <-> {} '.format(
+        return super().__str__() + ' {} <-> {} '.format(
             self.profile1.display_name, self.profile2.display_name)
 
     def save(self, *args, **kwargs):
@@ -200,9 +202,7 @@ class Friend(models.Model):
         from copy import deepcopy
         if self.profile1.get_type() == 'foreign' and \
                 self.profile2.get_type() == 'foreign':
-            raise ValidationError(
-                'You cannot set two foreign user as friend'
-            )
+            raise ValidationError('You cannot set two foreign user as friend')
 
         if self.profile1.id > self.profile2.id:
             profile3 = deepcopy(self.profile1)
@@ -223,21 +223,20 @@ class FriendRequest(models.Model):
     '''
 
     from_profile = models.ForeignKey(
-        'UserProfile',
-        on_delete=models.CASCADE,
-        related_name='sender')
+        'UserProfile', on_delete=models.CASCADE, related_name='sender')
 
     to_profile = models.ForeignKey(
-        'UserProfile',
-        on_delete=models.CASCADE,
-        related_name='receiver')
+        'UserProfile', on_delete=models.CASCADE, related_name='receiver')
 
     class Meta:
         app_label = 'hyperion'
-        unique_together = ('from_profile', 'to_profile',)
+        unique_together = (
+            'from_profile',
+            'to_profile',
+        )
 
     def __str__(self):
-        return super().__str__()+' {} -> {} '.format(
+        return super().__str__() + ' {} -> {} '.format(
             self.from_profile.display_name, self.to_profile.display_name)
 
     def save(self, *args, **kwargs):
