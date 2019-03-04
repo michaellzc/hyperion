@@ -52,18 +52,14 @@ class PostViewSet(viewsets.ModelViewSet):
         '''
 
         # result = list of post
-        # result = self.queryset.filter(author=request.user.profile) | \
-        #     self.queryset.filter(visibility ='PUBLIC') | \
-        #     self.queryset.filter(visibility ='FOAF',request.user.profile in visible_to_friends_of_friends()) | \
-        #     self.queryset.filter(visibility ='FRIENDS',request.user.profile in visible_to_my_friends()) | \
-        #     self.queryset.filter(visibility ='PRIVATE',request.user.profile in visible_to)
-        result = self.queryset.filter(author=request.user.profile)\
-        + Post.visible_to_private(request.user.profile) \ 
-        + Post.visible_to_public(request.user.profile) \
-        + Post.visible_to_friends_of_friends(request.user.profile) \
+     
+        result = list(self.queryset.filter(author=request.user.profile))  \
+        + Post.visible_to_private(request.user.profile) \
+        + Post.visible_to_public()  \
+        + Post.visible_to_friends_of_friends(request.user.profile)  \
         + Post.visible_to_friends(request.user.profile)
+        result = list(set(result))
         serializer = PostSerializer(result, many=True)
-       
         return Response({
             'query': 'posts',
             'count': len(serializer.data),
