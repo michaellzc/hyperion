@@ -79,7 +79,7 @@ class Post(models.Model):
             if post.author in friends and post.visibility == 'FRIENDS':
                 friend_posts.append(post)
         return friend_posts
-  
+ 
     @staticmethod
     def visible_to_friends_of_friends(user_profile):
         friends_of_friends = user_profile.get_friends_friends()
