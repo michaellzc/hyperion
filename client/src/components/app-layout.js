@@ -1,9 +1,10 @@
 import React from 'react';
 import { bool, node, array } from 'prop-types';
-import { Layout, Dropdown, Avatar, Menu, Badge, Icon, Popover } from 'antd';
+import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
 import { inject } from '../utils';
 import { AuthStore } from '../stores';
+import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 
 let { Header, Content, Footer } = Layout;
@@ -11,17 +12,6 @@ let { Header, Content, Footer } = Layout;
 let RightContainer = styled.div`
   display: flex;
   align-items: center;
-`;
-
-let CustomBadge = styled(Badge)`
-  margin-right: 18px;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 24px;
-  cursor: pointer;
 `;
 
 let CustomLayout = styled(Layout)`
@@ -80,11 +70,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
             `}
           />
           <RightContainer>
-            <Popover content="Coming soon">
-              <CustomBadge count={12} offset={[-10, 10]}>
-                <Icon style={{ fontSize: '24px' }} type="bell" />
-              </CustomBadge>
-            </Popover>
+            <Notification />
             <Dropdown overlay={menu}>
               <span className="action account">
                 <Avatar
