@@ -6,7 +6,7 @@ import { inject } from '../utils';
 import { AuthStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
-// import ProfileBox from '../components/profile-box';
+import ProfileBox from '../components/profile-box';
 import UIcontainer from '../utils/uicontainer';
 
 let { Header, Content, Footer } = Layout;
@@ -51,9 +51,16 @@ const AppLayout = ({
   ...props
 }) => {
   // TODO - implment logout
+  let showProfile = () => {
+    // function toggleModal () {
+    //   uicontainer.toggleBox();
+    // };
+    return <ProfileBox id="profileBox" />;
+  };
+
   let menu = (
     <Menu className="menu" selectable={false}>
-      <Menu.Item key="Profile" onClick={() => {}}>
+      <Menu.Item key="Profile" onClick={showProfile.toggleModal}>
         <Icon type="info-circle" />
         User Profile
       </Menu.Item>
@@ -61,7 +68,6 @@ const AppLayout = ({
         <Icon type="logout" />
         Logout
       </Menu.Item>
-      {/* <ProfileBox /> */}
     </Menu>
   );
 
@@ -95,6 +101,7 @@ const AppLayout = ({
                 <span className="name">{authStore.user.displayName}</span>
               </span>
             </Dropdown>
+            {showProfile}
           </RightContainer>
         </CustomHeader>
       ) : null}
