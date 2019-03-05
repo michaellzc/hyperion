@@ -9,7 +9,7 @@ from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post
 
-
+#
 class PostViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -50,8 +50,16 @@ class PostViewSet(viewsets.ModelViewSet):
         '''
         GET /author/posts
         '''
-        serializer = PostSerializer(
-            self.queryset.filter(author=request.user.profile), many=True)
+
+        # result = list of post
+        result = list(self.queryset.filter(author=request.user.profile))  \
+        + Post.visible_to_private(request.user.profile) \
+        + Post.visible_to_public()  \
+        + Post.visible_to_friends_of_friends(request.user.profile)  \
+        + Post.visible_to_friends(request.user.profile)
+        result = list(set(result))
+
+        serializer = PostSerializer(result, many=True)
         return Response({
             'query': 'posts',
             'count': len(serializer.data),
