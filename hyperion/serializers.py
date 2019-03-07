@@ -86,7 +86,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         required=False)
     host = serializers.CharField(
         source='host.name', allow_blank=True, max_length=100, required=False)
-
+    url = serializers.CharField(source='get_full_id', read_only=True)
     class Meta:
         model = UserProfile
         fields = ('id', 'email', 'bio', 'author', 'host', 'first_name',
