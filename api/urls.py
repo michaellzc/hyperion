@@ -30,30 +30,34 @@ router.register(r'groups', user_views.GroupViewSet)
 # https://stackoverflow.com/a/51659083
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-auth/',
+        include('rest_framework.urls', namespace='rest_framework')),
+    path('auth/signup', auth_views.CreateUserView.as_view(), name='signup'),
     path('auth', csrf_exempt(auth_views.AuthView.as_view())),
     path('admin/', admin.site.urls),
     url(r'^docs/', include_docs_urls(title='API Documentation')),
     # friend URL
-    path('author/<int:author_id>/friends',
-         friend_views.friend_list,
-         name='friend_list'),
-    path('author/<int:author_id_1>/friends/<str:service2>/author/<str:author_id_2>',
-         friend_views.check_friendship,
-         name='check_friendship'),
-    path('friendrequest',
-         friend_views.friend_request,
-         name='friend_request'),
-    path('friendrequest/<int:friendrequest_id>',
-         friend_views.action_friend_request,
-         name='action_friend_request'
-         ),
-    path('author/posts', post_views.PostViewSet.as_view(
-        {'get': 'get_auth_posts',
-         'post': 'post_auth_posts',
-         }
-    )),
+    path(
+        'author/<int:author_id>/friends',
+        friend_views.friend_list,
+        name='friend_list'),
+    path(
+        'author/<int:author_id_1>/friends/<str:service2>/author/<str:author_id_2>',
+        friend_views.check_friendship,
+        name='check_friendship'),
+    path('friendrequest', friend_views.friend_request, name='friend_request'),
+    path(
+        'friendrequest/<int:friendrequest_id>',
+        friend_views.action_friend_request,
+        name='action_friend_request'),
+    path(
+        'author/posts',
+        post_views.PostViewSet.as_view({
+            'get': 'get_auth_posts',
+            'post': 'post_auth_posts',
+        })),
     path('posts', post_views.PostViewSet.as_view({'get': 'list'})),
-    path('posts/<int:pk>', post_views.PostViewSet.as_view({'get': 'retrieve'})),
+    path('posts/<int:pk>', post_views.PostViewSet.as_view({'get':
+                                                           'retrieve'})),
 ]
 # pylint: enable=invalid-name
