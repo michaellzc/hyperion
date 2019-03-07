@@ -176,7 +176,7 @@ def friend_request(request):
 
             # get the host from url to compare with host attribute
             # https://stackoverflow.com/questions/9626535/get-protocol-host-name-from-url
-            parsed_uri = urlparse(body['author']['url'])
+            parsed_uri = urlparse(body['author']['id'])
             host_name = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
 
             if host_name != body['author']['host']:
@@ -207,7 +207,7 @@ def friend_request(request):
                 # check if we already have this remote user profile after checking server
                 try:
                     author_profile = UserProfile.objects.get(
-                        url=body['author']['url'])
+                        url=body['author']['id'])
                     has_author_profile = True
                 except UserProfile.DoesNotExist:
                     # if we doesn't have this user profile
@@ -219,7 +219,7 @@ def friend_request(request):
                         author_profile = UserProfile.objects.create(
                             display_name=body['author']['display_name'],
                             host=server,
-                            url=body['author']['url'])
+                            url=body['author']['id'])
                     except Exception as some_error:
                         raise Exception(
                             "create author profile failed, reason: " +
