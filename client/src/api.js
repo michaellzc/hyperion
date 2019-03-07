@@ -1,4 +1,5 @@
 import { request } from './utils';
+import pick from 'lodash.pick';
 
 const Auth = {
   login: (username, password) =>
@@ -25,6 +26,15 @@ const Post = {
 
 const Friend = {
   fetchFriendRequest: () => request.get('/friendrequest'),
+  sendFriendRequest: (author, friend) => {
+    let filteredAuthor = pick(author, ['id', 'url', 'host']);
+    let filteredFriend = pick(friend, ['id', 'url', 'host']);
+    return request.post('/friendrequest', {
+      query: 'friendrequest',
+      author: filteredAuthor,
+      friend: filteredFriend,
+    });
+  },
   acceptFriendRequest: id =>
     request.put(`/friendrequest/${id}`, {
       query: 'friendrequestAction',
