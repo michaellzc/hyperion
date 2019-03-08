@@ -54,10 +54,8 @@ class AuthStore extends Container {
         'basic_auth',
         window.btoa(`${username}:${password}`)
       );
-      window.localStorage.setItem(
-        'user_info',
-        JSON.stringify(camelcaseKeys(user))
-      );
+      user = camelcaseKeys(user);
+      window.localStorage.setItem('user_info', JSON.stringify(user));
       this.setState({ user });
     } catch (err) {
       console.error(err.response);
