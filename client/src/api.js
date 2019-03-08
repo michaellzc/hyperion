@@ -7,6 +7,12 @@ const Auth = {
         Authorization: `Basic ${window.btoa(`${username}:${password}`)}`,
       },
     }),
+  signup: (username, email, password) =>
+    request.post('/auth/signup', {
+      username,
+      email,
+      password,
+    }),
   getCurrentUser: () => request.get('/auth'),
 };
 

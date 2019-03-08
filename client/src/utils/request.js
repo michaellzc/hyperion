@@ -2,11 +2,15 @@ let { host, protocol } = window.location;
 let API_ROOT = `${protocol}//${host}/api`;
 
 let getDefaultHeaders = () => {
-  const token = window.localStorage.getItem('basic_auth');
+  let token = window.localStorage.getItem('basic_auth');
+
+  let authHeader = {};
+  if (token) authHeader.Authorization = `Basic ${token}`;
+
   return {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    Authorization: `Basic ${token}`,
+    ...authHeader,
   };
 };
 

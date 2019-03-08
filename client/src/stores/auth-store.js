@@ -9,8 +9,12 @@ class AuthStore extends Container {
 
   get user() {
     let { user } = this.state;
-    if (window.localStorage.getItem('basic_auth')) {
-      return user ? user : { user: 'nobody' };
+    if (window.localStorage.getItem('basic_auth') && user) {
+      return user;
+    } else if (window.localStorage.getItem('basic_auth')) {
+      // let cachedUserInfo = window.localStorage.getItem('user_info');
+      // if (cachedUserInfo) user = JSON.parse(cachedUserInfo);
+      return user ? user : { user: 'placeholder' };
     } else return null;
   }
 
@@ -18,11 +22,14 @@ class AuthStore extends Container {
     if (window.localStorage.getItem('basic_auth') && this.state.user) {
       if (cached) return this.state.user;
       let { user } = await API.Auth.getCurrentUser();
+      user = camelcaseKeys(user);
+      window.localStorage.setItem('user_info', JSON.stringify(user));
       this.setState({ user });
       return user;
     } else if (window.localStorage.getItem('basic_auth')) {
       let { user } = await API.Auth.getCurrentUser();
       user = camelcaseKeys(user);
+      window.localStorage.setItem('user_info', JSON.stringify(user));
       this.setState({ user });
       return user;
     } else {
@@ -32,12 +39,24 @@ class AuthStore extends Container {
     }
   };
 
+  signup = async (username, email, password) => {
+    await API.Auth.signup(username, email, password);
+    window.localStorage.setItem(
+      'basic_auth',
+      window.btoa(`${username}:${password}`)
+    );
+  };
+
   login = async (username, password) => {
     try {
       let { user } = await API.Auth.login(username, password);
       window.localStorage.setItem(
         'basic_auth',
         window.btoa(`${username}:${password}`)
+      );
+      window.localStorage.setItem(
+        'user_info',
+        JSON.stringify(camelcaseKeys(user))
       );
       this.setState({ user });
     } catch (err) {
@@ -48,6 +67,7 @@ class AuthStore extends Container {
   logout = async () => {
     this.setState({ user: null });
     window.localStorage.removeItem('basic_auth');
+    window.localStorage.removeItem('user_info');
   };
 }
 
