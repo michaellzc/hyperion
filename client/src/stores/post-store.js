@@ -62,6 +62,7 @@ class PostsStore extends Container {
     let { posts } = this.state;
     posts.delete(id);
     this.setState({ posts });
+    await API.Post.delete(id);
   };
 
   /**

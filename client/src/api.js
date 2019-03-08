@@ -14,6 +14,7 @@ const Post = {
   fetchAll: () => request.get('/author/posts'),
   fetch: id => request.get(`/posts/${id}`),
   create: post => request.post('/author/posts', { query: 'createPost', post }),
+  delete: id => request.delete(`/posts/${id}`),
 };
 
 const Friend = {
