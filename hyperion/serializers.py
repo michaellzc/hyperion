@@ -23,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(
         source='profile.display_name', max_length=20)
     id = serializers.CharField(source='profile.get_full_id')
-    url = serializers.CharField(source='profile.url', max_length=200)
+    url = serializers.CharField(source='profile.get_url')
     github = serializers.CharField(
         source='profile.github',
         max_length=200,
@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'bio', 'host', 'first_name',
-                  'last_name', 'display_name', 'url', 'github')
+                  'last_name', 'display_name', 'url', 'github', 'is_active')
 
     # Not sure if this solution effects create/update
     def to_representation(self, instance):
