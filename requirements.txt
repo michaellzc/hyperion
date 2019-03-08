@@ -1,5 +1,8 @@
+appdirs==1.4.3
 astroid==2.1.0
+attrs==19.1.0
 autopep8==1.4.3
+black==18.9b0
 certifi==2018.11.29
 chardet==3.0.4
 Click==7.0
@@ -31,9 +34,9 @@ pylint-plugin-utils==0.4
 pytz==2018.9
 requests==2.21.0
 six==1.12.0
+toml==0.10.0
 uritemplate==3.0.0
 urllib3==1.24.1
 Werkzeug==0.14.1
 whitenoise==4.1.2
 wrapt==1.11.1
-yapf==0.26.0

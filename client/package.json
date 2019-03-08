@@ -45,11 +45,11 @@
       "git add"
     ],
     "../hyperion/**/*.py": [
-      "yapf -i ",
+      "black",
       "git add"
     ],
     "../api/**/*.py": [
-      "yapf -i ",
+      "black",
       "git add"
     ]
   },
