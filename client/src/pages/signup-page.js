@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components/macro';
 import { navigate, Link } from '@reach/router';
-import { parse } from 'query-string';
-import { Form, Icon, Input, Button, Row, Col } from 'antd';
-import { AuthStore } from '../stores';
+import { Form, Icon, Input, Button, Row, Col, Alert } from 'antd';
 import { inject } from '../utils';
+import { AuthStore } from '../stores';
 import AppLayout from '../components/app-layout';
-import './login-page.scss';
 
 let FormHeader = styled.div`
   text-align: center;
@@ -15,25 +13,23 @@ let FormHeader = styled.div`
   font-weight: 600;
 `;
 
-const LoginPage = ({
+function SignupPage({
   stores: [authStore],
   form: { getFieldDecorator, validateFields },
-}) => {
-  let onLogin = async e => {
+}) {
+  let [error, setError] = useState(null);
+
+  let signup = e => {
     e.preventDefault();
 
     validateFields(async (err, values) => {
       if (!err) {
-        let { username, password } = values;
-
-        await authStore.login(username, password);
-
-        // redirect
-        let { from } = parse(window.location.search);
-        if (from) {
-          await navigate(from);
-        } else {
-          await navigate('/');
+        let { username, email, password } = values;
+        try {
+          await authStore.signup(username, email, password);
+          navigate('/inactive');
+        } catch (error) {
+          setError('Username has been taken.');
         }
       }
     });
@@ -44,7 +40,34 @@ const LoginPage = ({
       <Row gutter={24} type="flex" justify="space-around" align="middle">
         <Col xs={20} sm={20} md={12} lg={10} xl={8} xxl={6}>
           <FormHeader>A Social Distributioin Project</FormHeader>
-          <Form onSubmit={onLogin} className="login-form">
+          {error ? (
+            <Alert
+              message="Error"
+              description={error}
+              closable
+              type="error"
+              showIcon
+            />
+          ) : null}
+          <Form onSubmit={signup} className="login-form">
+            <Form.Item>
+              {getFieldDecorator('email', {
+                rules: [
+                  {
+                    type: 'email',
+                    required: true,
+                    message: 'Please input your email!',
+                  },
+                ],
+              })(
+                <Input
+                  prefix={
+                    <Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />
+                  }
+                  placeholder="hi@example.com"
+                />
+              )}
+            </Form.Item>
             <Form.Item>
               {getFieldDecorator('username', {
                 rules: [
@@ -62,7 +85,8 @@ const LoginPage = ({
             <Form.Item>
               {getFieldDecorator('password', {
                 rules: [
-                  { required: true, message: 'Please input your Password!' },
+                  { required: true, message: 'Please input your password!' },
+                  { min: 8, message: 'Minimal 8 characters!' },
                 ],
               })(
                 <Input
@@ -80,17 +104,17 @@ const LoginPage = ({
                 htmlType="submit"
                 className="login-form-button"
               >
-                Log in
+                Sign Up
               </Button>
-              Don't have an account? <Link to="/signup">Register now!</Link>
+              Already have an account? <Link to="/login">Log in here!</Link>
             </Form.Item>
           </Form>
         </Col>
       </Row>
     </AppLayout>
   );
-};
+}
 
 export default inject([AuthStore])(
-  Form.create({ name: 'login_form' })(LoginPage)
+  Form.create({ name: 'signup_form' })(SignupPage)
 );

@@ -9,7 +9,10 @@ class PrivateRoute extends Component {
   async componentDidMount() {
     let [authStore] = this.props.stores;
     try {
-      await authStore.getUserInfo();
+      let user = await authStore.getUserInfo();
+      if (user.hasOwnerProperty('isActive') && user.isActive) {
+        await navigate('/inactive');
+      }
     } catch (error) {
       if (error.response && error.response.status !== 200) {
         await navigate(`/login?from=${window.location.pathname}`);
