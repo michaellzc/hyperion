@@ -41,3 +41,10 @@ class PostTestCase(TestCase):
         Friend.objects.create(profile1=self.u_1.profile, profile2=self.u_2.profile)
         Friend.objects.create(profile1=self.u_1.profile, profile2=self.u_4.profile)
         Friend.objects.create(profile1=self.u_2.profile, profile2=self.u_3.profile)
+
+    def test_set_private_to_host_friend(self):
+        p = Post.objects.create(
+            author=self.u_1.profile, title="1", content="test1")
+        p.set_private_to_host_friend()
+        self.assertEquals(p.visibility, 'PRIVATE')
+        self.assertEquals(len(p.visible_to.all()), 2)

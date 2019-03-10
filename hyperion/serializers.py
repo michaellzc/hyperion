@@ -87,6 +87,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     host = serializers.CharField(
         source='host.name', allow_blank=True, max_length=100, required=False)
     url = serializers.CharField(source='get_full_id', read_only=True)
+
     class Meta:
         model = UserProfile
         fields = ('id', 'email', 'bio', 'author', 'host', 'first_name',
@@ -140,13 +141,21 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = '__all__'
 
+    def to_internal_value(self, data):
+        visible_to = data.pop('visible_to', [])
+        data = super().to_internal_value(data)
+        data['visible_to'] = visible_to
+        return data
+
     def create(self, validated_data):
         # https://stackoverflow.com/questions/30203652/how-to-get-request-user-in-django-rest-framework-serializer
         # if there are some visible_to user profiel
         user = self.context['request'].user
         visible_to_data = validated_data.pop('visible_to', [])
         post = Post.objects.create(author=user.profile, **validated_data)
-        post.visible_to.set(visible_to_data)
+        visible_to = [User.objects.get(username=username).profile.pk
+                      for username in visible_to_data]
+        post.visible_to.set(visible_to)
         post.save()
         return post
 

@@ -101,7 +101,7 @@ class Post(models.Model):
         all_post = Post.objects.all()
         private_posts = []
         for post in all_post:
-            if  post.visibility == 'PRIVATE' and user_profile in post.visible_to.all():
+            if post.visibility == 'PRIVATE' and user_profile in post.visible_to.all():
                 private_posts.append(post)
         return private_posts
 
@@ -111,3 +111,8 @@ class Post(models.Model):
     def get_source(self):
         host_name = settings.HYPERION_HOSTNAME
         return '{}/posts/{}'.format(host_name, self.id)
+
+    def set_private_to_host_friend(self):
+        self.visibility = 'PRIVATE'
+        friends = [u.id for u in self.author.get_friends(including='host')]
+        self.visible_to.set(friends)
