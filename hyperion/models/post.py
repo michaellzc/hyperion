@@ -63,7 +63,20 @@ class Post(models.Model):
 
     def visible_to_another_author(self, user_profile):
         self.visible_to.add(user_profile)
-
+    def post_accessible(self,post,user_profile):
+        if post.visibility == 'FRIENDS':
+            friends = user_profile.get_friends()
+            if post.author in friends:
+                return True
+        elif post.visibility == 'FOAF':
+            friends_of_friends = user_profile.get_friends_friends()
+            if post.author in friends_of_friends:
+                return True
+        elif post.visibility == 'PUBLIC':
+            return True    
+        elif post.visibility == 'PRIVATE' and user_profile in post.visible_to.all():
+            return True 
+        return False
     @staticmethod
     def visible_to_friends(user_profile):
         friends = user_profile.get_friends()
