@@ -52,10 +52,6 @@ class CommentViewTestCase(TestCase):
             first_name='yuntian',
             last_name='zhang',
             password='123456')
-
-        self.u_1.profile.display_name = "Yuntian"
-        self.u_1.profile.url = "http://127.0.0.1:5454/author/1d698d25ff008f7538453c120f581471"
-        self.u_1.profile.github = "http://github.com/Yuntian"
         self.p_1 = Post.objects.create(
             title="A post title",
             author=self.u_1.profile,
@@ -67,26 +63,25 @@ class CommentViewTestCase(TestCase):
         credentials = base64.b64encode('{}:{}'.format(
             self.username, self.password).encode()).decode()
         self.client = Client(HTTP_AUTHORIZATION='Basic {}'.format(credentials))
-
-    def test_auth_post_a_post(self):
+    def test_new_comment(self):
         data = {
             "query": "createComment",
-            "post":"http://hyperion.com/posts/1",
+            "post":"http://hyperion.com/posts/"+str(self.p_1.id),
             "comment":{
                 "author":{
+                    'id': str(self.u_2.profile.id),
                     "host": "http://127.0.0.1:5454/",
-                    "display_name": "Yuntian",
+                    "display_name": str(self.u_2.profile.display_name),
                     "url":"http://127.0.0.1:5454/author/1d698d25ff008f7538453c120f581471",
-                    "github": "http://github.com/Yuntian"
+                    "github": "http://github.com/hyuntian"
                 },
                 "comment":"heyya",
                 "content_type":"text/markdown",
             }
         }
-
-        response = self.client.post('posts/1/comments', data, content_type='application/json')
+        response = self.client.post('/posts/'+str(self.p_1.id)+'/comments', data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['query'], 'createComment')
         self.assertEqual(response.data['success'], True)
-        self.assertEqual(Comment.objects.all()[0].author.display_name, '2haotianzhu')
+        self.assertEqual(Comment.objects.all()[0].author.display_name, self.u_2.profile.display_name)
         self.assertEqual(Comment.objects.all()[0].comment, 'heyya')

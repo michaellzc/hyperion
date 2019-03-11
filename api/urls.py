@@ -61,6 +61,6 @@ urlpatterns = [
         "posts/<int:pk>",
         post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
     ),
-    path("posts/{post_id}/comments", comment_views.CommentViewSet.as_view({"post": "new_comment"})),
+    path("posts/<int:pk>/comments", comment_views.CommentViewSet.as_view({"post": "new_comment"})),
 ]
 # pylint: enable=invalid-name
