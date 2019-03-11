@@ -55,6 +55,7 @@ class Post(models.Model):
     description = models.TextField(null=True, blank=True)
     unlisted = models.BooleanField(default=False)
 
+
     def __str__(self):
         return super().__str__()+' post: '+str(self.author.pk)
 
@@ -63,7 +64,8 @@ class Post(models.Model):
 
     def visible_to_another_author(self, user_profile):
         self.visible_to.add(user_profile)
-    def post_accessible(self,post,user_profile):
+
+    def post_accessible(self, post, user_profile):
         if post.visibility == 'FRIENDS':
             friends = user_profile.get_friends()
             if post.author in friends:
@@ -73,10 +75,11 @@ class Post(models.Model):
             if post.author in friends_of_friends:
                 return True
         elif post.visibility == 'PUBLIC':
-            return True    
+            return True
         elif post.visibility == 'PRIVATE' and user_profile in post.visible_to.all():
-            return True 
+            return True
         return False
+
     @staticmethod
     def visible_to_friends(user_profile):
         friends = user_profile.get_friends()
