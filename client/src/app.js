@@ -7,6 +7,9 @@ import PrivateRoute from './components/private-route';
 // import ErrorBoundary from './components/error-boundary';
 import HomePage from './pages/home-page';
 import LoginPage from './pages/login-page';
+import SignupPage from './pages/signup-page';
+import InactivePage from './pages/inactive-page';
+import NotFoundPage from './pages/not-found-page';
 
 if (process.env.NODE_ENV === 'development') {
   UNSTATED.logStateChanges = true;
@@ -29,6 +32,9 @@ class App extends Component {
           <PrivateRoute as={HomePage} path="/" />
           <PrivateRoute as={HomePage} path="posts/:postId" />
           <LoginPage path="login" />
+          <SignupPage path="signup" />
+          <InactivePage path="inactive" />
+          <NotFoundPage default />
         </Router>
       </Provider>
     );
