@@ -6,13 +6,14 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 
 from hyperion.authentication import HyperionBasicAuthentication
-from hyperion.serializers import PostSerializer
+from hyperion.serializers import CommentSerializer
 from hyperion.models import Comment
+from hyperion.models import Post
 
 from urllib.parse import urlparse
 
 class CommentViewSet(viewsets.ModelViewSet):
-     """
+    """
     API endpoint that allows users to be viewed or edited.
     """
 
@@ -23,19 +24,25 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["POST"], name="new_comment")
     def new_comment(self, request):
+        """
+        POST /posts/{post_id}/comments
+        """
+        
         body = request.data
         comment_query = body.get("query", None)
         comment_data = body.get("comment", None)
         author = comment_data.get("author")
 
         post_url = body.get("post", None)
+        print(post_url,"--------")
         post_id = urlparse(post_url).path.split("/")[-1]
         post_data = Post.Objects.get(pk=post_id)
-        accessible = post_data.post_accessible(post_data,author)
+        accessible = post_data.post_accessible(post_data, author)
 
         if comment_query == "createComment" and comment_data and accessible:
             serializer = CommentSerializer(data=comment_data, context={"request": request})
             if serializer.is_valid():
+                print(1,"----------")
                 serializer.save()
                 return Response(
                     {
@@ -45,6 +52,7 @@ class CommentViewSet(viewsets.ModelViewSet):
                     }
                 )
             else:
+                print(2,"----------")
                 return Response(
                     {
                         "query": "createComment",
@@ -53,10 +61,12 @@ class CommentViewSet(viewsets.ModelViewSet):
                     }
                 )
         elif comment_query == "createComment" and comment_data and not accessible:
+            print(3,"----------")
             return Response(
-                    {
-                        "query": "createComment",
-                        "success": False,
-                        "message": "Post not accessible",
-                    }
-                )
+                {
+                    "query": "createComment",
+                    "success": False,
+                    "message": "Post not accessible",
+                }
+            )
+            
