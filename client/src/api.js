@@ -47,4 +47,8 @@ const Friend = {
     }),
 };
 
-export { Auth, Post, Friend };
+const Search = {
+  getUsers: () => request.get('/users'),
+};
+
+export { Auth, Post, Friend, Search };
