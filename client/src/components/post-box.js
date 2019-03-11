@@ -1,4 +1,4 @@
-import React, { useState, useRef, useReducer } from 'react';
+import React, { useState, useRef, useReducer, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import PluginEditor from 'draft-js-plugins-editor';
 import createMarkdownPlugin from 'draft-js-markdown-plugin';
@@ -17,9 +17,11 @@ import {
   Tooltip,
   Tabs,
   Upload,
+  Select,
 } from 'antd';
 import { AuthStore, PostStore } from '../stores';
 import { inject, colors } from '../utils';
+import * as API from '../api';
 import 'draft-js-static-toolbar-plugin/lib/plugin.css';
 
 let CardWrapper = styled.div`
@@ -111,6 +113,8 @@ let reducer = (state, action) => {
       return { ...state, content: action.text };
     case 'visibility':
       return { ...state, visibility: action.text };
+    case 'visibleTo':
+      return { ...state, visibleTo: action.text };
     case 'reset':
       return initialState;
     default:
@@ -137,6 +141,7 @@ let initialState = {
   description: null,
   content: null,
   visibility: 'PRIVATE',
+  visibleTo: [],
 };
 
 const PostBox = ({ stores: [authStore, postStore] }) => {
@@ -146,9 +151,19 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
   let [previewVisible, setPreviewVisible] = useState(false);
   let [previewImage, setPreviewImage] = useState('');
   let [editorState, setEditorState] = useState(EditorState.createEmpty());
+  let [userList, setUserList] = useState([]);
   let [state, dispatch] = useReducer(reducer, initialState);
 
   let editorRef = useRef(null);
+
+  let getUserList = async () => {
+    let users = await API.Search.getUsers();
+    setUserList(users);
+  };
+
+  useEffect(() => {
+    getUserList();
+  }, []);
 
   let toggleModal = () => {
     setVisibility(!isVisisble);
@@ -166,7 +181,7 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
     dispatch({ type: e.target.id || e.target.name, text: e.target.value });
 
   let onPost = async () => {
-    let { title, description, content, visibility } = state;
+    let { title, description, content, visibility, visibleTo } = state;
     let contentType = 'text/markdown';
     try {
       if (tabKey === 'text') {
@@ -182,6 +197,7 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
         content,
         contentType,
         visibility,
+        visibleTo,
       });
       postStore.getAll();
       dispatch({ type: 'reset' });
@@ -244,6 +260,25 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
               onChange={onInputChange}
             />
           </InputWrapper>
+          {state.visibility === 'PRIVATE' ? (
+            <InputWrapper>
+              <label>Share with</label>
+              <Select
+                mode="multiple"
+                style={{ width: '100%' }}
+                value={state.visibleTo}
+                onChange={values =>
+                  dispatch({ type: 'visibleTo', text: values })
+                }
+              >
+                {userList.map(each => (
+                  <Select.Option key={each.username}>
+                    {each.username}
+                  </Select.Option>
+                ))}
+              </Select>
+            </InputWrapper>
+          ) : null}
           <InputWrapper>
             <label htmlFor="description">Description</label>
             <Input
