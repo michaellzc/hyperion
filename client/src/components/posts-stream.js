@@ -2,16 +2,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import { number } from 'prop-types';
 import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
-import {
-  Avatar,
-  message,
-  Icon,
-  Tooltip,
-  Dropdown,
-  Menu,
-  Empty,
-  Spin,
-} from 'antd';
+import { message, Icon, Tooltip, Dropdown, Menu, Empty, Spin } from 'antd';
 import { PostStore, AuthStore } from '../stores';
 import { inject } from '../utils';
 import PostCard from './post-card';
@@ -20,6 +11,7 @@ import ImageCardContent from './image-card-content';
 import MarkdownCardContent from './markdown-card-content';
 import CardActionsFooter from './card-actions-footer';
 import PostOverlay from './post-overlay';
+import ProfileOverlay from './profile-popover';
 
 // Comment out username for now as API does not supply this field
 const CardMetaTitle = ({ displayName, username, extra }) => (
@@ -117,7 +109,7 @@ const PostsStream = ({
         <PostCard
           key={id}
           id={id}
-          avatar={<Avatar icon="user" />}
+          avatar={<ProfileOverlay author={user} />}
           onClick={() => handleOpenPost(id)}
           metaTitle={
             <CardMetaTitle
