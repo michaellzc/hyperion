@@ -7,8 +7,8 @@ from rest_framework import viewsets
 from rest_framework import status
 
 from hyperion.authentication import HyperionBasicAuthentication
-from hyperion.serializers import CommentSerializer, UserProfileSerializer
-from hyperion.models import Comment, Post, UserProfile
+from hyperion.serializers import CommentSerializer
+from hyperion.models import Comment, Post
 
 
 class CommentViewSet(viewsets.ModelViewSet):
