@@ -21,7 +21,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, AllowAny)
 
     @action(detail=True, methods=["POST"], name="new_comment")
-    def new_comment(self, request, pk=None):
+    def new_comment(self, request, pk=None): # pylint: disable=invalid-name
         """
         POST /posts/{post_id}/comments
         """
