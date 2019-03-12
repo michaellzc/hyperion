@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { Fragment, useState } from 'react';
 import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
 import { inject } from '../utils';
 import { AuthStore } from '../stores';
 import Notification from './notification';
+import ProfileManager from './profile-manager';
 import logo from '../assets/logo-horizontal.png';
 
 let { Header, Content, Footer } = Layout;
@@ -43,9 +44,18 @@ let CustomFooter = styled(Footer)`
 `;
 
 const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
-  // TODO - implment logout
+  let [visible, setVisible] = useState(false);
+
+  let toggleProfileManager = () => {
+    setVisible(!visible);
+  };
+
   let menu = (
     <Menu className="menu" selectable={false}>
+      <Menu.Item key="profile" onClick={toggleProfileManager}>
+        <Icon type="user" />
+        Profile Settings
+      </Menu.Item>
       <Menu.Item key="logout" onClick={authStore.logout}>
         <Icon type="logout" />
         Logout
@@ -54,41 +64,44 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   );
 
   return (
-    <CustomLayout {...props}>
-      {header ? (
-        <CustomHeader>
-          <img
-            src={logo}
-            alt="logo"
-            css={css`
-              max-height: 35px;
-              height: 72px;
-              line-height: 72px;
-              @media (max-width: 567px) {
-                display: none;
-              }
-            `}
-          />
-          <RightContainer>
-            <Notification />
-            <Dropdown overlay={menu}>
-              <span className="action account">
-                <Avatar
-                  className="avatar"
-                  icon="user"
-                  style={{
-                    margin: '20px 8px 20px 0',
-                  }}
-                />
-                <span className="name">{authStore.user.displayName}</span>
-              </span>
-            </Dropdown>
-          </RightContainer>
-        </CustomHeader>
-      ) : null}
-      <CustomContent>{children}</CustomContent>
-      <CustomFooter>Copyright © 2019 CMPUT404W19T6</CustomFooter>
-    </CustomLayout>
+    <Fragment>
+      <ProfileManager visible={visible} toggleModal={toggleProfileManager} />
+      <CustomLayout {...props}>
+        {header ? (
+          <CustomHeader>
+            <img
+              src={logo}
+              alt="logo"
+              css={css`
+                max-height: 35px;
+                height: 72px;
+                line-height: 72px;
+                @media (max-width: 567px) {
+                  display: none;
+                }
+              `}
+            />
+            <RightContainer>
+              <Notification />
+              <Dropdown overlay={menu}>
+                <span className="action account">
+                  <Avatar
+                    className="avatar"
+                    icon="user"
+                    style={{
+                      margin: '20px 8px 20px 0',
+                    }}
+                  />
+                  <span className="name">{authStore.user.displayName}</span>
+                </span>
+              </Dropdown>
+            </RightContainer>
+          </CustomHeader>
+        ) : null}
+        <CustomContent>{children}</CustomContent>
+        <CustomFooter>Copyright © 2019 CMPUT404W19T6</CustomFooter>
+      </CustomLayout>
+    </Fragment>
   );
 };
 

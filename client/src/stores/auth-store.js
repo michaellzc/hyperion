@@ -1,5 +1,6 @@
 import { Container } from 'unstated';
 import camelcaseKeys from 'camelcase-keys';
+import snakecaseKeys from 'snakecase-keys';
 import * as API from '../api';
 
 class AuthStore extends Container {
@@ -37,6 +38,10 @@ class AuthStore extends Container {
       Object.assign(error, { response: { status: 401 } });
       throw error;
     }
+  };
+
+  updateUserInfo = async profile => {
+    await API.Author.updateProfile(snakecaseKeys(profile));
   };
 
   signup = async (username, email, password) => {

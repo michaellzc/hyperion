@@ -17,6 +17,11 @@ const Auth = {
   getCurrentUser: () => request.get('/auth'),
 };
 
+const Author = {
+  updateProfile: profile =>
+    request.patch('/author', { query: 'updateProfile', author: profile }),
+};
+
 const Post = {
   fetchAll: () => request.get('/author/posts'),
   fetch: id => request.get(`/posts/${id}`),
@@ -51,4 +56,4 @@ const Search = {
   getUsers: () => request.get('/users'),
 };
 
-export { Auth, Post, Friend, Search };
+export { Auth, Author, Post, Friend, Search };
