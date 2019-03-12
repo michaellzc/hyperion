@@ -126,9 +126,9 @@ class CommentSerializer(serializers.ModelSerializer):
             'post': {'write_only': True}
         }
 
-    def to_representation(self, obj):
-        data = super().to_representation(obj)
-        serializer = UserProfileSerializer(obj.author)
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        serializer = UserProfileSerializer(instance.author)
         data['author'] = serializer.data
         return data
 
