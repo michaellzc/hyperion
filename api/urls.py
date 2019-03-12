@@ -19,7 +19,7 @@ from django.conf.urls import url, include
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import routers  # viewsets, serializers
 from rest_framework.documentation import include_docs_urls
-from hyperion.views import user_views, auth_views, friend_views, post_views
+from hyperion.views import user_views, auth_views, friend_views, post_views, comment_views
 
 # Routers provide a way of automatically determining the URL conf.
 # pylint: disable=invalid-name
@@ -35,6 +35,7 @@ urlpatterns = [
     path("auth", csrf_exempt(auth_views.AuthView.as_view())),
     path("admin/", admin.site.urls),
     url(r"^docs/", include_docs_urls(title="API Documentation")),
+    path("author", user_views.update_profile, name="update_author_prfile"),
     # friend URL
     path(
         "author/<int:author_id>/friends", friend_views.friend_list, name="friend_list"
@@ -61,5 +62,6 @@ urlpatterns = [
         "posts/<int:pk>",
         post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
     ),
+    path("posts/<int:pk>/comments", comment_views.CommentViewSet.as_view({"post": "new_comment"})),
 ]
 # pylint: enable=invalid-name

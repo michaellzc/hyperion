@@ -92,7 +92,7 @@ class PostViewTestCase(TestCase):
         #own
         p_5 = Post.objects.create(author=self.u_1.profile, title="5", content="test",visibility ="PRIVATE")
         p_5 .visible_to.set([self.u_1.profile])
-        
+
         #public
         Post.objects.create(
             author=self.u_5.profile, title="6", content="test",visibility ="PUBLIC")
@@ -102,11 +102,11 @@ class PostViewTestCase(TestCase):
         #foaf
         Post.objects.create(
             author=self.u_4.profile, title="8", content="test",visibility ="FOAF")
-   
+
         #private can see
         p_10 = Post.objects.create(author=self.u_6.profile, title="10", content="test",visibility ="PRIVATE")
         p_10.visible_to.set([self.u_1.profile])
-            
+ 
         #private cant see
         Post.objects.create(
             author=self.u_5.profile, title="9", content="test",visibility ="PRIVATE")
