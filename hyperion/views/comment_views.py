@@ -4,11 +4,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
+from rest_framework import status
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import CommentSerializer, UserProfileSerializer
-from hyperion.models import Comment
-from hyperion.models import Post
+from hyperion.models import Comment, Post, UserProfile
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
@@ -28,19 +29,17 @@ class CommentViewSet(viewsets.ModelViewSet):
         body = request.data
         comment_query = body.get("query", None)
         comment_data = body.get("comment", None)
-        author_jso = comment_data.get("author")
-        author_obj = UserProfileSerializer(data=author_jso)
         comment_data['post'] = str(pk)
         post_data = Post.objects.get(pk=pk)
-        accessible = post_data.post_accessible(post_data, author_obj)
+        accessible = post_data.is_accessible(post_data, request.user.profile)
 
-        if comment_query == "createComment" and comment_data and accessible:
+        if comment_query == "addComment" and comment_data and accessible:
             serializer = CommentSerializer(data=comment_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(
                     {
-                        "query": "createComment",
+                        "query": "addComment",
                         "success": True,
                         "message": "Comment Created",
                     }
@@ -48,17 +47,17 @@ class CommentViewSet(viewsets.ModelViewSet):
             else:
                 return Response(
                     {
-                        "query": "createComment",
+                        "query": "addComment",
                         "success": False,
                         "message": serializer.errors,
-                    }
+                    }, status=status.HTTP_409_CONFLICT
                 )
-        elif comment_query == "createComment" and comment_data and not accessible:
+        elif comment_query == "addComment" and comment_data and not accessible:
             return Response(
                 {
-                    "query": "createComment",
+                    "query": "addComment",
                     "success": False,
                     "message": "Post not accessible",
-                }
+                }, status=status.HTTP_403_FORBIDDEN
             )
             

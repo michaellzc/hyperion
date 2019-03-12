@@ -47,6 +47,9 @@ class Post(models.Model):
     description = models.TextField(null=True, blank=True)
     unlisted = models.BooleanField(default=False)
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        super().save()
+        self.visible_to.set([self.author])
 
     def __str__(self):
         return super().__str__() + " post: " + str(self.author.pk)
@@ -57,7 +60,7 @@ class Post(models.Model):
     def visible_to_another_author(self, user_profile):
         self.visible_to.add(user_profile)
 
-    def post_accessible(self, post, user_profile):
+    def is_accessible(self, post, user_profile):
         if post.visibility == 'FRIENDS':
             friends = user_profile.get_friends()
             if post.author in friends:
