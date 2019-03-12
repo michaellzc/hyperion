@@ -16,6 +16,7 @@ let getDefaultHeaders = () => {
 
 let errorHandler = async response => {
   if ([200, 201].includes(response.status)) return response.json();
+  else if (response.status === 204) return null;
   else {
     const errorBody = await response.json();
     const error = new Error(
