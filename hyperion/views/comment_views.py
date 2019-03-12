@@ -50,7 +50,7 @@ class CommentViewSet(viewsets.ModelViewSet):
                         "query": "addComment",
                         "success": False,
                         "message": serializer.errors,
-                    }, status=status.HTTP_409_CONFLICT
+                    }, status=status.HTTP_422_UNPROCESSABLE_ENTITY
                 )
         elif comment_query == "addComment" and comment_data and not accessible:
             return Response(
@@ -60,4 +60,3 @@ class CommentViewSet(viewsets.ModelViewSet):
                     "message": "Post not accessible",
                 }, status=status.HTTP_403_FORBIDDEN
             )
-            
