@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
@@ -51,16 +51,15 @@ const AppLayout = ({
   ...props
 }) => {
   // TODO - implment logout
-  let showProfile = () => {
-    // function toggleModal () {
-    //   uicontainer.toggleBox();
-    // };
-    return <ProfileBox id="profileBox" />;
+  let [visible, setVisible] = useState(false);
+
+  let toggleProfile = () => {
+    setVisible(!visible);
   };
 
   let menu = (
     <Menu className="menu" selectable={false}>
-      <Menu.Item key="Profile" onClick={showProfile.toggleModal}>
+      <Menu.Item key="Profile" onClick={toggleProfile}>
         <Icon type="info-circle" />
         User Profile
       </Menu.Item>
@@ -101,7 +100,7 @@ const AppLayout = ({
                 <span className="name">{authStore.user.displayName}</span>
               </span>
             </Dropdown>
-            {showProfile}
+            <ProfileBox visible={visible} toggleModal={toggleProfile} />
           </RightContainer>
         </CustomHeader>
       ) : null}
