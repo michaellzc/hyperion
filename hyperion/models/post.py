@@ -33,15 +33,11 @@ class Post(models.Model):
     )
 
     title = models.CharField(max_length=100)
-    author = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, related_name="post_author"
-    )
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="post_author")
     content = models.TextField()
-    create_date = models.DateTimeField(default=timezone.now)
+    published = models.DateTimeField(default=timezone.now)
     last_modify_date = models.DateTimeField(default=timezone.now)
-    content_type = models.CharField(
-        max_length=20, choices=CONTENT_TYPES, default="text/plain"
-    )
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default="text/plain")
     visibility = models.CharField(max_length=20, choices=CHOICES, default="PUBLIC")
     visible_to = models.ManyToManyField(UserProfile, related_name="visible")
     description = models.TextField(null=True, blank=True)
@@ -61,17 +57,17 @@ class Post(models.Model):
         self.visible_to.add(user_profile)
 
     def is_accessible(self, post, user_profile):
-        if post.visibility == 'FRIENDS':
+        if post.visibility == "FRIENDS":
             friends = user_profile.get_friends()
             if post.author in friends:
                 return True
-        elif post.visibility == 'FOAF':
+        elif post.visibility == "FOAF":
             friends_of_friends = user_profile.get_friends_friends()
             if post.author in friends_of_friends:
                 return True
-        elif post.visibility == 'PUBLIC':
+        elif post.visibility == "PUBLIC":
             return True
-        elif post.visibility == 'PRIVATE' and user_profile in post.visible_to.all():
+        elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
             return True
         return False
 
