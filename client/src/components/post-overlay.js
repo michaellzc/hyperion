@@ -1,11 +1,23 @@
 import React, { useEffect } from 'react';
-import { Modal, List, Comment } from 'antd';
+import { css } from 'styled-components/macro';
+import { Modal, List, Comment, Spin } from 'antd';
 import { PostStore } from '../stores';
 import { inject } from '../utils';
 import TextCardContent from './text-card-content';
 import MarkdownCardContent from './markdown-card-content';
 import ImageCardContent from './image-card-content';
 import CommentBox from './comment-box';
+import ProfilePopover from './profile-popover';
+
+let Loading = () => (
+  <div
+    css={css`
+      text-align: center;
+    `}
+  >
+    <Spin size="large" />
+  </div>
+);
 
 const PostOverlay = ({ postId, isVisible, onCancel, stores: [postStore] }) => {
   useEffect(() => {
@@ -39,18 +51,20 @@ const PostOverlay = ({ postId, isVisible, onCancel, stores: [postStore] }) => {
       closable={false}
       footer={null}
     >
-      {post ? content : null}
+      {post ? content : <Loading />}
       <CommentBox postId={postId} />
       {post && post.comments.length > 0 ? (
         <List
           className="comment-list"
           itemLayout="horizontal"
-          dataSource={post.comments}
+          dataSource={post.comments.sort(
+            (a, b) => new Date(b.published) - new Date(a.published)
+          )}
           renderItem={item => (
             <Comment
               author={item.author.displayName}
-              avatar={item.avatar}
-              content={item.content}
+              avatar={<ProfilePopover author={item.author} />}
+              content={item.comment}
             />
           )}
         />
