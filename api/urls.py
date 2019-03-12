@@ -35,6 +35,7 @@ urlpatterns = [
     path("auth", csrf_exempt(auth_views.AuthView.as_view())),
     path("admin/", admin.site.urls),
     url(r"^docs/", include_docs_urls(title="API Documentation")),
+    path("author", user_views.update_profile, name="update_author_prfile"),
     # friend URL
     path(
         "author/<int:author_id>/friends", friend_views.friend_list, name="friend_list"
