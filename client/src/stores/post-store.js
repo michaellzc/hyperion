@@ -12,7 +12,7 @@ class PostsStore extends Container {
     let { posts } = this.state;
     if (!posts) return null;
     return [...posts.values()].sort(
-      (a, b) => new Date(b.lastModifyDate) - new Date(a.lastModifyDate)
+      (a, b) => new Date(b.published) - new Date(a.published)
     );
   }
 
