@@ -24,6 +24,11 @@ const Post = {
   delete: id => request.delete(`/posts/${id}`),
 };
 
+const Patch = {
+  create: author =>
+    request.patch('/author', { query: 'updateProfile', author }),
+};
+
 const Friend = {
   fetchFriendRequest: () => request.get('/friendrequest'),
   sendFriendRequest: (author, friend) => {
@@ -51,4 +56,4 @@ const Search = {
   getUsers: () => request.get('/users'),
 };
 
-export { Auth, Post, Friend, Search };
+export { Auth, Post, Patch, Friend, Search };

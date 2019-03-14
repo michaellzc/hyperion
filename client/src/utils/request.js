@@ -57,6 +57,18 @@ let requests = {
       body: JSON.stringify(data),
     }).then(errorHandler);
   },
+  patch: (url, data, opts = {}) => {
+    let headers = getDefaultHeaders();
+    return fetch(`${API_ROOT}${url}`, {
+      ...opts,
+      method: 'PATCH',
+      headers: {
+        ...headers,
+        ...opts.headers,
+      },
+      body: JSON.stringify(data),
+    }).then(errorHandler);
+  },
   put: (url, data, opts = {}) => {
     let headers = getDefaultHeaders();
     return fetch(`${API_ROOT}${url}`, {
