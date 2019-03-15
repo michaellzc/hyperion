@@ -54,7 +54,7 @@ class Post(models.Model):
 
     def is_accessible(self, post, user_profile):
         if user_profile == post.author:
-            return False
+            return True
         else:
             if post.visibility == "FRIENDS":
                 friends = user_profile.get_friends()
