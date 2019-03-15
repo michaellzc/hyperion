@@ -7,7 +7,6 @@ import { AuthStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 import ProfileBox from '../components/profile-box';
-import UIcontainer from '../utils/uicontainer';
 
 let { Header, Content, Footer } = Layout;
 
@@ -44,12 +43,7 @@ let CustomFooter = styled(Footer)`
   text-align: center;
 `;
 
-const AppLayout = ({
-  children,
-  stores: [authStore, uicontainer],
-  header,
-  ...props
-}) => {
+const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   // TODO - implment logout
   let [visible, setVisible] = useState(false);
 
@@ -124,4 +118,4 @@ AppLayout.defaultProps = {
   header: true,
 };
 
-export default inject([AuthStore, UIcontainer])(AppLayout);
+export default inject([AuthStore])(AppLayout);

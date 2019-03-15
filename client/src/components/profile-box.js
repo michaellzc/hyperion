@@ -1,71 +1,59 @@
-import React, { useReducer } from 'react';
-import UIcontainer from '../utils/uicontainer';
+import React, { useEffect } from 'react';
 import { Form, Icon, Input, Modal, Row, Col } from 'antd';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
 import 'draft-js-static-toolbar-plugin/lib/plugin.css';
 
-var initialProfile1;
-let reducer = (state, action) => {
-  switch (action.type) {
-    case 'email':
-      return { ...state, email: action.text };
-    case 'bio':
-      return { ...state, bio: action.text };
-    case 'host':
-      return { ...state, host: action.text };
-    case 'firstName':
-      return { ...state, firstName: action.text };
-    case 'lastName':
-      return { ...state, lastName: action.text };
-    case 'displayName':
-      return { ...state, displayName: action.text };
-    case 'username':
-      return { ...state, username: action.text };
-    case 'url':
-      return { ...state, url: action.text };
-    case 'github':
-      return { ...state, github: action.text };
-    case 'reset':
-      return initialProfile1;
-    default:
-      throw new Error();
-  }
-};
-
 const ProfileBox = ({
-  stores: [authStore, uiContainer],
-  form: { getFieldDecorator, validateFields, setFieldsValue, getFieldValue },
+  stores: [authStore],
+  form: {
+    getFieldDecorator,
+    validateFields,
+    setFieldsValue,
+    getFieldValue,
+    getFieldsValue,
+  },
   visible,
   toggleModal,
   initialProfile,
 }) => {
-  initialProfile1 = initialProfile;
-  let [state, dispatch] = useReducer(reducer, initialProfile);
+  let setBaseInfo = () => {
+    let user = authStore.user;
+    if (!user) return;
+    Object.keys(getFieldsValue()).forEach(key => {
+      const obj = {};
+      obj[key] = user[key] || null;
+      setFieldsValue(obj);
+    });
+    setFieldsValue({
+      userName: authStore.user.username,
+    });
+  };
+  useEffect(() => {
+    setBaseInfo();
+  }, [authStore.user]);
+
   // User cannot change the username and password
-  let username = authStore.user.username;
+  var username = authStore.user.username;
   // User can change the following field
-  let displayName = authStore.user.displayName;
-  let email = authStore.user.email;
-  let bio = authStore.user.bio;
-  let github = authStore.user.github;
+  var displayName = authStore.user.displayName;
+  var email = authStore.user.email;
+  var bio = authStore.user.bio;
+  var github = authStore.user.github;
+  var host = authStore.user.host;
+  var firstName = authStore.user.firstName;
+  var lastName = authStore.user.lastName;
+  var url = authStore.user.url;
 
   let onUpdate = async e => {
     e.preventDefault();
     validateFields(async (err, values) => {
       if (!err) {
-        let {
-          email,
-          bio,
-          host,
-          firstName,
-          lastName,
-          displayName,
-          url,
-          github,
-          username,
-        } = state;
         try {
+          email = getFieldValue('email');
+          displayName = getFieldValue('displayName');
+          bio = getFieldValue('bio');
+          github = getFieldValue('github');
           await authStore.updateProfile({
             email,
             bio,
@@ -81,8 +69,6 @@ const ProfileBox = ({
         } catch (error) {
           console.error(error);
           await authStore.getUserInfo(false);
-          initialProfile1 = authStore.user;
-          dispatch({ type: 'reset' });
         }
         toggleModal();
       } else {
@@ -91,33 +77,32 @@ const ProfileBox = ({
     });
   };
 
-  let onCancel = () => {
+  let onCancel = async () => {
     toggleModal();
-    resetModal();
-  };
-
-  let resetModal = async () => {
-    //TODO:reset to correct user profile
     try {
       await authStore.getUserInfo(false);
     } catch (error) {
       console.log(error);
     }
-    setFieldsValue({
-      displayName: authStore.user.displayName,
-    });
-    setFieldsValue({
-      email: authStore.user.email,
-    });
-    setFieldsValue({
-      bio: authStore.user.bio,
-    });
-    setFieldsValue({
-      github: authStore.user.github,
-    });
   };
+
   let onInputChange = e => {
-    dispatch({ type: e.target.name, text: e.target.value });
+    switch (e.target.name) {
+      case 'email':
+        email = e.target.value;
+        return;
+      case 'bio':
+        bio = e.target.value;
+        return;
+      case 'displayName':
+        displayName = e.target.value;
+        return;
+      case 'github':
+        github = e.target.value;
+        return;
+      default:
+        throw new Error();
+    }
   };
 
   return (
@@ -138,6 +123,7 @@ const ProfileBox = ({
                     <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
                   }
                   placeholder="Username"
+                  name="username"
                   disabled={true}
                 />
               )}
@@ -234,6 +220,6 @@ const ProfileBox = ({
   );
 };
 
-export default inject([AuthStore, UIcontainer])(
+export default inject([AuthStore])(
   Form.create({ name: 'profile-box' })(ProfileBox)
 );
