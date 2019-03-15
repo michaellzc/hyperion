@@ -53,19 +53,22 @@ class Post(models.Model):
         self.visible_to.add(user_profile)
 
     def is_accessible(self, post, user_profile):
-        if post.visibility == "FRIENDS":
-            friends = user_profile.get_friends()
-            if post.author in friends:
+        if user_profile == post.author:
+            return False
+        else:
+            if post.visibility == "FRIENDS":
+                friends = user_profile.get_friends()
+                if post.author in friends:
+                    return True
+            elif post.visibility == "FOAF":
+                friends_of_friends = user_profile.get_friends_friends()
+                if post.author in friends_of_friends:
+                    return True
+            elif post.visibility == "PUBLIC":
                 return True
-        elif post.visibility == "FOAF":
-            friends_of_friends = user_profile.get_friends_friends()
-            if post.author in friends_of_friends:
+            elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
                 return True
-        elif post.visibility == "PUBLIC":
-            return True
-        elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
-            return True
-        return False
+            return False
 
     @staticmethod
     def visible_to_friends(user_profile):
