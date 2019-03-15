@@ -43,10 +43,6 @@ class Post(models.Model):
     description = models.TextField(null=True, blank=True)
     unlisted = models.BooleanField(default=False)
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        super().save()
-        self.visible_to.set([self.author])
-
     def __str__(self):
         return super().__str__() + " post: " + str(self.author.pk)
 
