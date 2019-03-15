@@ -50,55 +50,59 @@ const ProfileBox = ({
   let bio = authStore.user.bio;
   let github = authStore.user.github;
 
-  let onUpdate = async () => {
-    console.log(state);
-    console.log(initialProfile);
-    let {
-      email,
-      bio,
-      host,
-      firstName,
-      lastName,
-      displayName,
-      url,
-      github,
-      username,
-    } = state;
-    try {
-      console.log(initialProfile);
-      console.log(state);
-      await authStore.updateProfile({
-        email,
-        bio,
-        host,
-        firstName,
-        lastName,
-        displayName,
-        url,
-        github,
-        username,
-      });
-      dispatch({ type: 'reset' });
-    } catch (error) {
-      console.error(error);
-    }
-    dispatch({ type: 'reset' });
-    console.log(initialProfile);
-    console.log(initialProfile1);
-    console.log(state);
-    // console.log(changed);
-    // changed = false;
-    toggleModal();
+  let onUpdate = async e => {
+    e.preventDefault();
+    validateFields(async (err, values) => {
+      if (!err) {
+        let {
+          email,
+          bio,
+          host,
+          firstName,
+          lastName,
+          displayName,
+          url,
+          github,
+          username,
+        } = state;
+        try {
+          await authStore.updateProfile({
+            email,
+            bio,
+            host,
+            firstName,
+            lastName,
+            displayName,
+            url,
+            github,
+            username,
+          });
+          await authStore.getUserInfo(false);
+        } catch (error) {
+          console.error(error);
+          await authStore.getUserInfo(false);
+          initialProfile1 = authStore.user;
+          dispatch({ type: 'reset' });
+        }
+        toggleModal();
+      } else {
+        console.log('Email format error');
+      }
+    });
   };
 
   let onCancel = () => {
     toggleModal();
     resetModal();
-    // changed = false;
   };
 
-  let resetModal = () => {
+  let resetModal = async () => {
     //TODO:reset to correct user profile
+    try {
+      await authStore.getUserInfo(false);
+    } catch (error) {
+      console.log(error);
+    }
     setFieldsValue({
       displayName: authStore.user.displayName,
     });
@@ -179,7 +183,7 @@ const ProfileBox = ({
                 rules: [
                   {
                     type: 'email',
-                    required: true,
+                    required: false,
                     message: 'Please enter a valid email!',
                   },
                 ],
