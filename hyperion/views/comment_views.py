@@ -27,7 +27,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def new_comment(self, request, pk=None): # pylint: disable=invalid-name
         """
         POST /posts/{post_id}/comments
-        """    
+        """
         try:
             # get request info
             body = request.data
@@ -81,12 +81,10 @@ class CommentViewSet(viewsets.ModelViewSet):
                     "message": str(some_error),
                 }, status=status.HTTP_400_BAD_REQUEST
             )
-     
-        '''
-        End of handle author_profile
-        Starting handle 
-        Post_data is always on our host.author_profile may not.
-        '''
+
+
+        #End of handle author_profile  Starting handle comment data. Post_data is always on our host.author_profile may not.
+
         post_data = Post.objects.get(pk=pk)
         accessible = post_data.is_accessible(post_data, author_profile)
         if comment_query == "addComment" and comment_data and accessible:
