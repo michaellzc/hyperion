@@ -137,7 +137,7 @@ class CommentSerializer(serializers.ModelSerializer):
         author_id = author_information.get('id', None)
         author_host = author_information.get('host', None)
         data['author'] = str(author_id)
-        data['id'] = "https://{}/authors/{}".format(author_host,author_id)
+        data['id'] = "https://{}/authors/{}".format(author_host, author_id)
         return super().to_internal_value(data)
 
 
