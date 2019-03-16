@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import status
 from django.conf import settings
+from django.contrib.auth.models import User
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import CommentSerializer
-from hyperion.models import Comment, Post
+from hyperion.models import Comment, Post, Server, UserProfile
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -27,60 +28,61 @@ class CommentViewSet(viewsets.ModelViewSet):
         """
         POST /posts/{post_id}/comments
         """
+        
         try:
             # get request info
             body = request.data
             comment_query = body.get("query", None)
             comment_data = body.get("comment", None)
             comment_data['post'] = str(pk)
-            
             # commenter is in our local host
-            if body.get("author", None)["host"] == settings.HYPERION_HOSTNAME:
+            if comment_data["author"]["host"] == settings.HYPERION_HOSTNAME:
                 author_profile = request.user.profile
-                
             # commenter is in remote host
             else:
             # check if the author's host is trusted by us
                 try:
-                    server = Server.objects.get(name=body.get("author", None)["host"])
+                    server = Server.objects.get(name=comment_data["author"]["host"])
                 except Server.DoesNotExist:
                     raise Exception("the author's server is not verified by us")
-
             # check if we already have this remote user profile after checking server
                 try:
-                    author_profile = UserProfile.objects.get(url=body.get("author", None)["id"])
+                    author_profile = UserProfile.objects.get(url=comment_data["author"]["id"])
                     has_author_profile = True
                 except UserProfile.DoesNotExist:
                     # if we doesn't have this user profile
                     # (may also check if user exist in remote server
                     has_author_profile = False
-
-            # create copy of a remote user profile
-            if not has_author_profile:
-                        try:
-                            author_profile = UserProfile.objects.create(
-                                display_name=body.get("author", None)["display_name"],
-                                host=server,
-                                url=body.get("author", None)["id"],
-                            )
-                        except Exception as some_error:
-                            raise Exception(
-                                "create author profile failed, reason: " + str(some_error)
-                            )
-        except Exception as some_error:
-            # print(str(some_error))
+                # create copy of a remote user profile
+                if not has_author_profile:
+                            print("create_remote_profile")
+                            try:
+                                author_profile = UserProfile.objects.create(
+                                    display_name=comment_data["author"]["display_name"],
+                                    host=server,
+                                    url=comment_data["author"]["id"],
+                                )
+                            except Exception as some_error:
+                                raise Exception(
+                                    "create author profile failed, reason: " + str(some_error)
+                                )
+        except User.DoesNotExist:
             return Response(
-                _get_error_response("friendrequest", False, str(some_error)),
-                status=status.HTTP_400_BAD_REQUEST,
+                    {
+                        "query": "addComment",
+                        "success": False,
+                        "message": "User does not exist",
+                    }, status=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
-
         except Exception as some_error:
-            # print(str(some_error))
             return Response(
-                _get_error_response("friendrequest", False, str(some_error)),
-                status=status.HTTP_400_BAD_REQUEST,
+                    {
+                        "query": "addComment",
+                        "success": False,
+                        "message": str(some_error),
+                    }, status=status.HTTP_400_BAD_REQUEST
             )
-
+        
         '''
         End of handle author_profile
         Starting handle 
