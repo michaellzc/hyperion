@@ -27,7 +27,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def new_comment(self, request, pk=None): # pylint: disable=invalid-name
         """
         POST /posts/{post_id}/comments
-        """      
+        """    
         try:
             # get request info
             body = request.data
@@ -67,21 +67,21 @@ class CommentViewSet(viewsets.ModelViewSet):
                         )
         except User.DoesNotExist:
             return Response(
-                    {
-                        "query": "addComment",
-                        "success": False,
-                        "message": "User does not exist",
-                    }, status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                {
+                    "query": "addComment",
+                    "success": False,
+                    "message": "User does not exist",
+                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
-        except Exception as some_error:
+        except Exception as some_error: # pylint: disable=broad-except
             return Response(
-                    {
-                        "query": "addComment",
-                        "success": False,
-                        "message": str(some_error),
-                    }, status=status.HTTP_400_BAD_REQUEST
+                {
+                    "query": "addComment",
+                    "success": False,
+                    "message": str(some_error),
+                }, status=status.HTTP_400_BAD_REQUEST
             )
-        
+     
         '''
         End of handle author_profile
         Starting handle 
