@@ -129,8 +129,7 @@ class CommentViewTestCase(TestCase):
         }
         response = self.client.post('/posts/{}/comments'.format(str(self.p_1.id)), data, content_type='application/json')
         self.assertEqual(response.status_code, 403)
-        
-    
+       
     def test_comment_foreign(self):
         credentials = base64.b64encode('{}:{}'.format(
             self.username_1, self.password_1).encode()).decode()

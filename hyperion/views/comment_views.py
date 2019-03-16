@@ -27,8 +27,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def new_comment(self, request, pk=None): # pylint: disable=invalid-name
         """
         POST /posts/{post_id}/comments
-        """
-        
+        """      
         try:
             # get request info
             body = request.data
@@ -55,17 +54,17 @@ class CommentViewSet(viewsets.ModelViewSet):
                     has_author_profile = False
                 # create copy of a remote user profile
                 if not has_author_profile:
-                            print("create_remote_profile")
-                            try:
-                                author_profile = UserProfile.objects.create(
-                                    display_name=comment_data["author"]["display_name"],
-                                    host=server,
-                                    url=comment_data["author"]["id"],
-                                )
-                            except Exception as some_error:
-                                raise Exception(
-                                    "create author profile failed, reason: " + str(some_error)
-                                )
+                    print("create_remote_profile")
+                    try:
+                        author_profile = UserProfile.objects.create(
+                            display_name=comment_data["author"]["display_name"],
+                            host=server,
+                            url=comment_data["author"]["id"],
+                        )
+                    except Exception as some_error:
+                        raise Exception(
+                            "create author profile failed, reason: " + str(some_error)
+                        )
         except User.DoesNotExist:
             return Response(
                     {
