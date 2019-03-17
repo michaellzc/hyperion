@@ -74,7 +74,8 @@ class AuthStore extends Container {
    * @param {object} author - An author object
    */
   updateProfile = async author => {
-    return API.Author.create(snakecaseKeys(author));
+    await API.Author.updateProfile(snakecaseKeys(author));
+    this.getUserInfo(false); // async re-fetch user profile without keeping the model open
   };
 }
 

@@ -17,10 +17,8 @@ const ProfileBox = ({
       obj[key] = user[key] || null;
       setFieldsValue(obj);
     });
-    setFieldsValue({
-      userName: authStore.user.username,
-    });
   };
+
   useEffect(() => {
     setBaseInfo();
   }, [authStore.user]);
@@ -31,18 +29,12 @@ const ProfileBox = ({
       if (!err) {
         try {
           await authStore.updateProfile(values);
-          await authStore.getUserInfo(false);
           message.success('Profile updated.');
         } catch (error) {
-          console.error(error);
-          message.info(
-            'Something went wrong while updating user profile, please try again.'
-          );
+          message.info('Opps! Please try again.');
           await authStore.getUserInfo(false);
         }
         toggleModal();
-      } else {
-        console.log(err);
       }
     });
   };
@@ -51,125 +43,119 @@ const ProfileBox = ({
     toggleModal();
     try {
       await authStore.getUserInfo(false);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   return (
-    <div>
-      <Modal
-        title="Profile"
-        visible={visible}
-        onOk={onUpdate}
-        onCancel={onCancel}
-      >
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item>
-              <label>User Name</label>
-              {getFieldDecorator('userName')(
-                <Input
-                  prefix={
-                    <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  placeholder="Username"
-                  name="username"
-                  disabled={true}
-                />
-              )}
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item>
-              <label>Password</label>
-              {getFieldDecorator('password')(
-                <Input
-                  prefix={
-                    <Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  type="password"
-                  placeholder="Password"
-                  disabled={true}
-                />
-              )}
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item>
-              <label>Display Name</label>
-              {getFieldDecorator('displayName')(
-                <Input
-                  name="displayName"
-                  prefix={
-                    <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  placeholder="DisplayName"
-                />
-              )}
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item>
-              <label>E-mail</label>
-              {getFieldDecorator('email', {
-                rules: [
-                  {
-                    type: 'email',
-                    required: false,
-                    message: 'Please enter a valid email!',
-                  },
-                ],
-              })(
-                <Input
-                  name="email"
-                  prefix={
-                    <Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />
-                  }
-                  type="email"
-                  placeholder="E-mail"
-                  disabled={false}
-                />
-              )}
-            </Form.Item>
-          </Col>
-        </Row>
-        <Form.Item>
-          <label>Biography</label>
-          {getFieldDecorator('bio')(
-            <Input
-              name="bio"
-              prefix={
-                <Icon type="solution" style={{ color: 'rgba(0,0,0,.25)' }} />
-              }
-              placeholder="Biography"
-            />
-          )}
-        </Form.Item>
-        <Form.Item>
-          <label>Github</label>
-          {getFieldDecorator('github', {
-            rules: [
-              {
-                pattern: RegExp(/^https:\/\/github.com\/([\S]+)/),
-                message: 'Invalid Github Url. e.g, https://github.com/username',
-              },
-            ],
-          })(
-            <Input
-              name="github"
-              prefix={
-                <Icon type="github" style={{ color: 'rgba(0,0,0,.25)' }} />
-              }
-              placeholder="Github"
-              type="url"
-            />
-          )}
-        </Form.Item>
-      </Modal>
-    </div>
+    <Modal
+      title="Profile"
+      visible={visible}
+      onOk={onUpdate}
+      onCancel={onCancel}
+    >
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item>
+            <label>User Name</label>
+            {getFieldDecorator('username')(
+              <Input
+                prefix={
+                  <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
+                }
+                placeholder="Username"
+                name="username"
+                disabled={true}
+              />
+            )}
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item>
+            <label>Password</label>
+            {getFieldDecorator('password')(
+              <Input
+                prefix={
+                  <Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />
+                }
+                type="password"
+                placeholder="Password"
+                disabled={true}
+              />
+            )}
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item>
+            <label>Display Name</label>
+            {getFieldDecorator('displayName')(
+              <Input
+                name="displayName"
+                prefix={
+                  <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
+                }
+                placeholder="DisplayName"
+              />
+            )}
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item>
+            <label>E-mail</label>
+            {getFieldDecorator('email', {
+              rules: [
+                {
+                  type: 'email',
+                  required: false,
+                  message: 'Please enter a valid email!',
+                },
+              ],
+            })(
+              <Input
+                name="email"
+                prefix={
+                  <Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />
+                }
+                type="email"
+                placeholder="E-mail"
+                disabled={false}
+              />
+            )}
+          </Form.Item>
+        </Col>
+      </Row>
+      <Form.Item>
+        <label>Biography</label>
+        {getFieldDecorator('bio')(
+          <Input
+            name="bio"
+            prefix={
+              <Icon type="solution" style={{ color: 'rgba(0,0,0,.25)' }} />
+            }
+            placeholder="Biography"
+          />
+        )}
+      </Form.Item>
+      <Form.Item>
+        <label>Github</label>
+        {getFieldDecorator('github', {
+          rules: [
+            {
+              pattern: RegExp(/^https:\/\/github.com\/([\S]+)/),
+              message: 'Invalid Github Url. e.g, https://github.com/username',
+            },
+          ],
+        })(
+          <Input
+            name="github"
+            prefix={<Icon type="github" style={{ color: 'rgba(0,0,0,.25)' }} />}
+            placeholder="Github"
+            type="url"
+          />
+        )}
+      </Form.Item>
+    </Modal>
   );
 };
 

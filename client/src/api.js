@@ -25,8 +25,18 @@ const Post = {
 };
 
 const Author = {
-  create: author =>
-    request.patch('/author', { query: 'updateProfile', author }),
+  updateProfile: author => {
+    let filteredProfile = pick(author, [
+      'email',
+      'bio',
+      'github',
+      'display_name',
+    ]);
+    return request.patch('/author', {
+      query: 'updateProfile',
+      author: filteredProfile,
+    });
+  },
 };
 
 const Friend = {
