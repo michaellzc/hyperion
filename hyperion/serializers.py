@@ -135,7 +135,9 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         author_information = data.pop('author', {})
         author_id = author_information.get('id', None)
+        author_host = author_information.get('host', None)
         data['author'] = str(author_id)
+        data['id'] = "https://{}/authors/{}".format(author_host, author_id)
         return super().to_internal_value(data)
 
 
