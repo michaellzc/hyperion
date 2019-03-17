@@ -24,7 +24,7 @@ const Post = {
   delete: id => request.delete(`/posts/${id}`),
 };
 
-const Patch = {
+const Author = {
   create: author =>
     request.patch('/author', { query: 'updateProfile', author }),
 };
@@ -56,4 +56,4 @@ const Search = {
   getUsers: () => request.get('/users'),
 };
 
-export { Auth, Post, Patch, Friend, Search };
+export { Auth, Post, Author, Friend, Search };

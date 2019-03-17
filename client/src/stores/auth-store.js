@@ -74,7 +74,7 @@ class AuthStore extends Container {
    * @param {object} author - An author object
    */
   updateProfile = async author => {
-    return API.Patch.create(snakecaseKeys(author));
+    return API.Author.create(snakecaseKeys(author));
   };
 }
 

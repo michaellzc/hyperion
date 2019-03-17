@@ -94,11 +94,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
                 <span className="name">{authStore.user.displayName}</span>
               </span>
             </Dropdown>
-            <ProfileBox
-              visible={visible}
-              toggleModal={toggleProfile}
-              initialProfile={authStore.user}
-            />
+            <ProfileBox visible={visible} toggleModal={toggleProfile} />
           </RightContainer>
         </CustomHeader>
       ) : null}

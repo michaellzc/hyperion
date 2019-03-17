@@ -33,9 +33,12 @@ const ProfileBox = ({
         try {
           await authStore.updateProfile(values);
           await authStore.getUserInfo(false);
+          message.success('Profile updated.');
         } catch (error) {
           console.error(error);
-          errorInfo();
+          message.info(
+            'Something went wrong while updating user profile, please try again.'
+          );
           await authStore.getUserInfo(false);
         }
         toggleModal();
@@ -54,12 +57,6 @@ const ProfileBox = ({
     }
   };
 
-  const errorInfo = () => {
-    message.info(
-      'Something went wrong while updating user profile, please try again.'
-    );
-  };
-
   return (
     <div>
       <Modal
@@ -72,9 +69,7 @@ const ProfileBox = ({
           <Col span={12}>
             <Form.Item>
               <label>User Name</label>
-              {getFieldDecorator('userName', {
-                initialValue: authStore.user.username,
-              })(
+              {getFieldDecorator('userName')(
                 <Input
                   prefix={
                     <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
@@ -106,9 +101,7 @@ const ProfileBox = ({
           <Col span={12}>
             <Form.Item>
               <label>Display Name</label>
-              {getFieldDecorator('displayName', {
-                initialValue: authStore.user.displayName,
-              })(
+              {getFieldDecorator('displayName')(
                 <Input
                   name="displayName"
                   prefix={
@@ -123,7 +116,6 @@ const ProfileBox = ({
             <Form.Item>
               <label>E-mail</label>
               {getFieldDecorator('email', {
-                initialValue: authStore.user.email,
                 rules: [
                   {
                     type: 'email',
@@ -139,7 +131,7 @@ const ProfileBox = ({
                   }
                   type="email"
                   placeholder="E-mail"
-                  disabled={true}
+                  disabled={false}
                 />
               )}
             </Form.Item>
@@ -147,7 +139,7 @@ const ProfileBox = ({
         </Row>
         <Form.Item>
           <label>Biography</label>
-          {getFieldDecorator('bio', { initialValue: authStore.user.bio })(
+          {getFieldDecorator('bio')(
             <Input
               name="bio"
               prefix={
@@ -159,7 +151,7 @@ const ProfileBox = ({
         </Form.Item>
         <Form.Item>
           <label>Github</label>
-          {getFieldDecorator('github', { initialValue: authStore.user.github })(
+          {getFieldDecorator('github')(
             <Input
               name="github"
               prefix={
