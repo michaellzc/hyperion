@@ -1,21 +1,14 @@
 import React, { useEffect } from 'react';
-import { Form, Icon, Input, Modal, Row, Col } from 'antd';
+import { Form, Icon, Input, Modal, Row, Col, message } from 'antd';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
 import 'draft-js-static-toolbar-plugin/lib/plugin.css';
 
 const ProfileBox = ({
   stores: [authStore],
-  form: {
-    getFieldDecorator,
-    validateFields,
-    setFieldsValue,
-    getFieldValue,
-    getFieldsValue,
-  },
+  form: { getFieldDecorator, validateFields, setFieldsValue, getFieldsValue },
   visible,
   toggleModal,
-  initialProfile,
 }) => {
   let setBaseInfo = () => {
     let user = authStore.user;
@@ -33,46 +26,21 @@ const ProfileBox = ({
     setBaseInfo();
   }, [authStore.user]);
 
-  // User cannot change the username and password
-  var username = authStore.user.username;
-  // User can change the following field
-  var displayName = authStore.user.displayName;
-  var email = authStore.user.email;
-  var bio = authStore.user.bio;
-  var github = authStore.user.github;
-  var host = authStore.user.host;
-  var firstName = authStore.user.firstName;
-  var lastName = authStore.user.lastName;
-  var url = authStore.user.url;
-
   let onUpdate = async e => {
     e.preventDefault();
     validateFields(async (err, values) => {
       if (!err) {
         try {
-          email = getFieldValue('email');
-          displayName = getFieldValue('displayName');
-          bio = getFieldValue('bio');
-          github = getFieldValue('github');
-          await authStore.updateProfile({
-            email,
-            bio,
-            host,
-            firstName,
-            lastName,
-            displayName,
-            url,
-            github,
-            username,
-          });
+          await authStore.updateProfile(values);
           await authStore.getUserInfo(false);
         } catch (error) {
           console.error(error);
+          errorInfo();
           await authStore.getUserInfo(false);
         }
         toggleModal();
       } else {
-        console.log('Email format error');
+        console.log(err);
       }
     });
   };
@@ -86,23 +54,10 @@ const ProfileBox = ({
     }
   };
 
-  let onInputChange = e => {
-    switch (e.target.name) {
-      case 'email':
-        email = e.target.value;
-        return;
-      case 'bio':
-        bio = e.target.value;
-        return;
-      case 'displayName':
-        displayName = e.target.value;
-        return;
-      case 'github':
-        github = e.target.value;
-        return;
-      default:
-        throw new Error();
-    }
+  const errorInfo = () => {
+    message.info(
+      'Something went wrong while updating user profile, please try again.'
+    );
   };
 
   return (
@@ -117,7 +72,9 @@ const ProfileBox = ({
           <Col span={12}>
             <Form.Item>
               <label>User Name</label>
-              {getFieldDecorator('userName', { initialValue: username })(
+              {getFieldDecorator('userName', {
+                initialValue: authStore.user.username,
+              })(
                 <Input
                   prefix={
                     <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
@@ -149,14 +106,15 @@ const ProfileBox = ({
           <Col span={12}>
             <Form.Item>
               <label>Display Name</label>
-              {getFieldDecorator('displayName', { initialValue: displayName })(
+              {getFieldDecorator('displayName', {
+                initialValue: authStore.user.displayName,
+              })(
                 <Input
                   name="displayName"
                   prefix={
                     <Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />
                   }
                   placeholder="DisplayName"
-                  onChange={onInputChange}
                 />
               )}
             </Form.Item>
@@ -165,7 +123,7 @@ const ProfileBox = ({
             <Form.Item>
               <label>E-mail</label>
               {getFieldDecorator('email', {
-                initialValue: email,
+                initialValue: authStore.user.email,
                 rules: [
                   {
                     type: 'email',
@@ -181,7 +139,6 @@ const ProfileBox = ({
                   }
                   type="email"
                   placeholder="E-mail"
-                  onChange={onInputChange}
                   disabled={true}
                 />
               )}
@@ -190,20 +147,19 @@ const ProfileBox = ({
         </Row>
         <Form.Item>
           <label>Biography</label>
-          {getFieldDecorator('bio', { initialValue: bio })(
+          {getFieldDecorator('bio', { initialValue: authStore.user.bio })(
             <Input
               name="bio"
               prefix={
                 <Icon type="solution" style={{ color: 'rgba(0,0,0,.25)' }} />
               }
               placeholder="Biography"
-              onChange={onInputChange}
             />
           )}
         </Form.Item>
         <Form.Item>
           <label>Github</label>
-          {getFieldDecorator('github', { initialValue: github })(
+          {getFieldDecorator('github', { initialValue: authStore.user.github })(
             <Input
               name="github"
               prefix={
@@ -211,7 +167,6 @@ const ProfileBox = ({
               }
               placeholder="Github"
               type="url"
-              onChange={onInputChange}
             />
           )}
         </Form.Item>
