@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Form, Icon, Input, Modal, Row, Col, message } from 'antd';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
-import 'draft-js-static-toolbar-plugin/lib/plugin.css';
 
 const ProfileBox = ({
   stores: [authStore],
@@ -151,7 +150,14 @@ const ProfileBox = ({
         </Form.Item>
         <Form.Item>
           <label>Github</label>
-          {getFieldDecorator('github')(
+          {getFieldDecorator('github', {
+            rules: [
+              {
+                pattern: RegExp(/^https:\/\/github.com\/([\S]+)/),
+                message: 'Invalid Github Url. e.g, https://github.com/username',
+              },
+            ],
+          })(
             <Input
               name="github"
               prefix={
