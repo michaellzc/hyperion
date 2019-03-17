@@ -65,14 +65,6 @@ class CommentViewSet(viewsets.ModelViewSet):
                         raise Exception(
                             "create author profile failed, reason: " + str(some_error)
                         )
-        except User.DoesNotExist:
-            return Response(
-                {
-                    "query": "addComment",
-                    "success": False,
-                    "message": "User does not exist",
-                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY
-            )
         except Exception as some_error: # pylint: disable=broad-except
             return Response(
                 {
