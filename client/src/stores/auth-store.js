@@ -1,5 +1,6 @@
 import { Container } from 'unstated';
 import camelcaseKeys from 'camelcase-keys';
+import snakecaseKeys from 'snakecase-keys';
 import * as API from '../api';
 
 class AuthStore extends Container {
@@ -66,6 +67,15 @@ class AuthStore extends Container {
     this.setState({ user: null });
     window.localStorage.removeItem('basic_auth');
     window.localStorage.removeItem('user_info');
+  };
+
+  /**
+   * Create a new patch
+   * @param {object} author - An author object
+   */
+  updateProfile = async author => {
+    await API.Author.updateProfile(snakecaseKeys(author));
+    this.getUserInfo(false); // async re-fetch user profile without keeping the model open
   };
 }
 
