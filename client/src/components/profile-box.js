@@ -14,7 +14,7 @@ const ProfileBox = ({
     if (!user) return;
     Object.keys(getFieldsValue()).forEach(key => {
       const obj = {};
-      obj[key] = user[key] || null;
+      obj[key] = user[key] || '';
       setFieldsValue(obj);
     });
   };
