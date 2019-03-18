@@ -1,17 +1,12 @@
+# pylint: disable=broad-except
 from django.contrib.auth.models import User, Group
-from django.db import IntegrityError
 
-from rest_framework import viewsets, permissions
-from rest_framework.decorators import (
-    api_view,
-    permission_classes,
-    authentication_classes,
-)
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 
 from hyperion.serializers import UserSerializer, GroupSerializer
 from hyperion.authentication import HyperionBasicAuthentication
-from hyperion.models import UserProfile
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -43,33 +38,26 @@ def update_profile(request):
     new_profile = body.get("author", None)
 
     try:
-        current_profile = UserProfile.objects.get(author=request.user)
-        current_profile.bio = new_profile.get("bio", current_profile.bio)
-        current_profile.github = new_profile.get("github", current_profile.github)
-        current_profile.display_name = new_profile.get(
-            "display_name", current_profile.display_name
-        )
-        current_profile.save()
 
         user = User.objects.get(username=request.user)
-        user.first_name = new_profile.get("first_name", user.first_name)
-        user.last_name = new_profile.get("last_name", user.last_name)
-        user.username = new_profile.get("username", user.username)
+        user.email = new_profile.get("email", user.email)
+
+        user.profile.bio = new_profile.get("bio", user.profile.bio)
+        user.profile.github = new_profile.get("github", user.profile.github)
+        user.profile.display_name = new_profile.get("display_name", user.profile.display_name)
+
+        # it will save profile and user
         user.save()
-    except IntegrityError:
+
+    except Exception as some_error:
         return Response(
-            {
-                "query": "updateProfile",
-                "success": False,
-                "message": "Username is taken.",
-            },
-            status=422,
+            {"query": "updateProfile", "success": False, "message": str(some_error)},
+            content_type="application/json",
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     return Response(
-        {
-            "query": "updateProfile",
-            "success": True,
-            "message": "User profile is updated.",
-        }
+        {"query": "updateProfile", "success": True, "message": "User profile is updated."},
+        content_type="application/json",
+        status=status.HTTP_200_OK,
     )
