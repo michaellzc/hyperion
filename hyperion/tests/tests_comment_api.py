@@ -94,7 +94,7 @@ class CommentViewTestCase(TestCase):
             "post":"http://hyperion.com/posts/{}".format(str(self.p_1.id)),
             "comment":{
                 "author":{
-                    'id':str(self.u_3.profile.id),
+                    'id':"https://cmput404-front.herokuapp.com/author/{}".format(str(self.u_3.profile.id)),
                     "host": "https://cmput404-front.herokuapp.com",
                     "display_name": str(self.u_3.profile.display_name),
                 },
@@ -119,7 +119,7 @@ class CommentViewTestCase(TestCase):
             "post":"http://hyperion.com/posts/{}".format(str(self.p_1.id)),
             "comment":{
                 "author":{
-                    'id': str(self.u_2.profile.id),
+                    'id': "https://cmput404-front.herokuapp.com/author/{}".format(str(self.u_2.profile.id)),
                     "host": "https://cmput404-front.herokuapp.com",
                     "display_name": str(self.u_2.profile.display_name),
                 },
@@ -129,7 +129,7 @@ class CommentViewTestCase(TestCase):
         }
         response = self.client.post('/posts/{}/comments'.format(str(self.p_1.id)), data, content_type='application/json')
         self.assertEqual(response.status_code, 403)
-       
+
     def test_comment_foreign(self):
         credentials = base64.b64encode('{}:{}'.format(
             self.username_1, self.password_1).encode()).decode()
@@ -140,7 +140,7 @@ class CommentViewTestCase(TestCase):
             "post":"http://hyperion.com/posts/{}".format(str(self.p_2.id)),
             "comment":{
                 "author":{
-                    'id': str(self.u_1.profile.id),
+                    'id': "https://cmput404-front.herokuapp.co/author/{}".format(str(self.u_1.profile.id)),
                     "host": "https://cmput404-front.herokuapp.co",
                     "display_name": str(self.u_1.profile.display_name),
                 },

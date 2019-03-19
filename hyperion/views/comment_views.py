@@ -1,11 +1,12 @@
 # pylint: disable=arguments-differ
-
+from urllib.parse import urlparse
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import status
 from django.conf import settings
+
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import CommentSerializer
@@ -36,8 +37,10 @@ class CommentViewSet(viewsets.ModelViewSet):
             # commenter is in our local host
             if comment_data["author"]["host"] == settings.HYPERION_HOSTNAME:
                 author_profile = request.user.profile
+                comment_data["author"] = str(request.user.profile.id)
+
             # commenter is in remote host
-            else:
+            else:   
             # check if the author's host is trusted by us
                 try:
                     server = Server.objects.get(name=comment_data["author"]["host"])
@@ -53,7 +56,6 @@ class CommentViewSet(viewsets.ModelViewSet):
                     has_author_profile = False
                 # create copy of a remote user profile
                 if not has_author_profile:
-                    print("create_remote_profile")
                     try:
                         author_profile = UserProfile.objects.create(
                             display_name=comment_data["author"]["display_name"],
@@ -64,6 +66,8 @@ class CommentViewSet(viewsets.ModelViewSet):
                         raise Exception(
                             "create author profile failed, reason: " + str(some_error)
                         )
+                comment_data["author"] = urlparse(comment_data["author"]["id"]).path.split("/")[-1]
+
         except Exception as some_error: # pylint: disable=broad-except
             return Response(
                 {
