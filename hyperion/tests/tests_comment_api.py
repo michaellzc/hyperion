@@ -72,6 +72,8 @@ class CommentViewTestCase(TestCase):
             visibility="PRIVATE",
             unlisted="False")
 
+        self.p_1.visible_to.set([self.u_1.profile, self.u_3.profile])
+
         self.p_2 = Post.objects.create(
             title="A post title",
             author=self.u_1.profile,
@@ -79,10 +81,16 @@ class CommentViewTestCase(TestCase):
             content="some post content",
             visibility="PUBLIC",
             unlisted="False")
-
-        self.s_1 = Server.objects.create(name ="https://cmput404-front.herokuapp.co")
         self.client = None
-        self.p_1.visible_to.set([self.u_1.profile, self.u_3.profile])
+
+        self.s_1 = Server.objects.create(name = "https://cmput404-front.herokuapp.co")
+        self.f_u_1 = UserProfile.objects.create(
+            display_name="haotian",
+            host=self.s_1,
+            url=
+            "https://cmput404-front-t2.herokuapp.com/author/1d698d25ff008f7538453c120f581471",
+        )
+
 
     def test_new_comment(self):
         credentials = base64.b64encode('{}:{}'.format(
@@ -140,9 +148,9 @@ class CommentViewTestCase(TestCase):
             "post":"http://hyperion.com/posts/{}".format(str(self.p_2.id)),
             "comment":{
                 "author":{
-                    'id': "https://cmput404-front.herokuapp.co/author/{}".format(str(self.u_1.profile.id)),
-                    "host": "https://cmput404-front.herokuapp.co",
-                    "display_name": str(self.u_1.profile.display_name),
+                    'id': "https://{}/author/{}".format(str(self.f_u_1.host.name), str(self.f_u_1.id)),
+                    "host": str(self.f_u_1.host.name),
+                    "display_name": str(self.f_u_1.display_name),
                 },
                 "comment":"heyya",
                 "content_type":"text/markdown",

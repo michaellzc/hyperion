@@ -38,7 +38,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             if comment_data["author"]["host"] == settings.HYPERION_HOSTNAME:
                 author_profile = request.user.profile
                 comment_data["author"] = str(request.user.profile.id)
-
             # commenter is in remote host
             else:
             # check if the author's host is trusted by us
@@ -46,6 +45,7 @@ class CommentViewSet(viewsets.ModelViewSet):
                     server = Server.objects.get(name=comment_data["author"]["host"])
                 except Server.DoesNotExist:
                     raise Exception("the author's server is not verified by us")
+
             # check if we already have this remote user profile after checking server
                 try:
                     author_profile = UserProfile.objects.get(url=comment_data["author"]["id"])
@@ -54,6 +54,7 @@ class CommentViewSet(viewsets.ModelViewSet):
                     # if we doesn't have this user profile
                     # (may also check if user exist in remote server
                     has_author_profile = False
+
                 # create copy of a remote user profile
                 if not has_author_profile:
                     try:
@@ -67,7 +68,6 @@ class CommentViewSet(viewsets.ModelViewSet):
                             "create author profile failed, reason: " + str(some_error)
                         )
                 comment_data["author"] = urlparse(comment_data["author"]["id"]).path.split("/")[-1]
-
         except Exception as some_error: # pylint: disable=broad-except
             return Response(
                 {
