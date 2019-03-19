@@ -1,5 +1,5 @@
 # pylint: disable=arguments-differ
-
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -9,12 +9,13 @@ from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post
 
+
 class PostViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(unlisted=False)
     serializer_class = PostSerializer
     authentication_classes = (HyperionBasicAuthentication,)
     permission_classes = (IsAuthenticated, AllowAny)
@@ -80,17 +81,15 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk):
         """
-        GET posts/{id}
+        GET posts/{id}/
         """
-        response = super().retrieve(request, pk)
-        data = response.data
-        response.data = {"query": "post", "post": data}
-        return response
+        post_obj = get_object_or_404(Post, pk=pk)
+        serializer = PostSerializer(post_obj)
+        return Response({"query": "post", "post": serializer.data})
 
-    def destroy(self, request, *args, **kwargs):
-        post = self.get_object()
-        print(post.author.id)
-        if post.author.id == request.user.id:
+    def destroy(self, request, pk, *args, **kwargs):
+        post = get_object_or_404(Post, pk=pk)
+        if post.author.id == request.user.profile.id:
             self.perform_destroy(post)
             return Response(status=204)
         else:
