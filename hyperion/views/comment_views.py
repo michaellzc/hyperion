@@ -40,7 +40,7 @@ class CommentViewSet(viewsets.ModelViewSet):
                 comment_data["author"] = str(request.user.profile.id)
 
             # commenter is in remote host
-            else:   
+            else:
             # check if the author's host is trusted by us
                 try:
                     server = Server.objects.get(name=comment_data["author"]["host"])
