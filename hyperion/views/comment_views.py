@@ -53,7 +53,6 @@ class CommentViewSet(viewsets.ModelViewSet):
                     has_author_profile = False
                 # create copy of a remote user profile
                 if not has_author_profile:
-                    print("create_remote_profile")
                     try:
                         author_profile = UserProfile.objects.create(
                             display_name=comment_data["author"]["display_name"],
