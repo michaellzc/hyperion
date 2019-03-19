@@ -106,7 +106,7 @@ class PostViewTestCase(TestCase):
         #private can see
         p_10 = Post.objects.create(author=self.u_6.profile, title="10", content="test",visibility ="PRIVATE")
         p_10.visible_to.set([self.u_1.profile])
- 
+
         #private cant see
         Post.objects.create(
             author=self.u_5.profile, title="9", content="test",visibility ="PRIVATE")
