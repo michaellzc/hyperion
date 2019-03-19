@@ -13,6 +13,7 @@
     "draft-js-static-toolbar-plugin": "^3.0.0",
     "http-proxy-middleware": "^0.19.1",
     "lodash.pick": "^4.4.0",
+    "lodash.pickby": "^4.6.0",
     "markdown-draft-js": "^1.4.0",
     "prop-types": "^15.7.2",
     "query-string": "^6.2.0",
