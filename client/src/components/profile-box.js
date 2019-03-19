@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Form, Icon, Input, Modal, Row, Col, message } from 'antd';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
+import identity from 'lodash.identity';
+import pickby from 'lodash.pickby';
 
 const ProfileBox = ({
   stores: [authStore],
@@ -14,7 +16,7 @@ const ProfileBox = ({
     if (!user) return;
     Object.keys(getFieldsValue()).forEach(key => {
       const obj = {};
-      obj[key] = user[key] || '';
+      obj[key] = user[key] || null;
       setFieldsValue(obj);
     });
   };
@@ -26,9 +28,10 @@ const ProfileBox = ({
   let onUpdate = async e => {
     e.preventDefault();
     validateFields(async (err, values) => {
+      let validValues = pickby(values, identity);
       if (!err) {
         try {
-          await authStore.updateProfile(values);
+          await authStore.updateProfile(validValues);
           message.success('Profile updated.');
         } catch (error) {
           message.info('Opps! Please try again.');
