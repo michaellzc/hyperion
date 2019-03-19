@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { Form, Icon, Input, Modal, Row, Col, message } from 'antd';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
-import { identity, pickby } from 'lodash';
+import identity from 'lodash.identity';
+import pickby from 'lodash.pickby';
 
 const ProfileBox = ({
   stores: [authStore],
