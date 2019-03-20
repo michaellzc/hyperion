@@ -67,7 +67,7 @@ function Notification() {
     let requestList = requests.map(each => ({
       id: each.id,
       avatar: <Avatar className="avatar" icon="user" />,
-      title: each.author.display_name,
+      title: each.author.displayName,
       description: (
         <ButtonGroup>
           <AlignLeft>
