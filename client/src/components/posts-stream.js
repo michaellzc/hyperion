@@ -105,55 +105,58 @@ const PostsStream = ({
   let postsList = postStore.posts;
   let posts =
     postsList.length > 0 ? (
-      postsList.map(({ id, contentType, author: user, origin, ...props }) => (
-        <PostCard
-          key={id}
-          id={id}
-          avatar={<ProfileOverlay author={user} />}
-          onClick={() => handleOpenPost(id)}
-          metaTitle={
-            <CardMetaTitle
-              displayName={user.displayName}
-              username={`@${user.username}`}
-              extra={
-                user.id === authStore.user.id ? (
-                  <Tooltip title="more">
-                    <Dropdown
-                      overlay={
-                        <Menu onClick={things => handleMenuClick(id, things)}>
-                          <Menu.Item key="delete">Delete Post</Menu.Item>
-                        </Menu>
-                      }
-                      onClick={e => e.stopPropagation()}
-                      trigger={['click']}
-                      placement="bottomRight"
-                    >
-                      <Icon style={{ float: 'right' }} type="down" />
-                    </Dropdown>
-                  </Tooltip>
-                ) : null
-              }
-            />
-          }
-          content={() => {
-            if (contentType === 'text/plain') {
-              return <TextCardContent {...props} />;
-            } else if (contentType.startsWith('image')) {
-              return <ImageCardContent {...props} />;
-            } else if (contentType === 'text/markdown') {
-              return <MarkdownCardContent {...props} />;
-            } else {
-              throw new Error('Unsupported post content type.');
+      postsList.map(
+        ({ id, contentType, author: user, origin, comments, ...props }) => (
+          <PostCard
+            key={id}
+            id={id}
+            avatar={<ProfileOverlay author={user} />}
+            onClick={() => handleOpenPost(id)}
+            metaTitle={
+              <CardMetaTitle
+                displayName={user.displayName}
+                username={`@${user.username}`}
+                extra={
+                  user.id === authStore.user.id ? (
+                    <Tooltip title="more">
+                      <Dropdown
+                        overlay={
+                          <Menu onClick={things => handleMenuClick(id, things)}>
+                            <Menu.Item key="delete">Delete Post</Menu.Item>
+                          </Menu>
+                        }
+                        onClick={e => e.stopPropagation()}
+                        trigger={['click']}
+                        placement="bottomRight"
+                      >
+                        <Icon style={{ float: 'right' }} type="down" />
+                      </Dropdown>
+                    </Tooltip>
+                  ) : null
+                }
+              />
             }
-          }}
-          footer={
-            <CardActionsFooter
-              onReply={e => handleReply(e, id)}
-              onShare={e => handleShare(e, origin)}
-            />
-          }
-        />
-      ))
+            content={() => {
+              if (contentType === 'text/plain') {
+                return <TextCardContent {...props} />;
+              } else if (contentType.startsWith('image')) {
+                return <ImageCardContent {...props} />;
+              } else if (contentType === 'text/markdown') {
+                return <MarkdownCardContent {...props} />;
+              } else {
+                throw new Error('Unsupported post content type.');
+              }
+            }}
+            footer={
+              <CardActionsFooter
+                repliesCnt={comments.length}
+                onReply={e => handleReply(e, id)}
+                onShare={e => handleShare(e, origin)}
+              />
+            }
+          />
+        )
+      )
     ) : (
       <Empty />
     );
