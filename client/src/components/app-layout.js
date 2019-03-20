@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
@@ -6,6 +6,7 @@ import { inject } from '../utils';
 import { AuthStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
+import ProfileBox from '../components/profile-box';
 
 let { Header, Content, Footer } = Layout;
 
@@ -44,8 +45,18 @@ let CustomFooter = styled(Footer)`
 
 const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   // TODO - implment logout
+  let [visible, setVisible] = useState(false);
+
+  let toggleProfile = () => {
+    setVisible(!visible);
+  };
+
   let menu = (
     <Menu className="menu" selectable={false}>
+      <Menu.Item key="Profile" onClick={toggleProfile}>
+        <Icon type="info-circle" />
+        User Profile
+      </Menu.Item>
       <Menu.Item key="logout" onClick={authStore.logout}>
         <Icon type="logout" />
         Logout
@@ -83,6 +94,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
                 <span className="name">{authStore.user.displayName}</span>
               </span>
             </Dropdown>
+            <ProfileBox visible={visible} toggleModal={toggleProfile} />
           </RightContainer>
         </CustomHeader>
       ) : null}

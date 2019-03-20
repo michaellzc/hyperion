@@ -112,11 +112,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = UserProfileSerializer(read_only=True)
+    # author = UserProfileSerializer(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'content_type', 'comment', 'published', 'author')
+        fields = ('id',
+                  'content_type',
+                  'comment',
+                  'published',
+                  'author',
+                  'post')
+        extra_kwargs = {
+            'post': {'write_only': True}
+        }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        serializer = UserProfileSerializer(instance.author)
+        data['author'] = serializer.data
+        return data
 
 
 class PostSerializer(serializers.ModelSerializer):

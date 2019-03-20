@@ -59,7 +59,7 @@ function ProfilePopover({ author, stores: [authStore] }) {
           </UserField>
           <hr />
           <BioContainer>
-            <p>It's lit!</p>
+            <p>{author.bio}</p>
           </BioContainer>
         </Wrapper>
       }

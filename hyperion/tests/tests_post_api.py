@@ -14,7 +14,7 @@ class PostViewTestCase(TestCase):
     password = '123456'
 
     def setUp(self):
-        #friend of hyuntian
+        # friend of hyuntian
         self.u_1 = User.objects.create_user(
             username='2haotianzhu',
             first_name='haotian',
@@ -89,27 +89,27 @@ class PostViewTestCase(TestCase):
     def test_get_auth_posts(self):
         # get post by auth
 
-        #own
-        p_5 = Post.objects.create(author=self.u_1.profile, title="5", content="test",visibility ="PRIVATE")
+        # own
+        p_5 = Post.objects.create(author=self.u_1.profile, title="5", content="test", visibility="PRIVATE")
         p_5 .visible_to.set([self.u_1.profile])
-        
-        #public
+
+        # public
         Post.objects.create(
-            author=self.u_5.profile, title="6", content="test",visibility ="PUBLIC")
-        #friends
+            author=self.u_5.profile, title="6", content="test", visibility="PUBLIC")
+        # friends
         Post.objects.create(
-            author=self.u_2.profile, title="7", content="test",visibility ="FRIENDS")
-        #foaf
+            author=self.u_2.profile, title="7", content="test", visibility="FRIENDS")
+        # foaf
         Post.objects.create(
-            author=self.u_4.profile, title="8", content="test",visibility ="FOAF")
-   
-        #private can see
-        p_10 = Post.objects.create(author=self.u_6.profile, title="10", content="test",visibility ="PRIVATE")
+            author=self.u_4.profile, title="8", content="test", visibility="FOAF")
+
+        # private can see
+        p_10 = Post.objects.create(author=self.u_6.profile, title="10", content="test", visibility="PRIVATE")
         p_10.visible_to.set([self.u_1.profile])
-            
-        #private cant see
+
+        # private cant see
         Post.objects.create(
-            author=self.u_5.profile, title="9", content="test",visibility ="PRIVATE")
+            author=self.u_5.profile, title="9", content="test", visibility="PRIVATE")
         response = self.client.get('/author/posts')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['query'], 'posts')
@@ -131,3 +131,42 @@ class PostViewTestCase(TestCase):
         self.assertEqual(response.data['success'], True)
         self.assertEqual(Post.objects.all()[0].author.display_name,
                          '2haotianzhu')
+
+    def test_unlisted_cases(self):
+        data1 = {
+            "query": "createPost",
+            "post": {
+                "title": "unlisted True",
+                "content_type": "text/plain",
+                "content": "some post content",
+                "unlisted": True,
+            }
+        }
+        data2 = {
+            "query": "createPost",
+            "post": {
+                "title": "unlisted False",
+                "content_type": "text/plain",
+                "content": "some post content",
+                "unlisted": False,
+            }
+        }
+        response = self.client.post(
+            '/author/posts', data1, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            '/author/posts', data2, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get('/posts')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['posts']), 1)
+        self.assertEqual(response.data['posts'][0]['title'], 'unlisted False')
+        post = Post.objects.get(title='unlisted False')
+        response = self.client.get('/posts/{}'.format(post.id))
+        self.assertEqual(response.status_code, 200)
+        post = Post.objects.get(title='unlisted True')
+        response = self.client.get('/posts/{}'.format(post.id))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.delete('/posts/{}'.format(post.id))
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(len(Post.objects.all()), 1)
