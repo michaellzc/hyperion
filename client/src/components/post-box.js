@@ -18,6 +18,7 @@ import {
   Tabs,
   Upload,
   Select,
+  Checkbox,
 } from 'antd';
 import { AuthStore, PostStore } from '../stores';
 import { inject, colors } from '../utils';
@@ -115,6 +116,8 @@ let reducer = (state, action) => {
       return { ...state, visibility: action.text };
     case 'visibleTo':
       return { ...state, visibleTo: action.text };
+    case 'unlisted':
+      return { ...state, unlisted: action.checked };
     case 'reset':
       return initialState;
     default:
@@ -142,6 +145,7 @@ let initialState = {
   content: null,
   visibility: 'PRIVATE',
   visibleTo: [],
+  unlisted: false,
 };
 
 const PostBox = ({ stores: [authStore, postStore] }) => {
@@ -181,7 +185,7 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
     dispatch({ type: e.target.id || e.target.name, text: e.target.value });
 
   let onPost = async () => {
-    let { title, description, content, visibility, visibleTo } = state;
+    let { title, description, content, visibility, visibleTo, unlisted } = state;
     let contentType = 'text/markdown';
     try {
       if (tabKey === 'text') {
@@ -198,6 +202,7 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
         contentType,
         visibility,
         visibleTo,
+        unlisted,
       });
       postStore.getAll();
       dispatch({ type: 'reset' });
@@ -251,6 +256,16 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
               </Tooltip>
             ))}
           </Radio.Group>
+          <InputWrapper>
+            <Checkbox
+              checked={state.unlisted}
+              onChange={() =>
+                dispatch({ type: 'unlisted', checked: !state.unlisted })
+              }
+            >
+              Unlisted
+            </Checkbox>
+          </InputWrapper>
           <InputWrapper>
             <label htmlFor="title">Title</label>
             <Input
