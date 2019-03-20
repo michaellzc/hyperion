@@ -36,13 +36,14 @@ class PostsStore extends Container {
    * Fetch a post by post ID
    * @param {id} id - Post id
    */
-  get = async id => {
+  get = async (id, cached = true) => {
     let post = this.state.posts.get(id);
-    if (!post) {
+    if (!post || !cached) {
       let { post: resp } = await API.Post.fetch(id);
       post = camelcaseKeys(resp);
       let { posts } = this.state;
       posts.set(post.id, post);
+      this.setState({ posts });
     }
   };
 
@@ -69,7 +70,16 @@ class PostsStore extends Container {
    * Add a comment to a post
    * @param {string} postId - The post id
    */
-  addComment = async postId => {};
+  addComment = async (postId, author, text) => {
+    let post = await this.state.posts.get(postId);
+    let comment = {
+      author,
+      post: post.source,
+      comment: text,
+      contentType: 'text/plain',
+    };
+    await API.Post.addComment(postId, comment);
+  };
 }
 
 export default PostsStore;

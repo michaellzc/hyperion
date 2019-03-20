@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/macro';
-import { Comment, Avatar, Form, Input, Button, Row, Col } from 'antd';
+import { Comment, Avatar, Form, Input, Button, Row, Col, message } from 'antd';
+import { PostStore, AuthStore } from '../stores';
+import { inject } from '../utils';
 
 let Editor = ({ onChange, onSubmit, submitting, value }) => (
   <div>
@@ -46,7 +48,7 @@ let InputPlaceHolder = styled.div`
   margin-left: 6px;
 `;
 
-const CommentBox = ({ postId }) => {
+const CommentBox = ({ postId, stores: [postStore, authStore] }) => {
   let [isEditing, setEditing] = useState(false);
   let [comment, setComment] = useState();
   let [submitting, setSubmitting] = useState(false);
@@ -60,12 +62,14 @@ const CommentBox = ({ postId }) => {
   };
 
   let handleSubmit = async event => {
-    // TODO
-    let delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     setSubmitting(true);
     event.stopPropagation();
-    console.info(`Add comment to ${postId}`);
-    await delay(250);
+    try {
+      await postStore.addComment(postId, authStore.user, comment);
+    } catch (error) {
+      message.error('Opps! Please try again.');
+    }
+    await postStore.get(postId, false);
     setSubmitting(false);
     setComment(null);
     setEditing(false);
@@ -103,4 +107,4 @@ const CommentBox = ({ postId }) => {
   );
 };
 
-export default CommentBox;
+export default inject([PostStore, AuthStore])(CommentBox);
