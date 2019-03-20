@@ -1,13 +1,13 @@
 # pylint: disable=arguments-differ
-
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
-
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post
+
 
 class PostViewSet(viewsets.ModelViewSet):
     """
@@ -33,19 +33,11 @@ class PostViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
                 return Response(
-                    {
-                        "query": "createPost",
-                        "success": True,
-                        "message": "Author Post Created",
-                    }
+                    {"query": "createPost", "success": True, "message": "Author Post Created"}
                 )
             else:
                 return Response(
-                    {
-                        "query": "createPost",
-                        "success": False,
-                        "message": serializer.errors,
-                    }
+                    {"query": "createPost", "success": False, "message": serializer.errors}
                 )
 
     @action(detail=True, methods=["GET"], name="get_auth_posts")
@@ -55,17 +47,16 @@ class PostViewSet(viewsets.ModelViewSet):
         """
 
         # result = list of post
-        result = (
-            list(self.queryset.filter(author=request.user.profile))
-            + list(self.queryset.filter(visibility="PUBLIC"))
-            + Post.not_own_posts_visible_to_me(request.user.profile)
-        )
+        result = list(
+            self.queryset.filter(
+                Q(visibility="PUBLIC") | Q(author=request.user.profile) | Q(visibility="SERVERONLY")
+            )
+        ) + Post.not_own_posts_visible_to_me(request.user.profile)
+
         result = list(set(result))
 
         serializer = PostSerializer(result, many=True)
-        return Response(
-            {"query": "posts", "count": len(serializer.data), "posts": serializer.data}
-        )
+        return Response({"query": "posts", "count": len(serializer.data), "posts": serializer.data})
 
     def list(self, request):
         """
@@ -92,6 +83,4 @@ class PostViewSet(viewsets.ModelViewSet):
             self.perform_destroy(post)
             return Response(status=204)
         else:
-            return Response(
-                data={"success": False, "msg": "Forbidden access"}, status=403
-            )
+            return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
