@@ -53,22 +53,30 @@ class Post(models.Model):
         self.visible_to.add(user_profile)
 
     def is_accessible(self, post, user_profile):
+        is_accessible = False
         if user_profile == post.author:
-            return True
+            is_accessible = True
         else:
             if post.visibility == "FRIENDS":
                 friends = user_profile.get_friends()
                 if post.author in friends:
-                    return True
+                    is_accessible = True
+            elif post.visibility == "SERVERONLY":
+                # serveronly and host user
+                if user_profile.get_type() == "host":
+                    is_accessible = True
             elif post.visibility == "FOAF":
                 friends_of_friends = user_profile.get_friends_friends()
                 if post.author in friends_of_friends:
-                    return True
+                    is_accessible = True
             elif post.visibility == "PUBLIC":
-                return True
+                is_accessible = True
             elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
-                return True
-            return False
+                is_accessible = True
+            else:
+                is_accessible = False
+
+        return is_accessible
 
     @staticmethod
     def not_own_posts_visible_to_me(user_profile):
