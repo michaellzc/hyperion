@@ -1,9 +1,10 @@
 # pylint: disable=arguments-differ
-from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework import viewsetsgit 
+from rest_framework import viewsets
+
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post
@@ -14,7 +15,7 @@ class PostViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(unlisted=False)
     serializer_class = PostSerializer
     authentication_classes = (HyperionBasicAuthentication,)
     permission_classes = (IsAuthenticated, AllowAny)
@@ -55,20 +56,17 @@ class PostViewSet(viewsets.ModelViewSet):
         """
 
         # result = list of post
-        result = \
-            list(self.queryset.filter(
-                Q(visibility="PUBLIC") |
-                Q(author=request.user.profile) |
-                Q(visibility="SERVERONLY"))) + \
-            Post.not_own_posts_visible_to_me(request.user.profile)
-
+        result = (
+            list(self.queryset.filter(author=request.user.profile))
+            + list(self.queryset.filter(visibility="PUBLIC"))
+            + Post.not_own_posts_visible_to_me(request.user.profile)
+        )
         result = list(set(result))
 
         serializer = PostSerializer(result, many=True)
         return Response(
-            {"query": "posts",
-             "count": len(serializer.data),
-             "posts": serializer.data})
+            {"query": "posts", "count": len(serializer.data), "posts": serializer.data}
+        )
 
     def list(self, request):
         """
@@ -81,17 +79,15 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk):
         """
-        GET posts/{id}
+        GET posts/{id}/
         """
-        response = super().retrieve(request, pk)
-        data = response.data
-        response.data = {"query": "post", "post": data}
-        return response
+        post_obj = get_object_or_404(Post, pk=pk)
+        serializer = PostSerializer(post_obj)
+        return Response({"query": "post", "post": serializer.data})
 
-    def destroy(self, request, *args, **kwargs):
-        post = self.get_object()
-        print(post.author.id)
-        if post.author.id == request.user.id:
+    def destroy(self, request, pk, *args, **kwargs):
+        post = get_object_or_404(Post, pk=pk)
+        if post.author.id == request.user.profile.id:
             self.perform_destroy(post)
             return Response(status=204)
         else:
