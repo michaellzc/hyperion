@@ -85,7 +85,7 @@ class Post(models.Model):
             elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
                 visible_post.append(post)
         return visible_post
-
+       
     def get_comments(self):
         return self.comments.all()
 
