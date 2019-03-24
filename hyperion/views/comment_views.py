@@ -1,16 +1,16 @@
 # pylint: disable=arguments-differ
-from urllib.parse import urlparse
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import status
 from django.conf import settings
-
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import CommentSerializer
-from hyperion.models import Comment, Post, Server, UserProfile
+from hyperion.models import Comment, Post, UserProfile
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -28,59 +28,45 @@ class CommentViewSet(viewsets.ModelViewSet):
         """
         POST /posts/{post_id}/comments
         """
+        # get current autheticated user
         try:
-            # get request info
             body = request.data
             comment_query = body.get("query", None)
             comment_data = body.get("comment", None)
-            comment_data['post'] = str(pk)
-            # commenter is in our local host
-            if comment_data["author"]["host"] == settings.HYPERION_HOSTNAME:
-                author_profile = request.user.profile
-                comment_data["author"] = str(request.user.profile.id)
-            # commenter is in remote host
-            else:
-            # check if the author's host is trusted by us
-                try:
-                    server = Server.objects.get(name=comment_data["author"]["host"])
-                except Server.DoesNotExist:
-                    raise Exception("the author's server is not verified by us")
-
-            # check if we already have this remote user profile after checking server
-                try:
-                    author_profile = UserProfile.objects.get(url=comment_data["author"]["id"])
-                    has_author_profile = True
-                except UserProfile.DoesNotExist:
-                    # if we doesn't have this user profile
-                    # (may also check if user exist in remote server
-                    has_author_profile = False
-
-                # create copy of a remote user profile
-                if not has_author_profile:
-                    try:
-                        author_profile = UserProfile.objects.create(
-                            display_name=comment_data["author"]["display_name"],
-                            host=server,
-                            url=comment_data["author"]["id"],
-                        )
-                    except Exception as some_error:
-                        raise Exception(
-                            "create author profile failed, reason: " + str(some_error)
-                        )
-                comment_data["author"] = urlparse(comment_data["author"]["id"]).path.split("/")[-1]
-        except Exception as some_error: # pylint: disable=broad-except
+            comment_data['post'] = pk
+            server = request.user.server
+        except User.server.RelatedObjectDoesNotExist: #pylint: disable=no-member
+            # local host
+            author_profile = request.user.profile
+            comment_data["author"] = str(request.user.profile.id)
+        except Exception as other_errs:  #pylint: disable=broad-except
             return Response(
                 {
-                    "query": "addComment",
+                    "query": comment_query,
                     "success": False,
-                    "message": str(some_error),
+                    "message": str(other_errs),
                 }, status=status.HTTP_400_BAD_REQUEST
             )
+        else:
+            # foreign server
+            try:
+                author_profile = UserProfile.objects.get(
+                    url=comment_data["author"]["id"])
+            except UserProfile.DoesNotExist:
+                # foreign user is not in our db
+                try:
+                    author_profile = UserProfile.objects.create(
+                        display_name=comment_data["author"]["display_name"],
+                        host=server,
+                        url=comment_data["author"]["id"],
+                    )
+                except Exception as some_error: #pylint: disable=broad-except
+                    raise Exception(
+                        "create author profile failed, reason: " \
+                        + str(some_error))
+            comment_data["author"] = str(author_profile.id)
 
-
-        #End of handle author_profile  Starting handle comment data. Post_data is always on our host.author_profile may not.
-
-        post_data = Post.objects.get(pk=pk)
+        post_data = get_object_or_404(Post, pk=pk)
         accessible = post_data.is_accessible(post_data, author_profile)
         if comment_query == "addComment" and comment_data and accessible:
             serializer = CommentSerializer(data=comment_data)
@@ -108,4 +94,12 @@ class CommentViewSet(viewsets.ModelViewSet):
                     "success": False,
                     "message": "Post not accessible",
                 }, status=status.HTTP_403_FORBIDDEN
+            )
+        else:
+            return Response(
+                {
+                    "query": comment_query,
+                    "success": False,
+                    "message": "bad request",
+                }, status=status.HTTP_400_BAD_REQUEST
             )

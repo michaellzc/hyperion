@@ -58,8 +58,8 @@ class FriendViewTestCase(TestCase):
         cls.u5.save()
 
         # remote user fu1
-        s1 = Server.objects.create(
-            name="https://cmput404-front-t2.herokuapp.com")
+        s1 = Server.objects.create() #pylint: disable=invalid-name
+            # name="https://cmput404-front-t2.herokuapp.com")
         cls.fu1 = UserProfile.objects.create(
             display_name="haotian",
             host=s1,
@@ -79,7 +79,7 @@ class FriendViewTestCase(TestCase):
         # Friend.objects.create(profile1=cls.u2.profile, profile2=cls.u3.profile)
 
     @staticmethod
-    def _check_list_equal(l1, l2):
+    def _check_list_equal(l1, l2): #pylint: disable=invalid-name
         return len(l1) == len(l2) and sorted(l1) == sorted(l2)
 
     def test_friend_list_get(self):

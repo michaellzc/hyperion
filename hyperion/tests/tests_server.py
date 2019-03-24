@@ -12,12 +12,9 @@ from django.core.exceptions import ValidationError
 # python manage.py test -v=2 hyperion.models.tests_server
 
 class ServerTestCase(TestCase):
-    def setup(self):
-        pass
-
-    def test_create_server(self):
-        s1 = Server.objects.create(name='hhahaha')
-        self.assertEquals(Server.objects.get().name, 'hhahaha')
+    def setUp(self):
+        s_user = User.objects.create_user(username='other')
+        self.s1 = Server.objects.create(author=s_user)
 
     def test_our_user_profile(self):
         u1 = User.objects.create(
@@ -35,7 +32,6 @@ class ServerTestCase(TestCase):
             first_name='zhi',
             last_name='li'
         )
-        s1 = Server.objects.create(name='hhahaha')
         # raise error if  no host and no user
         self.assertRaises(
             ValidationError,
@@ -44,11 +40,11 @@ class ServerTestCase(TestCase):
         )
         fu1 = UserProfile.objects.create(
             display_name='yangww1',
-            host=s1
+            host=self.s1
         )
         fu2 = UserProfile.objects.create(
             display_name='ggyanh2',
-            host=s1
+            host=self.s1
         )
 
         # add friends
@@ -66,15 +62,13 @@ class ServerTestCase(TestCase):
             first_name='yutian',
             last_name='zhang',
         )
-        s1 = Server.objects.create(name='hhahaha')
-
         fu1 = UserProfile.objects.create(
             display_name='yangww1',
-            host=s1
+            host=self.s1
         )
         fu2 = UserProfile.objects.create(
             display_name='ggyanh2',
-            host=s1
+            host=self.s1
         )
         Friend.objects.create(profile1=fu1, profile2=u1.profile)
         Friend.objects.create(profile1=u2.profile, profile2=u1.profile)
