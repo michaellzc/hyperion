@@ -88,6 +88,7 @@ class PostViewSet(viewsets.ModelViewSet):
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
+                print('htz','i maherre')
                 result = self.queryset.filter(visibility="PUBLIC")
             except KeyError:
                 return Response(
