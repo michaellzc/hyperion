@@ -57,6 +57,9 @@ class UserProfile(models.Model):
     def get_url(self):
         return self.get_full_id()
 
+    def get_host(self):
+        return self.get_full_id().split("/author/")[0]
+
     def get_type(self):
         # return UserProfile class either host or foreign
         if self.host and self.author is None:
