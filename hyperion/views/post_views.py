@@ -83,9 +83,9 @@ class PostViewSet(viewsets.ModelViewSet):
                 # foreign user in our db, get all public posts and posts that
                 # are visible to or such posts' firends to this foreign user profile
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
-                result = self.queryset.filter(
+                result = list(self.queryset.filter(
                     visibility="PUBLIC"
-                ) + Post.not_own_posts_visible_to_me(foreign_user_profile)
+                )) + Post.not_own_posts_visible_to_me(foreign_user_profile)
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
