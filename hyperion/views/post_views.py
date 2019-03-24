@@ -78,7 +78,6 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             # foreign user
             # grab request user information from request header
-            print('foreign user,htz', request.META)
             try:
                 foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
                 # foreign user in our db, get all public posts and posts that
