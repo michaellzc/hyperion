@@ -9,7 +9,7 @@ from rest_framework import viewsets
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
-from hyperion.models import Post
+from hyperion.models import Post, UserProfile
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -52,21 +52,30 @@ class PostViewSet(viewsets.ModelViewSet):
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist: # pylint: disable=no-member
+            # local user
+            result = list(
+                self.queryset.filter(
+                    Q(visibility="PUBLIC") | Q(author=request.user.profile) | Q(visibility="SERVERONLY")
+                )
+            ) + Post.not_own_posts_visible_to_me(request.user.profile)
+        else:
             # foreign user
             # grab request user information from request header
-            pass
-        else:
-            # local user
-            pass
-        result = list(
-            self.queryset.filter(
-                Q(visibility="PUBLIC") | Q(author=request.user.profile) | Q(visibility="SERVERONLY")
-            )
-        ) + Post.not_own_posts_visible_to_me(request.user.profile)
+            foreign_user_url = request.META['X-Request-User-ID']
+            try:
+                # foreign user in our db, get all public posts and posts that
+                # are visible to or such posts' firends to this foreign user profile
+                foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
+                result = self.queryset.filter(visibility="PUBLIC") +\
+                    Post.not_own_posts_visible_to_me(foreign_user_profile)
+            except UserProfile.DoesNotExist:
+                # foreign user is not in our db
+                # directly return public
+                result = self.queryset.filter(visibility="PUBLIC")
+        finally:
+            result = list(set(result)) # remove duplication
+            serializer = PostSerializer(result, many=True)
 
-        result = list(set(result))
-
-        serializer = PostSerializer(result, many=True)
         return Response({"query": "posts", "count": len(serializer.data), "posts": serializer.data})
 
     def list(self, request):
