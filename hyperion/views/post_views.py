@@ -70,6 +70,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 response = requests.get(foreign_url, headers=headers)
                 if response.status_code == 200:
                     body = response.json()
+                    print(body,'response.body htz')
                     posts = body.get("posts", [])
                     foreign_posts += posts
                 else:
