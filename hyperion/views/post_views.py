@@ -63,6 +63,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     | Q(visibility="SERVERONLY")
                 )
             ) + Post.not_own_posts_visible_to_me(request.user.profile)
+            print('result, htz',result)
             for server in Server.objects.all():
                 foreign_url = server.author.profile.url + "/api/author/posts"
                 local_url = request.user.profile.get_url()
