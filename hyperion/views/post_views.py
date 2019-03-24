@@ -1,4 +1,5 @@
 # pylint: disable=arguments-differ
+import requests
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
@@ -9,7 +10,7 @@ from rest_framework import viewsets
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
-from hyperion.models import Post, UserProfile
+from hyperion.models import Post, UserProfile, Server
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -51,29 +52,45 @@ class PostViewSet(viewsets.ModelViewSet):
         # check if local user
         try:
             request.user.server
-        except User.server.RelatedObjectDoesNotExist: # pylint: disable=no-member
+        except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
             # local user
             result = list(
                 self.queryset.filter(
-                    Q(visibility="PUBLIC") | Q(author=request.user.profile) | Q(visibility="SERVERONLY")
+                    Q(visibility="PUBLIC")
+                    | Q(author=request.user.profile)
+                    | Q(visibility="SERVERONLY")
                 )
             ) + Post.not_own_posts_visible_to_me(request.user.profile)
+            for server in Server.objects.all():
+                foreign_url = server.author.profile.url + "/api/author/posts"
+                local_url = request.user.profile.get_url()
+                headers = {"X-Request-User-ID": str(local_url)}
+                response = requests.get(foreign_url, headers=headers)
+                if response.status_code == 200:
+                    body = response.json()
+                    posts = body.get("posts", [])
+                    result += posts
+                else:
+                    return Response(
+                        {"query": "posts", "success": False, "message": response.status_code}
+                    )
         else:
             # foreign user
             # grab request user information from request header
-            foreign_user_url = request.META['X-Request-User-ID']
+            foreign_user_url = request.META["X-Request-User-ID"]
             try:
                 # foreign user in our db, get all public posts and posts that
                 # are visible to or such posts' firends to this foreign user profile
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
-                result = self.queryset.filter(visibility="PUBLIC") +\
-                    Post.not_own_posts_visible_to_me(foreign_user_profile)
+                result = self.queryset.filter(
+                    visibility="PUBLIC"
+                ) + Post.not_own_posts_visible_to_me(foreign_user_profile)
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
                 result = self.queryset.filter(visibility="PUBLIC")
         finally:
-            result = list(set(result)) # remove duplication
+            result = list(set(result))  # remove duplication
             serializer = PostSerializer(result, many=True)
 
         return Response({"query": "posts", "count": len(serializer.data), "posts": serializer.data})
