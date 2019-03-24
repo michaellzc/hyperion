@@ -50,6 +50,7 @@ class PostViewSet(viewsets.ModelViewSet):
         GET /author/posts
         """
         # check if local user
+        foreign_posts = []
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
@@ -69,7 +70,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 if response.status_code == 200:
                     body = response.json()
                     posts = body.get("posts", [])
-                    result += posts
+                    foreign_posts += posts
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": response.status_code}
@@ -92,8 +93,8 @@ class PostViewSet(viewsets.ModelViewSet):
         finally:
             result = list(set(result))  # remove duplication
             serializer = PostSerializer(result, many=True)
-
-        return Response({"query": "posts", "count": len(serializer.data), "posts": serializer.data})
+            data = serializer.data + foreign_posts
+        return Response({"query": "posts", "count": len(data), "posts": data})
 
     def list(self, request):
         """
