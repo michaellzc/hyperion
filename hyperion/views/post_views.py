@@ -75,7 +75,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     foreign_posts += posts
                 else:
                     return Response(
-                        {"query": "posts", "success": False, "message": "foreign server errors"},
+                        {"query": "posts", "success": False, "message": response.content},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             # foreign user
