@@ -194,7 +194,7 @@ def friend_request(request):
                         ).data,
                     }
                     resp = requests.post(
-                        url=friend_host_name + "/friendrequest",
+                        url=friend_host_name + "/api/friendrequest",
                         data=friend_request_body,
                         auth=(
                             friend_profile.host.foreign_db_username,
