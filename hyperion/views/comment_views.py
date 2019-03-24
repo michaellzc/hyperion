@@ -83,11 +83,3 @@ class CommentViewSet(viewsets.ModelViewSet):
                 {"query": comment_query, "success": False, "message": "bad request"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
-            return Response(
-                {
-                    "query": comment_query,
-                    "success": False,
-                    "message": "bad request",
-                }, status=status.HTTP_400_BAD_REQUEST
-            )
