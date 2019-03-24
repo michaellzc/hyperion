@@ -1,6 +1,7 @@
 # pylint: disable=arguments-differ
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -47,8 +48,16 @@ class PostViewSet(viewsets.ModelViewSet):
         """
         GET /author/posts
         """
-
-        # result = list of post
+        # check if local user
+        try:
+            request.user.server
+        except User.server.RelatedObjectDoesNotExist: # pylint: disable=no-member
+            # foreign user
+            # grab request user information from request header
+            pass
+        else:
+            # local user
+            pass
         result = list(
             self.queryset.filter(
                 Q(visibility="PUBLIC") | Q(author=request.user.profile) | Q(visibility="SERVERONLY")
