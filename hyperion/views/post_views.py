@@ -51,6 +51,7 @@ class PostViewSet(viewsets.ModelViewSet):
         """
         # check if local user
         foreign_posts = []
+        result = []
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
@@ -77,7 +78,7 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             # foreign user
             # grab request user information from request header
-            print('foreign user,htz')
+            print('foreign user,htz', request.META)
             try:
                 foreign_user_url = request.META["X-Request-User-ID"]
                 # foreign user in our db, get all public posts and posts that
@@ -94,13 +95,10 @@ class PostViewSet(viewsets.ModelViewSet):
             except KeyError:
                 return Response(
                     {"query": "posts", "success": False, "message": 'No X-Request-User-ID'})
-            except Exception as err:
-                return Response(
-                    {"query": "posts", "success": False, "message": err})
-        finally:
-            result = list(set(result))  # remove duplication
-            serializer = PostSerializer(result, many=True)
-            data = serializer.data + foreign_posts
+
+        result = list(set(result))  # remove duplication
+        serializer = PostSerializer(result, many=True)
+        data = serializer.data + foreign_posts
         return Response({"query": "posts", "count": len(data), "posts": data})
 
     def list(self, request):
