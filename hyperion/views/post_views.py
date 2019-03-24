@@ -63,7 +63,6 @@ class PostViewSet(viewsets.ModelViewSet):
                     | Q(visibility="SERVERONLY")
                 )
             ) + Post.not_own_posts_visible_to_me(request.user.profile)
-            print('result, htz',result)
             for server in Server.objects.all():
                 foreign_url = server.author.profile.url + "/api/author/posts"
                 local_url = request.user.profile.get_url()
@@ -71,12 +70,11 @@ class PostViewSet(viewsets.ModelViewSet):
                 response = requests.get(foreign_url, headers=headers)
                 if response.status_code == 200:
                     body = response.json()
-                    print(body,'response.body htz')
                     posts = body.get("posts", [])
                     foreign_posts += posts
                 else:
                     return Response(
-                        {"query": "posts", "success": False, "message": response.content})
+                        {"query": "posts", "success": False, "message from other": response.content})
         else:
             # foreign user
             # grab request user information from request header
