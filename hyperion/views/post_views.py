@@ -80,10 +80,10 @@ class PostViewSet(viewsets.ModelViewSet):
             print('foreign user,htz')
             try:
                 foreign_user_url = request.META["X-Request-User-ID"]
+                print(foreign_user_url,'foreign_user_url user222,htz')
                 # foreign user in our db, get all public posts and posts that
                 # are visible to or such posts' firends to this foreign user profile
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
-                print('foreign user222,htz')
                 result = self.queryset.filter(
                     visibility="PUBLIC"
                 ) + Post.not_own_posts_visible_to_me(foreign_user_profile)
