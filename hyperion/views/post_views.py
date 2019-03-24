@@ -73,13 +73,12 @@ class PostViewSet(viewsets.ModelViewSet):
                     foreign_posts += posts
                 else:
                     return Response(
-                        {"query": "posts", "success": False, "message": response.status_code}
-                    )
+                        {"query": "posts", "success": False, "message": response.content})
         else:
             # foreign user
             # grab request user information from request header
-            foreign_user_url = request.META["X-Request-User-ID"]
             try:
+                foreign_user_url = request.META["X-Request-User-ID"]
                 # foreign user in our db, get all public posts and posts that
                 # are visible to or such posts' firends to this foreign user profile
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
@@ -90,6 +89,9 @@ class PostViewSet(viewsets.ModelViewSet):
                 # foreign user is not in our db
                 # directly return public
                 result = self.queryset.filter(visibility="PUBLIC")
+            except KeyError:
+                return Response(
+                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'})
         finally:
             result = list(set(result))  # remove duplication
             serializer = PostSerializer(result, many=True)
