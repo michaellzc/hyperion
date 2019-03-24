@@ -106,8 +106,8 @@ class UserProfile(models.Model):
         #         'Froeign user profile has not send_friend_request'
         #     )
         # ISSUE TODO: only to_profile should be in host
-        if to_profile.host:
-            raise ValidationError("the one get friend request should be our local author")
+        # if to_profile.host:
+        #     raise ValidationError("the one get friend request should be our local author")
 
         # if they are already friend => raise error
         # https://stackoverflow.com/questions/42206351/django-checking-if-objects-exists-and-raising-error-if-it-does
