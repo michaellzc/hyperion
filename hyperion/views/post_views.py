@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
@@ -74,7 +75,8 @@ class PostViewSet(viewsets.ModelViewSet):
                     foreign_posts += posts
                 else:
                     return Response(
-                        {"query": "posts", "success": False, "message from other": response.content})
+                        {"query": "posts", "success": False, "message": "foreign server errors"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             # foreign user
             # grab request user information from request header
