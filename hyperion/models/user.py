@@ -51,17 +51,11 @@ class UserProfile(models.Model):
         if self.author:
             if self.host is None:
                 host_name = settings.HYPERION_HOSTNAME
-            else:
-                host_name = self.host.name
-            return "{}/author/{}".format(host_name, self.author.id)
-        else:
-            return self.url
+                return "{}/author/{}".format(host_name, self.author.id)
+        return self.url
 
     def get_url(self):
-        if self.url:
-            return self.url
-        else:
-            return self.get_full_id()
+        return self.get_full_id()
 
     def get_type(self):
         # return UserProfile class either host or foreign
