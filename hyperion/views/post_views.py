@@ -80,7 +80,7 @@ class PostViewSet(viewsets.ModelViewSet):
             # grab request user information from request header
             print('foreign user,htz', request.META)
             try:
-                foreign_user_url = request.META["X-Request-User-ID"]
+                foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
                 # foreign user in our db, get all public posts and posts that
                 # are visible to or such posts' firends to this foreign user profile
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
@@ -90,7 +90,6 @@ class PostViewSet(viewsets.ModelViewSet):
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
-                print('htz','i maherre')
                 result = self.queryset.filter(visibility="PUBLIC")
             except KeyError:
                 return Response(
