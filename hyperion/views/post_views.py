@@ -94,7 +94,8 @@ class PostViewSet(viewsets.ModelViewSet):
                 result = self.queryset.filter(visibility="PUBLIC")
             except KeyError:
                 return Response(
-                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'})
+                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
+                    status=status.HTTP_400_BAD_REQUEST)
 
         result = list(set(result))  # remove duplication
         serializer = PostSerializer(result, many=True)
