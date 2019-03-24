@@ -159,16 +159,18 @@ def friend_request(request):
                 author_profile = User.objects.get(
                     pk=int(body["author"]["id"].split("/")[-1])
                 ).profile
-
+                print(author_profile, "  aaaaa")
                 # check if the to_friend is local or remote
                 if friend_host_name == settings.HYPERION_HOSTNAME:  # friend is local
                     friend_profile = User.objects.get(
                         pk=int(body["friend"]["id"].split("/")[-1])
                     ).profile
+                    print(friend_profile, " bbbbbb")
                 else:  # friend is remote
                     # check if the friend profile exists
                     try:
                         friend_profile = UserProfile.objects.get(url=body["friend"]["id"])
+                        print(friend_profile, ' cccccc')
                     except UserProfile.DoesNotExist:
                         remote_server_user = User.objects.get(profile__url=friend_host_name)
                         friend_profile = UserProfile.objects.create(
@@ -177,6 +179,7 @@ def friend_request(request):
                             host=remote_server_user.server,
                             url=body["friend"]["id"],
                         )
+                        print(friend_profile, ' ddddd')
 
                     # send friend request to remote server
                     friend_request_body = {
