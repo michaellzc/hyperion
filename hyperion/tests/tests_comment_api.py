@@ -1,3 +1,4 @@
+
 import base64
 from rest_framework.test import APITestCase
 from hyperion.models import *
@@ -5,7 +6,6 @@ from hyperion.serializers import PostSerializer, UserProfileSerializer
 from hyperion.views import post_views
 from django.test import TestCase, Client
 from django.conf import settings
-
 # python manage.py test -v=2 hyperion.tests.tests_comment_api
 
 class CommentViewTestCase(TestCase):
@@ -83,7 +83,7 @@ class CommentViewTestCase(TestCase):
             unlisted="False")
         self.client = None
 
-        self.s_1 = Server.objects.create(name = "https://cmput404-front.herokuapp.co")
+        self.s_1 = Server.objects.create()
         self.f_u_1 = UserProfile.objects.create(
             display_name="haotian",
             host=self.s_1,
@@ -148,8 +148,8 @@ class CommentViewTestCase(TestCase):
             "post":"http://hyperion.com/posts/{}".format(str(self.p_2.id)),
             "comment":{
                 "author":{
-                    'id': "https://{}/author/{}".format(str(self.f_u_1.host.name), str(self.f_u_1.id)),
-                    "host": str(self.f_u_1.host.name),
+                    'id': "https://{}/author/{}".format('https://cmput404-front.herokuapp.co', str(self.f_u_1.id)),
+                    "host": 'https://cmput404-front.herokuapp.co',
                     "display_name": str(self.f_u_1.display_name),
                 },
                 "comment":"heyya",
@@ -158,3 +158,4 @@ class CommentViewTestCase(TestCase):
         }
         response = self.client.post('/posts/{}/comments'.format(str(self.p_2.id)), data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
+    

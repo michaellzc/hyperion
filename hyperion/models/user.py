@@ -51,17 +51,14 @@ class UserProfile(models.Model):
         if self.author:
             if self.host is None:
                 host_name = settings.HYPERION_HOSTNAME
-            else:
-                host_name = self.host.name
-            return "{}/author/{}".format(host_name, self.author.id)
-        else:
-            return self.url
+                return "{}/author/{}".format(host_name, self.author.id)
+        return self.url
 
     def get_url(self):
-        if self.url:
-            return self.url
-        else:
-            return self.get_full_id()
+        return self.get_full_id()
+
+    def get_host(self):
+        return self.get_full_id().split("/author/")[0]
 
     def get_type(self):
         # return UserProfile class either host or foreign
@@ -109,8 +106,8 @@ class UserProfile(models.Model):
         #         'Froeign user profile has not send_friend_request'
         #     )
         # ISSUE TODO: only to_profile should be in host
-        if to_profile.host:
-            raise ValidationError("the one get friend request should be our local author")
+        # if to_profile.host:
+        #     raise ValidationError("the one get friend request should be our local author")
 
         # if they are already friend => raise error
         # https://stackoverflow.com/questions/42206351/django-checking-if-objects-exists-and-raising-error-if-it-does

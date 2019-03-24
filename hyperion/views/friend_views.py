@@ -1,11 +1,9 @@
-# pylint: disable=broad-except, too-many-branches
+# pylint: disable=broad-except, too-many-branches, too-many-statements
 import json
 from urllib.parse import urlparse
-from rest_framework.decorators import (
-    api_view,
-    permission_classes,
-    authentication_classes,
-)
+import requests
+
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -13,7 +11,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 
 from hyperion.serializers import UserProfileSerializer, FriendRequestSerializer
-from hyperion.models import UserProfile, Server, FriendRequest
+from hyperion.models import UserProfile, FriendRequest, Friend
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.errors import FriendAlreadyExist
 
@@ -32,16 +30,13 @@ def friend_list(request, author_id):
     if request.method == "GET":
         # get all friends to this authenticated author
         friends = list(request.user.profile.get_friends())
+        # print(friends)
         # https://stackoverflow.com/questions/47119879/how-to-get-specific-field-from-serializer-of-django-rest-framework
         serializer = UserProfileSerializer(
-            friends,
-            many=True,
-            context={"fields": ["id", "host", "display_name", "url"]},
+            friends, many=True, context={"fields": ["id", "host", "display_name", "url"]}
         )
         content = {"query": "friends", "count": len(friends), "author": serializer.data}
-        return Response(
-            content, content_type="application/json", status=status.HTTP_200_OK
-        )
+        return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
     elif request.method == "POST":
         try:
@@ -54,25 +49,15 @@ def friend_list(request, author_id):
             author = User.objects.get(pk=int(body["author"]))
 
             # get friend url with author
-            author_friend_list = list(
-                author.profile.get_friends().values_list("url", flat=True)
-            )
+            author_friend_list = list(author.profile.get_friends().values_list("url", flat=True))
             pending_friend_list = body["authors"]
             # https://stackoverflow.com/questions/3697432/how-to-find-list-intersection/33067553
 
-            result_friend_list = list(
-                set(author_friend_list) & set(pending_friend_list)
-            )
+            result_friend_list = list(set(author_friend_list) & set(pending_friend_list))
             # print(result_friend_list)
 
-            content = {
-                "query": "friends",
-                "author": body["author"],
-                "authors": result_friend_list,
-            }
-            return Response(
-                content, content_type="application/json", status=status.HTTP_200_OK
-            )
+            content = {"query": "friends", "author": body["author"], "authors": result_friend_list}
+            return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response(
@@ -92,6 +77,7 @@ def friend_list(request, author_id):
 @permission_classes((permissions.IsAuthenticated, permissions.AllowAny))
 def check_friendship(request, author_id_1, service2, author_id_2):
     # print("author1 ", author_id_1)
+    # TO DO maybe http
     author2 = "https://" + service2 + "/author/" + author_id_2
     # print("author2 ", author2)
 
@@ -100,23 +86,16 @@ def check_friendship(request, author_id_1, service2, author_id_2):
         author1 = User.objects.get(pk=int(author_id_1))
 
         # get friend url with author1
-        author1_friend_list = list(
-            author1.profile.get_friends().values_list("url", flat=True)
-        )
+        author1_friend_list = list(author1.profile.get_friends().values_list("url", flat=True))
         # print(author1_friend_list)
-        content = {
-            "query": "friends",
-            "authors": [author1.profile.get_full_id(), author2],
-        }
+        content = {"query": "friends", "authors": [author1.profile.get_full_id(), author2]}
 
         if author2 in author1_friend_list:
             content["friends"] = True
         else:
             content["friends"] = False
 
-        return Response(
-            content, content_type="application/json", status=status.HTTP_200_OK
-        )
+        return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
     except User.DoesNotExist:
         return Response(
@@ -138,9 +117,7 @@ def friend_request(request):
 
     if request.method == "GET":
         # get all friend request which to_friend would be request.user
-        friend_request_list = FriendRequest.objects.filter(
-            to_profile=request.user.profile
-        )
+        friend_request_list = FriendRequest.objects.filter(to_profile=request.user.profile)
 
         content = {
             "query": "friendrequests",
@@ -151,88 +128,135 @@ def friend_request(request):
             ).data,
         }
 
-        return Response(
-            content, content_type="application/json", status=status.HTTP_200_OK
-        )
+        return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
     elif request.method == "POST":
         try:
-            body_unicode = request.body.decode("utf-8")
-            body = json.loads(body_unicode)
-            # print(body)
+            body = json.loads(request.body.decode("utf-8"))
             if body["query"] != "friendrequest":
                 raise Exception("query should be friendrequest")
 
             # get the host from url to compare with host attribute
             # https://stackoverflow.com/questions/9626535/get-protocol-host-name-from-url
-            parsed_uri = urlparse(body["author"]["id"])
-            host_name = "{uri.scheme}://{uri.netloc}".format(uri=parsed_uri)
+            # host_name = "{uri.scheme}://{uri.netloc}".format(uri=urlparse(body["author"]["id"]))
+            #
+            # if host_name != body["author"]["host"]:
+            #     raise Exception("we can't save the profile which host != url.host")
 
-            if host_name != body["author"]["host"]:
-                raise Exception("we can't save the profile which host != url.host")
+            friend_host_name = "{uri.scheme}://{uri.netloc}".format(
+                uri=urlparse(body["friend"]["id"])
+            )
 
-            # check if the to_friend is local author
-            friend_id = int(body["friend"]["id"].split("/")[-1])
+            # check if the request user is local or remote
+            is_local = False
+            try:
+                server = request.user.server
+            except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+                is_local = True
 
-            # get to_friend profile
-            to_friend = User.objects.get(pk=friend_id)
+            if is_local:  # if author is local
+                # get the author profile
+                author_profile = User.objects.get(
+                    pk=int(body["author"]["id"].split("/")[-1])
+                ).profile
+                # check if the to_friend is local or remote
+                if friend_host_name == settings.HYPERION_HOSTNAME:  # friend is local
+                    friend_profile = User.objects.get(
+                        pk=int(body["friend"]["id"].split("/")[-1])
+                    ).profile
+                else:  # friend is remote
+                    # check if the friend profile exists
+                    try:
+                        friend_profile = UserProfile.objects.get(url=body["friend"]["id"])
+                    except UserProfile.DoesNotExist:
+                        remote_server_user = User.objects.get(profile__url=friend_host_name)
+                        friend_profile = UserProfile.objects.create(
+                            # TO DO what's the default value of display_name
+                            # display_name=body["friend"]["display_name"],
+                            host=remote_server_user.server,
+                            url=body["friend"]["id"],
+                        )
 
-            author_profile = None
-            # check if author is in our local host
-            if body["author"]["host"] == settings.HYPERION_HOSTNAME:
-                author_id = int(body["author"]["id"].split("/")[-1])
-                author = User.objects.get(pk=author_id)
-                author_profile = author.profile
+                    # send friend request to remote server
+                    friend_request_body = {
+                        "query": "friendrequest",
+                        "author": UserProfileSerializer(
+                            author_profile,
+                            context={"fields": ["id", "host", "display_name", "url"]},
+                        ).data,
+                        "friend": UserProfileSerializer(
+                            friend_profile,
+                            context={"fields": ["id", "host", "display_name", "url"]},
+                        ).data,
+                    }
+                    # print(friend_request_body,'htz')
+                    resp = requests.post(
+                        url=friend_host_name + "/api/friendrequest",
+                        json=friend_request_body,
+                        auth=(
+                            friend_profile.host.foreign_db_username,
+                            friend_profile.host.foreign_db_password,
+                        ),
+                    )
+                    if resp.status_code != 200:
+                        raise Exception(
+                            "send friendrequest to remote server failed, reason={}".format(
+                                resp.content
+                            )
+                        )
 
-            else:  # the author is in remote server
-                # check if the author's host is trusted by us
-                try:
-                    server = Server.objects.get(name=body["author"]["host"])
-                except Server.DoesNotExist:
-                    raise Exception("the author's server is not verified by us")
-
-                # check if we already have this remote user profile after checking server
+            else:  # if author is remote
+                # check if the author profile exists
                 try:
                     author_profile = UserProfile.objects.get(url=body["author"]["id"])
-                    has_author_profile = True
                 except UserProfile.DoesNotExist:
-                    # if we doesn't have this user profile
-                    # (may also check if user exist in remote server
-                    has_author_profile = False
+                    author_profile = UserProfile.objects.create(
+                        # display_name=body["author"]["display_name"],
+                        host=server,
+                        url=body["author"]["id"],
+                    )
+                # friend must be local
+                friend_profile = User.objects.get(
+                    pk=int(body["friend"]["id"].split("/")[-1])
+                ).profile
 
-                if not has_author_profile:
-                    try:
-                        author_profile = UserProfile.objects.create(
-                            display_name=body["author"]["display_name"],
-                            host=server,
-                            url=body["author"]["id"],
-                        )
-                    except Exception as some_error:
-                        raise Exception(
-                            "create author profile failed, reason: " + str(some_error)
-                        )
-
-            # if they are already friend => return 204
+            # if there are already friend => return 204
             try:
-                author_profile.send_friend_request(to_friend.profile)
+                author_profile.send_friend_request(friend_profile)
             except FriendAlreadyExist:
                 return Response(status=status.HTTP_204_NO_CONTENT)
 
-            content = {
-                "query": "friendrequest",
-                "success": True,
-                "message": "friendrequest sent",
-            }
-            return Response(content, status=status.HTTP_200_OK)
+            # check if already get reverse edition friend request
+            reverse_friend_request = FriendRequest.objects.filter(
+                from_profile=friend_profile, to_profile=author_profile
+            )
+            if reverse_friend_request.exists():
+                Friend.objects.create(profile1=author_profile, profile2=friend_profile)
+                FriendRequest.objects.filter(
+                    from_profile=author_profile, to_profile=friend_profile
+                ).delete()
+                FriendRequest.objects.filter(
+                    from_profile=friend_profile, to_profile=author_profile
+                ).delete()
 
-        except User.DoesNotExist:
+                return Response(
+                    {
+                        "query": "friendrequest",
+                        "success": True,
+                        "message": "Two way friendrequests create friendship",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
             return Response(
-                _get_error_response("friendrequest", False, "the friend is not exist"),
-                status=status.HTTP_400_BAD_REQUEST,
+                {"query": "friendrequest", "success": True, "message": "friendrequest sent"},
+                status=status.HTTP_200_OK,
             )
 
         except Exception as some_error:
-            # print(str(some_error))
+            # template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            # message = template.format(type(some_error).__name__, some_error.args)
+            # print(message)
             return Response(
                 _get_error_response("friendrequest", False, str(some_error)),
                 status=status.HTTP_400_BAD_REQUEST,
@@ -261,21 +285,49 @@ def action_friend_request(request, friendrequest_id):
 
         # check the accepted information
         if body["accepted"]:
-            friend_request_obj.to_profile.accept_friend_request(
-                friend_request_obj.from_profile
-            )
+            # if the friend request author is remote user
+            parsed_friend_uri = urlparse(friend_request_obj.from_profile.url)
+            author_host_name = "{uri.scheme}://{uri.netloc}".format(uri=parsed_friend_uri)
+            # print("asfsdf", author_host_name)
+            if author_host_name != settings.HYPERION_HOSTNAME:
+                # send friendrequest(reverse edition)
+                friend_request_reverse_body = {
+                    "query": "friendrequest",
+                    "author": UserProfileSerializer(
+                        friend_request_obj.to_profile,
+                        context={"fields": ["id", "host", "display_name", "url"]},
+                    ).data,
+                    "friend": UserProfileSerializer(
+                        friend_request_obj.from_profile,
+                        context={"fields": ["id", "host", "display_name", "url"]},
+                    ).data,
+                }
+                # print(friend_request_reverse_body["friend"]["host"])
+                resp = requests.post(
+                    url=friend_request_reverse_body["friend"]["host"] + "/api/friendrequest",
+                    json=friend_request_reverse_body,
+                    auth=(
+                        friend_request_obj.from_profile.host.foreign_db_username,
+                        friend_request_obj.from_profile.host.foreign_db_password,
+                    ),
+                )
+                if resp.status_code != 200:
+                    raise Exception(
+                        "send back friendrequest to remote server failed, reason={}".format(
+                            resp.content
+                        )
+                    )
+
+            friend_request_obj.to_profile.accept_friend_request(friend_request_obj.from_profile)
             msg = "accept the friend request"
             accepted = True
         else:
-            friend_request_obj.to_profile.decline_friend_request(
-                friend_request_obj.from_profile
-            )
+            friend_request_obj.to_profile.decline_friend_request(friend_request_obj.from_profile)
             msg = "decline the friend request"
             accepted = False
 
         serializer = FriendRequestSerializer(
-            friend_request_obj,
-            context={"user_fields": ["id", "host", "display_name", "url"]},
+            friend_request_obj, context={"user_fields": ["id", "host", "display_name", "url"]}
         )
         content = {
             "query": "friendrequestAction",
@@ -288,9 +340,7 @@ def action_friend_request(request, friendrequest_id):
 
     except FriendRequest.DoesNotExist:
         return Response(
-            _get_error_response(
-                "friendrequestAction", False, "friend request is not exist"
-            ),
+            _get_error_response("friendrequestAction", False, "friend request is not exist"),
             status=status.HTTP_400_BAD_REQUEST,
         )
 
