@@ -63,5 +63,7 @@ urlpatterns = [
         post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
     ),
     path("posts/<int:pk>/comments", comment_views.CommentViewSet.as_view({"post": "new_comment"})),
+    url(r'^author/(?P<pk>\d+)/posts$',
+        post_views.PostViewSet.as_view({'get': 'get_author_id_posts'})),
 ]
 # pylint: enable=invalid-name
