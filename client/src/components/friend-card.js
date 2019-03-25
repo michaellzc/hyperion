@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from 'antd';
-import './post-card.scss';
+import './friend-card.scss';
 
 let { Meta } = Card;
 

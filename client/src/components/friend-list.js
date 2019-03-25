@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
-import { Empty, Spin, Button } from 'antd';
+import { Empty, Spin, Button, Row, Col } from 'antd';
 import { PostStore, AuthStore, FriendsStore } from '../stores';
 import { inject } from '../utils';
 import FriendCard from './friend-card';
@@ -62,23 +62,35 @@ const FriendList = ({
     friendList.length > 0 ? (
       friendList.map(
         ({ id, contentType, displayName, origin, comments, ...props }) => (
-          <FriendCard
-            key={id}
-            id={id}
-            metaTitle={
-              <CardMetaTitle
-                displayName={displayName}
-                extra={<Button onClick={handleUnfriend}>Unfriend</Button>}
-              />
-            }
-          />
+          <Col xs={22} sm={22} md={12} lg={12} xl={12} xxl={12}>
+            <FriendCard
+              key={id}
+              id={id}
+              metaTitle={
+                <CardMetaTitle
+                  displayName={displayName}
+                  extra={<Button onClick={handleUnfriend}>Unfriend</Button>}
+                />
+              }
+            />
+          </Col>
         )
       )
     ) : (
       <Empty />
     );
 
-  return <Fragment>{isLoading ? <Loading /> : friends}</Fragment>;
+  return (
+    <Fragment>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <Row gutter={24} type="flex" justify="center" align="top">
+          {friends}
+        </Row>
+      )}
+    </Fragment>
+  );
 };
 
 export default inject([PostStore, AuthStore, FriendsStore])(FriendList);
