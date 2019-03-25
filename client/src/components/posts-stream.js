@@ -1,5 +1,4 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import { number } from 'prop-types';
 import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import { message, Icon, Tooltip, Dropdown, Menu, Empty, Spin } from 'antd';
@@ -40,7 +39,7 @@ const Loading = () => (
 );
 
 const PostsStream = ({
-  postId: openPostId,
+  postId: openPostId = null,
   stores: [postStore, authStore],
 }) => {
   let [isVisible, setVisibility] = useState(false);
@@ -132,6 +131,10 @@ const PostsStream = ({
                         <Icon style={{ float: 'right' }} type="down" />
                       </Dropdown>
                     </Tooltip>
+                  ) : !window.OUR_HOSTNAME.includes(user.host) ? (
+                    <Tooltip title={`Post from ${user.host}`}>
+                      <Icon style={{ float: 'right' }} type="info-circle" />
+                    </Tooltip>
                   ) : null
                 }
               />
@@ -171,14 +174,6 @@ const PostsStream = ({
       />
     </Fragment>
   );
-};
-
-PostsStream.propTypes = {
-  postId: number,
-};
-
-PostStore.defaultProps = {
-  postId: null,
 };
 
 export default inject([PostStore, AuthStore])(PostsStream);

@@ -26,7 +26,25 @@ class PostsStore extends Container {
     if (count > 0) {
       let { posts } = this.state;
       postsList = camelcaseKeys(postsList, { deep: true });
-      postsList.forEach(post => posts.set(post.id, post));
+      postsList.forEach(post => {
+        if (!window.OUR_HOSTNAME.includes(post.author.host)) {
+          // foreign post
+          // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
+          // then escape post.id and post.author.id to play well in actual URL.
+          post = {
+            ...post,
+            id: encodeURIComponent(`${post.author.host}/posts/${post.id}`),
+            author: {
+              ...post.author,
+              id: encodeURIComponent(post.author.id),
+            },
+          };
+          posts.set(post.id, post);
+        } else {
+          // local post
+          posts.set(post.id, post);
+        }
+      });
       this.setState({ posts });
     }
   };

@@ -53,7 +53,7 @@ const PostOverlay = ({ postId, isVisible, onCancel, stores: [postStore] }) => {
     >
       {post ? content : <Loading />}
       <CommentBox postId={postId} />
-      {post && post.comments.length > 0 ? (
+      {post && post.comments && post.comments.length > 0 ? (
         <List
           className="comment-list"
           itemLayout="horizontal"
