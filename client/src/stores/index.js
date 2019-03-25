@@ -1,4 +1,5 @@
 import AuthStore from './auth-store';
 import PostStore from './post-store';
+import FriendsStore from './friend-store';
 
-export { AuthStore, PostStore };
+export { AuthStore, PostStore, FriendsStore };

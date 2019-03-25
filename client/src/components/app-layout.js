@@ -7,6 +7,7 @@ import { AuthStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 import ProfileBox from '../components/profile-box';
+import { navigate } from '@reach/router';
 
 let { Header, Content, Footer } = Layout;
 
@@ -51,11 +52,27 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
     setVisible(!visible);
   };
 
+  let redirect = e => {
+    if (e.key === 'home') {
+      navigate('/');
+    } else if (e.key === 'profilepage') {
+      navigate('/userprofile');
+    }
+  };
+
   let menu = (
     <Menu className="menu" selectable={false}>
+      <Menu.Item key="home" onClick={redirect}>
+        <Icon type="info-circle" />
+        Home
+      </Menu.Item>
       <Menu.Item key="Profile" onClick={toggleProfile}>
         <Icon type="info-circle" />
         User Profile
+      </Menu.Item>
+      <Menu.Item key="profilepage" onClick={redirect}>
+        <Icon type="team" />
+        My Posts and Friends
       </Menu.Item>
       <Menu.Item key="logout" onClick={authStore.logout}>
         <Icon type="logout" />

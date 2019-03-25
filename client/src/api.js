@@ -62,6 +62,9 @@ const Friend = {
       query: 'friendrequestAction',
       accepted: false,
     }),
+  fetchFriendList: id => {
+    return request.get(`/author/${id}/friends`);
+  },
 };
 
 const Search = {
