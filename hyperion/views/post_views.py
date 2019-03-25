@@ -1,15 +1,17 @@
 # pylint: disable=arguments-differ
+import requests
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
-from hyperion.models import Post
+from hyperion.models import Post, UserProfile, Server
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -43,31 +45,66 @@ class PostViewSet(viewsets.ModelViewSet):
                     {"query": "createPost", "success": False, "message": serializer.errors}
                 )
 
+    # pylint: disable=too-many-locals
     @action(detail=True, methods=["GET"], name="get_auth_posts")
     def get_auth_posts(self, request):
         """
         GET /author/posts
         """
         # check if local user
+        foreign_posts = []
+        result = []
         try:
             request.user.server
-        except User.server.RelatedObjectDoesNotExist: # pylint: disable=no-member
+        except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+            # local user
+            result = list(
+                self.queryset.filter(
+                    Q(visibility="PUBLIC")
+                    | Q(author=request.user.profile)
+                    | Q(visibility="SERVERONLY")
+                )
+            ) + Post.not_own_posts_visible_to_me(request.user.profile)
+            for server in Server.objects.all():
+                foreign_url = server.author.profile.url + "/api/author/posts"
+                local_url = request.user.profile.get_url()
+                headers = {"X-Request-User-ID": str(local_url)}
+                response = requests.get(
+                    foreign_url,
+                    headers=headers,
+                    auth=(server.foreign_db_username, server.foreign_db_password))
+                if response.status_code == 200:
+                    body = response.json()
+                    posts = body.get("posts", [])
+                    foreign_posts += posts
+                else:
+                    return Response(
+                        {"query": "posts", "success": False, "message": response.content},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
             # foreign user
             # grab request user information from request header
-            pass
-        else:
-            # local user
-            pass
-        result = list(
-            self.queryset.filter(
-                Q(visibility="PUBLIC") | Q(author=request.user.profile) | Q(visibility="SERVERONLY")
-            )
-        ) + Post.not_own_posts_visible_to_me(request.user.profile)
+            try:
+                foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
+                # foreign user in our db, get all public posts and posts that
+                # are visible to or such posts' firends to this foreign user profile
+                foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
+                result = list(self.queryset.filter(
+                    visibility="PUBLIC"
+                )) + Post.not_own_posts_visible_to_me(foreign_user_profile)
+            except UserProfile.DoesNotExist:
+                # foreign user is not in our db
+                # directly return public
+                result = self.queryset.filter(visibility="PUBLIC")
+            except KeyError:
+                return Response(
+                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
+                    status=status.HTTP_400_BAD_REQUEST)
 
-        result = list(set(result))
-
+        result = list(set(result))  # remove duplication
         serializer = PostSerializer(result, many=True)
-        return Response({"query": "posts", "count": len(serializer.data), "posts": serializer.data})
+        data = serializer.data + foreign_posts
+        return Response({"query": "posts", "count": len(data), "posts": data})
 
     def list(self, request):
         """
