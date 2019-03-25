@@ -45,6 +45,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     {"query": "createPost", "success": False, "message": serializer.errors}
                 )
 
+    # pylint: disable=too-many-locals
     @action(detail=True, methods=["GET"], name="get_auth_posts")
     def get_auth_posts(self, request):
         """
@@ -68,7 +69,8 @@ class PostViewSet(viewsets.ModelViewSet):
                 foreign_url = server.author.profile.url + "/api/author/posts"
                 local_url = request.user.profile.get_url()
                 headers = {"X-Request-User-ID": str(local_url)}
-                response = requests.get(foreign_url,
+                response = requests.get(
+                    foreign_url,
                     headers=headers,
                     auth=(server.foreign_db_username, server.foreign_db_password))
                 if response.status_code == 200:
