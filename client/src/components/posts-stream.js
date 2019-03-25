@@ -149,7 +149,7 @@ const PostsStream = ({
             }}
             footer={
               <CardActionsFooter
-                repliesCnt={comments.length}
+                repliesCnt={comments ? comments.length : 0}
                 onReply={e => handleReply(e, id)}
                 onShare={e => handleShare(e, origin)}
               />
