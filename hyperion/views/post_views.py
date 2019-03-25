@@ -95,7 +95,7 @@ class PostViewSet(viewsets.ModelViewSet):
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
-                result = self.queryset.filter(visibility="PUBLIC")
+                result = list(self.queryset.filter(visibility="PUBLIC"))
             except KeyError:
                 return Response(
                     {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
@@ -130,3 +130,53 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(status=204)
         else:
             return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
+
+    # pylint: disable=too-many-locals
+    # pylint: disable=invalid-name
+    @action(detail=True, methods=["GET"], name="get_author_id_posts")
+    def get_author_id_posts(self, request, pk):
+        """
+        GET /author/{id}/posts
+        """
+        # target_posts are posts created by author with id = pk
+        target_posts = None
+
+        # check if local user
+        result = []
+        try:
+            request.user.server
+        except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+            # local user
+            # find all PUBLIC and SERVERONLY post create by this author with id=pk
+            # add not_own_posts_visible_to_me posts
+            if int(request.user.profile.id) == int(pk):
+                # add unlisted posts
+                target_posts = Post.objects.filter(author=pk)
+            else:
+                target_posts = self.queryset.filter(author=pk)
+            result = list(target_posts.filter(
+                Q(visibility="PUBLIC") | Q(visibility="SERVERONLY")))\
+                + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
+        else:
+            # foreign user
+            # grab request user information from request header
+            target_posts = self.queryset.filter(author=pk)
+            try:
+                foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
+                # foreign user in our db, get all public posts created by author with id=pk
+                foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
+                result = list(target_posts.filter(Q(visibility="PUBLIC")))\
+                    + Post.not_own_posts_visible_to_me(foreign_user_profile, queryset=target_posts)
+            except UserProfile.DoesNotExist:
+                # foreign user is not in our db
+                # directly return public
+                result = list(target_posts.filter(visibility="PUBLIC"))
+            except KeyError:
+                return Response(
+                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        result = list(set(result))  # remove duplication
+        serializer = PostSerializer(result, many=True)
+        data = serializer.data
+        return Response({"query": "posts", "count": len(data), "posts": data})

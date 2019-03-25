@@ -79,12 +79,14 @@ class Post(models.Model):
         return is_accessible
 
     @staticmethod
-    def not_own_posts_visible_to_me(user_profile):
+    def not_own_posts_visible_to_me(user_profile, queryset=None):
         visible_post = []
         friends = user_profile.get_friends()
         friends_of_friends = user_profile.get_friends_friends()
-        all_post = Post.objects.all()
-
+        if queryset is not None:
+            all_post = queryset
+        else:
+            all_post = Post.objects.all()
         for post in all_post:
             if post.visibility == "FRIENDS" and post.author in friends:
                 visible_post.append(post)
