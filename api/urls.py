@@ -37,9 +37,7 @@ urlpatterns = [
     url(r"^docs/", include_docs_urls(title="API Documentation")),
     path("author", user_views.update_profile, name="update_profile"),
     # friend URL
-    path(
-        "author/<int:author_id>/friends", friend_views.friend_list, name="friend_list"
-    ),
+    path("author/<int:author_id>/friends", friend_views.friend_list, name="friend_list"),
     path(
         "author/<int:author_id_1>/friends/<str:service2>/author/<str:author_id_2>",
         friend_views.check_friendship,
@@ -53,17 +51,17 @@ urlpatterns = [
     ),
     path(
         "author/posts",
-        post_views.PostViewSet.as_view(
-            {"get": "get_auth_posts", "post": "post_auth_posts"}
-        ),
+        post_views.PostViewSet.as_view({"get": "get_auth_posts", "post": "post_auth_posts"}),
     ),
     path("posts", post_views.PostViewSet.as_view({"get": "list"})),
     path(
-        "posts/<int:pk>",
-        post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
+        "posts/<int:pk>", post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"})
     ),
     path("posts/<int:pk>/comments", comment_views.CommentViewSet.as_view({"post": "new_comment"})),
-    url(r'^author/(?P<pk>\d+)/posts$',
-        post_views.PostViewSet.as_view({'get': 'get_author_id_posts'})),
+    path("author/<path:author_id>", user_views.get_profile, name="get_profile"),
+    url(
+        r"^author/(?P<pk>\d+)/posts$",
+        post_views.PostViewSet.as_view({"get": "get_author_id_posts"}),
+    ),
 ]
 # pylint: enable=invalid-name
