@@ -44,7 +44,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"query": "createPost", "success": False, "message": serializer.errors}
                 )
-  
+
     def list(self, request):
         """
         GET /posts
@@ -182,6 +182,7 @@ class PostViewSet(viewsets.ModelViewSet):
         data = serializer.data
         return Response({"query": "posts", "count": len(data), "posts": data})
 
+    # pylint: disable=too-many-return-statements
     def retrieve(self, request, pk):
         """
         GET /posts/{post_id}
