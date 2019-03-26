@@ -215,6 +215,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
                         status=status.HTTP_403_FORBIDDEN)
+                        
             # foreign user is not in our db
             except UserProfile.DoesNotExist:
                 if post_obj.visibility == "PUBLIC":
