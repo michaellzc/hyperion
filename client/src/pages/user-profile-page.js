@@ -4,7 +4,6 @@ import AppLayout from '../components/app-layout';
 import PostsStream from '../components/posts-stream';
 import FriendList from '../components/friend-list';
 import ProfileCard from '../components/profile-card';
-// import { StickyContainer, Sticky } from 'react-sticky';
 import Sticky from 'react-stickynode';
 function callback(key) {
   console.log(key);

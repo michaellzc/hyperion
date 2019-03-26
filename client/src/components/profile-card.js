@@ -4,28 +4,37 @@ import { Card, Icon } from 'antd';
 import './profile-card.scss';
 import { AuthStore } from '../stores';
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const ProfileCard = ({ stores: [authStore], ...props }) => {
   let [loading, setLoading] = useState(false);
-  let [displayName, setdisplayName] = useState('');
-  let [username, setuserName] = useState('');
-  let [bio, setuserBio] = useState('');
-  let [github, setuserGithub] = useState('');
 
-  let setBaseInfo = () => {
+  let setBaseInfo = async () => {
     setLoading(true);
+    // await authStore.getUserInfo(false);
+    // https://www.reddit.com/r/javascript/comments/5abyi2/is_there_a_way_to_implement_sleep_with_es6/
+    await sleep(1000);
+    setLoading(false);
     let user = authStore.user;
     if (!user) return;
-    console.log(user.displayName);
-    setdisplayName(user.displayName);
-    setuserName(user.username);
+    document.getElementsByClassName('displayName')[0].innerHTML =
+      user.displayName;
+    document.getElementsByClassName('username')[0].innerHTML =
+      '@' + user.username;
     if (user.bio === '') {
-      setuserBio('Hello, my name is ' + user.displayName);
+      document.getElementsByClassName('bio')[0].innerHTML =
+        'Hello, my name is ' + user.displayName;
     } else {
-      setuserBio(user.bio);
+      document.getElementsByClassName('bio')[0].innerHTML = user.bio;
     }
-
-    setuserGithub(user.github);
-    setLoading(false);
+    if (authStore.user.github !== '') {
+      console.log(authStore.user.github);
+      document
+        .getElementById('github1')
+        .setAttribute('href', authStore.user.github);
+    }
   };
 
   useEffect(() => {
@@ -44,19 +53,13 @@ const ProfileCard = ({ stores: [authStore], ...props }) => {
         style={{ fontSize: '50px', color: '#aeb8c7' }}
         theme="outlined"
       />
-      <div class="userinfo">
-        <div class="displayName">{displayName}</div>
-        <div class="username">@{username}</div>
-        <div class="bio">{bio}</div>
-        <div class="github">
+      <div className="userinfo">
+        <div className="displayName" />
+        <div className="username" />
+        <div className="bio" />
+        <div className="github">
           <Icon type="github" />
-          {github === '' ? (
-            <span id="github">Github</span>
-          ) : (
-            <a href={github} id="github">
-              Github
-            </a>
-          )}
+          <a id="github1">Github</a>
         </div>
       </div>
     </Card>

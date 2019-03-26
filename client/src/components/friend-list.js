@@ -8,7 +8,13 @@ import FriendCard from './friend-card';
 // Comment out username for now as API does not supply this field
 const CardMetaTitle = ({ displayName, extra }) => (
   <Fragment>
-    {displayName}{' '}
+    <span
+      css={css`
+        font-size: 20px;
+      `}
+    >
+      {displayName}
+    </span>
     <span
       css={css`
         float: right;
@@ -19,9 +25,12 @@ const CardMetaTitle = ({ displayName, extra }) => (
     <div
       css={css`
         padding-top: 16px;
+        font-size: 14px;
+        color: #777f88;
+        font-weight: normal;
       `}
     >
-      Hello, my name is {displayName}
+      Hello, my name is ss{displayName}
     </div>
   </Fragment>
 );
