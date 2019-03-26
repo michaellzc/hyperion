@@ -50,9 +50,31 @@ class PostViewSet(viewsets.ModelViewSet):
         """
         GET /posts
         """
+        is_local = False
+
+        try:
+            # check if authenticated user is a server or local user
+            request.user.server
+        except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+            # local user shoud not have an one-to-one relationship with Server
+            is_local = True
+
         response = super().list(request)
         data = response.data
-        response.data = {"query": "posts", "count": len(data), "posts": data}
+
+        foreign_public_posts = []
+        if is_local:
+            # handle local user request
+            # also include foreign public posts
+            for server in Server.objects.all():
+                try:
+                    posts_response = ForeignServerHttpUtils.get(server, "/posts")
+                    foreign_public_posts.append(posts_response.json().get("posts", []))
+                except requests.exceptions.RequestException as exception:
+                    print(exception)
+        else:
+            pass
+        response.data = {"query": "posts", "count": len(data), "posts": data + foreign_public_posts}
         return response
 
     # pylint: disable=too-many-locals
@@ -181,19 +203,19 @@ class PostViewSet(viewsets.ModelViewSet):
         """
         GET /posts/{post_id}
         """
-         # check if local user
+        # check if local user
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
             post_obj = get_object_or_404(Post, pk=pk)
             if post_obj.is_accessible(post_obj, request.user.profile):
                 serializer = PostSerializer(post_obj)
-                return Response(
-                    {"query": "post", "post": serializer.data})
+                return Response({"query": "post", "post": serializer.data})
             else:
                 return Response(
                     {"query": "posts", "success": False, "message": "Post not accessible"},
-                    status=status.HTTP_403_FORBIDDEN)
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         else:
             # foreign user
             post_obj = get_object_or_404(Post, pk=pk)
@@ -204,27 +226,28 @@ class PostViewSet(viewsets.ModelViewSet):
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
                 if post_obj.is_accessible(post_obj, foreign_user_profile):
                     serializer = PostSerializer(post_obj)
-                    return Response(
-                        {"query": "post", "post": serializer.data})
+                    return Response({"query": "post", "post": serializer.data})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
-                        status=status.HTTP_403_FORBIDDEN)
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
             # foreign user is not in our db
             except UserProfile.DoesNotExist:
                 if post_obj.visibility == "PUBLIC":
                     serializer = PostSerializer(post_obj)
-                    return Response(
-                        {"query": "post", "post": serializer.data})
+                    return Response({"query": "post", "post": serializer.data})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
-                        status=status.HTTP_403_FORBIDDEN)
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
             except KeyError:
                 return Response(
-                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
-                    status=status.HTTP_400_BAD_REQUEST)
+                    {"query": "posts", "success": False, "message": "No X-Request-User-ID"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
     def destroy(self, request, pk, *args, **kwargs):
         post = get_object_or_404(Post, pk=pk)
