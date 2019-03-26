@@ -45,6 +45,15 @@ class PostViewSet(viewsets.ModelViewSet):
                     {"query": "createPost", "success": False, "message": serializer.errors}
                 )
 
+    def list(self, request):
+        """
+        GET /posts
+        """
+        response = super().list(request)
+        data = response.data
+        response.data = {"query": "posts", "count": len(data), "posts": data}
+        return response
+
     # pylint: disable=too-many-locals
     @action(detail=True, methods=["GET"], name="get_auth_posts")
     def get_auth_posts(self, request):
@@ -109,37 +118,12 @@ class PostViewSet(viewsets.ModelViewSet):
         data = serializer.data + foreign_posts
         return Response({"query": "posts", "count": len(data), "posts": data})
 
-    def list(self, request):
-        """
-        GET /posts
-        """
-        response = super().list(request)
-        data = response.data
-        response.data = {"query": "posts", "count": len(data), "posts": data}
-        return response
-
-    def retrieve(self, request, pk):
-        """
-        GET posts/{id}/
-        """
-        post_obj = get_object_or_404(Post, pk=pk)
-        serializer = PostSerializer(post_obj)
-        return Response({"query": "post", "post": serializer.data})
-
-    def destroy(self, request, pk, *args, **kwargs):
-        post = get_object_or_404(Post, pk=pk)
-        if post.author.id == request.user.profile.id:
-            self.perform_destroy(post)
-            return Response(status=204)
-        else:
-            return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
-
     # pylint: disable=too-many-locals
     # pylint: disable=invalid-name
     @action(detail=True, methods=["GET"], name="get_author_id_posts")
     def get_author_id_posts(self, request, pk):
         """
-        GET /author/{id}/posts
+        GET /author/{author_id}/posts
         """
         try:
             pk = User.objects.get(pk=pk).profile.id
@@ -197,3 +181,61 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = PostSerializer(result, many=True)
         data = serializer.data
         return Response({"query": "posts", "count": len(data), "posts": data})
+
+    # pylint: disable=too-many-return-statements
+    def retrieve(self, request, pk):
+        """
+        GET /posts/{post_id}
+        """
+         # check if local user
+        try:
+            request.user.server
+        except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+            post_obj = get_object_or_404(Post, pk=pk)
+            if post_obj.is_accessible(post_obj, request.user.profile):
+                serializer = PostSerializer(post_obj)
+                return Response(
+                    {"query": "post", "post": serializer.data})
+            else:
+                return Response(
+                    {"query": "posts", "success": False, "message": "Post not accessible"},
+                    status=status.HTTP_403_FORBIDDEN)
+        else:
+            # foreign user
+            post_obj = get_object_or_404(Post, pk=pk)
+            try:
+                # grab request user information from request header
+                foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
+                # foreign user in our db
+                foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
+                if post_obj.is_accessible(post_obj, foreign_user_profile):
+                    serializer = PostSerializer(post_obj)
+                    return Response(
+                        {"query": "post", "post": serializer.data})
+                else:
+                    return Response(
+                        {"query": "posts", "success": False, "message": "Post not accessible"},
+                        status=status.HTTP_403_FORBIDDEN)
+
+            # foreign user is not in our db
+            except UserProfile.DoesNotExist:
+                if post_obj.visibility == "PUBLIC":
+                    serializer = PostSerializer(post_obj)
+                    return Response(
+                        {"query": "post", "post": serializer.data})
+                else:
+                    return Response(
+                        {"query": "posts", "success": False, "message": "Post not accessible"},
+                        status=status.HTTP_403_FORBIDDEN)
+            except KeyError:
+                return Response(
+                    {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk, *args, **kwargs):
+        post = get_object_or_404(Post, pk=pk)
+        if post.author.id == request.user.profile.id:
+            self.perform_destroy(post)
+            return Response(status=204)
+        else:
+            return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
