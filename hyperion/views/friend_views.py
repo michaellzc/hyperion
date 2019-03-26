@@ -28,9 +28,9 @@ def _get_error_response(query_name, is_success, message):
 def friend_list(request, author_id):
 
     if request.method == "GET":
+        author_profile = User.objects.get(id=author_id).profile
         # get all friends to this authenticated author
-        friends = list(request.user.profile.get_friends())
-        # print(friends)
+        friends = list(author_profile.get_friends())
         # https://stackoverflow.com/questions/47119879/how-to-get-specific-field-from-serializer-of-django-rest-framework
         serializer = UserProfileSerializer(
             friends, many=True, context={"fields": ["id", "host", "display_name", "url"]}

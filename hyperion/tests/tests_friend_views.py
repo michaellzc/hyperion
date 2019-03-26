@@ -100,6 +100,14 @@ class FriendViewTestCase(TestCase):
         content = {"query": "friends", "count": len(friends), "author": serializer.data}
         self.assertEqual(response.data, content)
 
+        response = self.client.get("/author/{}/friends".format(self.u2.id))
+        friends_u2 = list(self.u2.profile.get_friends())
+        serializer = UserProfileSerializer(
+            friends_u2, many=True, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+        content = {"query": "friends", "count": len(friends_u2), "author": serializer.data}
+        self.assertEqual(response.data, content)
+
     def test_friend_list_post(self):
         post_body = {
             "query": "friends",
