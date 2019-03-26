@@ -30,7 +30,7 @@ const CardMetaTitle = ({ displayName, extra }) => (
         font-weight: normal;
       `}
     >
-      Hello, my name is ss{displayName}
+      Hello, my name is {displayName}
     </div>
   </Fragment>
 );
