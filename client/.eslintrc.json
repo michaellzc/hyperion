@@ -5,7 +5,7 @@
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "object-curly-spacing": ["error", "always"],
     "keyword-spacing": ["error"],
-    "no-unused-vars": ["error"],
+    "no-unused-vars": ["error", { "args": "all" }],
     "jsx-quotes": ["error", "prefer-double"],
     "babel/semi": ["error"],
     "react/jsx-indent-props": ["error", 2],

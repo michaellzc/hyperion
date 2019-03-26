@@ -20,7 +20,7 @@ import {
   Select,
   Checkbox,
 } from 'antd';
-import { AuthStore, PostStore } from '../stores';
+import { PostStore } from '../stores';
 import { inject, colors } from '../utils';
 import * as API from '../api';
 import 'draft-js-static-toolbar-plugin/lib/plugin.css';
@@ -148,7 +148,7 @@ let initialState = {
   unlisted: false,
 };
 
-const PostBox = ({ stores: [authStore, postStore] }) => {
+const PostBox = ({ stores: [postStore] }) => {
   let [isVisisble, setVisibility] = useState(false);
   let [tabKey, setTabKey] = useState('text');
   let [fileList, setFileList] = useState([]);
@@ -374,4 +374,4 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
   );
 };
 
-export default inject([AuthStore, PostStore])(PostBox);
+export default inject([PostStore])(PostBox);
