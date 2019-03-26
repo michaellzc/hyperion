@@ -11,9 +11,10 @@ from django.contrib.auth.models import User
 from django.conf import settings
 
 from hyperion.serializers import UserProfileSerializer, FriendRequestSerializer
-from hyperion.models import UserProfile, FriendRequest, Friend
+from hyperion.models import UserProfile, FriendRequest, Friend, Server
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.errors import FriendAlreadyExist
+from hyperion.utils import ForeignServerHttpUtils
 
 
 def _get_error_response(query_name, is_success, message):
@@ -172,7 +173,7 @@ def friend_request(request):
                         remote_server_user = User.objects.get(profile__url=friend_host_name)
                         friend_profile = UserProfile.objects.create(
                             # TO DO what's the default value of display_name
-                            # display_name=body["friend"]["display_name"],
+                            display_name=body["friend"].get("displayName", ""),
                             host=remote_server_user.server,
                             url=body["friend"]["id"],
                         )
@@ -189,14 +190,9 @@ def friend_request(request):
                             context={"fields": ["id", "host", "display_name", "url"]},
                         ).data,
                     }
-                    # print(friend_request_body,'htz')
-                    resp = requests.post(
-                        url=friend_host_name + "/api/friendrequest",
-                        json=friend_request_body,
-                        auth=(
-                            friend_profile.host.foreign_db_username,
-                            friend_profile.host.foreign_db_password,
-                        ),
+                    foreign_server = Server.objects.get(url=friend_host_name)
+                    resp = ForeignServerHttpUtils.post(
+                        foreign_server, "/friendrequest", json=friend_request_body
                     )
                     if resp.status_code != 200:
                         raise Exception(

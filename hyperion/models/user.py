@@ -45,7 +45,7 @@ class UserProfile(models.Model):
         if self.author:
             return super().__str__() + " user: " + str(self.display_name)
         else:
-            return super().__str__() + "foreign_user" + str(self.display_name)
+            return super().__str__() + " user(foreign): " + str(self.display_name)
 
     def get_full_id(self):
         if self.author:
