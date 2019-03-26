@@ -12,6 +12,7 @@ from rest_framework import viewsets, status
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post, UserProfile, Server
+from hyperion.utils import ForeignServerHttpUtils
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -75,23 +76,16 @@ class PostViewSet(viewsets.ModelViewSet):
                 )
             ) + Post.not_own_posts_visible_to_me(request.user.profile)
             for server in Server.objects.all():
-                foreign_url = server.author.profile.url + "/api/author/posts"
                 local_url = request.user.profile.get_url()
                 headers = {"X-Request-User-ID": str(local_url)}
-                response = requests.get(
-                    foreign_url,
-                    headers=headers,
-                    auth=(server.foreign_db_username, server.foreign_db_password),
-                )
+                try:
+                    response = ForeignServerHttpUtils.get(server, "/author/posts", headers=headers)
+                except requests.exceptions.RequestException:
+                    print("Failed to get foreign posts")
                 if response.status_code == 200:
                     body = response.json()
                     posts = body.get("posts", [])
                     foreign_posts += posts
-                else:
-                    return Response(
-                        {"query": "posts", "success": False, "message": response.content},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
         else:
             # foreign user
             # grab request user information from request header
