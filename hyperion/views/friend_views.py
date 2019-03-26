@@ -1,7 +1,6 @@
 # pylint: disable=broad-except, too-many-branches, too-many-statements
 import json
 from urllib.parse import urlparse
-import requests
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework import status
@@ -299,13 +298,11 @@ def action_friend_request(request, friendrequest_id):
                     ).data,
                 }
                 # print(friend_request_reverse_body["friend"]["host"])
-                resp = requests.post(
-                    url=friend_request_reverse_body["friend"]["host"] + "/api/friendrequest",
-                    json=friend_request_reverse_body,
-                    auth=(
-                        friend_request_obj.from_profile.host.foreign_db_username,
-                        friend_request_obj.from_profile.host.foreign_db_password,
-                    ),
+                foreign_server = Server.objects.get(
+                    url=friend_request_reverse_body["friend"]["host"]
+                )
+                resp = ForeignServerHttpUtils.post(
+                    foreign_server, "/friendrequest", json=friend_request_reverse_body
                 )
                 if resp.status_code != 200:
                     raise Exception(
