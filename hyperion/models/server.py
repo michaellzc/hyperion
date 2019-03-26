@@ -17,6 +17,7 @@ class Server(models.Model):
     # this username and password are used for sending request to other server
     foreign_db_username = models.TextField(null=True, blank=True)
     foreign_db_password = models.TextField(null=True, blank=True)
+    required_trailing_slash = models.BooleanField(default=False)
 
     class Meta:
         app_label = "hyperion"
