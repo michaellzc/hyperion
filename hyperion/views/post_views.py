@@ -195,7 +195,7 @@ class PostViewSet(viewsets.ModelViewSet):
             if post_obj.is_accessible(post_obj, request.user.profile):
                 serializer = PostSerializer(post_obj)
                 return Response(
-                    {"query": "post","post": serializer.data})
+                    {"query": "post", "post": serializer.data})
             else:
                 return Response(
                     {"query": "posts", "success": False, "message": "Post not accessible"},
