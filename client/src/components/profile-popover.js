@@ -55,7 +55,16 @@ function ProfilePopover({ author, stores: [authStore] }) {
           />
           <hr />
           <UserField>
-            <Link to={author.username}>{author.displayName}</Link>
+            <Link
+              to={
+                // Handling for authors from foreign servers
+                window.OUR_HOSTNAME.includes(author.host)
+                  ? author.id
+                  : author.id
+              }
+            >
+              {author.displayName}
+            </Link>
           </UserField>
           <hr />
           <BioContainer>

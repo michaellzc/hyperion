@@ -185,7 +185,14 @@ const PostBox = ({ stores: [authStore, postStore] }) => {
     dispatch({ type: e.target.id || e.target.name, text: e.target.value });
 
   let onPost = async () => {
-    let { title, description, content, visibility, visibleTo, unlisted } = state;
+    let {
+      title,
+      description,
+      content,
+      visibility,
+      visibleTo,
+      unlisted,
+    } = state;
     let contentType = 'text/markdown';
     try {
       if (tabKey === 'text') {
