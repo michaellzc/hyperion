@@ -44,7 +44,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"query": "createPost", "success": False, "message": serializer.errors}
                 )
-    
+  
     def list(self, request):
         """
         GET /posts
@@ -191,7 +191,7 @@ class PostViewSet(viewsets.ModelViewSet):
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
             post_obj = get_object_or_404(Post, pk=pk)
-            if post_obj.is_accessible(post_obj,request.user.profile):
+            if post_obj.is_accessible(post_obj, request.user.profile):
                 serializer = PostSerializer(post_obj)
                 return Response(
                     {"query": "post","post": serializer.data})
@@ -210,18 +210,18 @@ class PostViewSet(viewsets.ModelViewSet):
                 if post_obj.is_accessible(post_obj, foreign_user_profile):
                     serializer = PostSerializer(post_obj)
                     return Response(
-                        {"query": "post","post": serializer.data})
+                        {"query": "post", "post": serializer.data})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
                         status=status.HTTP_403_FORBIDDEN)
-                        
+
             # foreign user is not in our db
             except UserProfile.DoesNotExist:
                 if post_obj.visibility == "PUBLIC":
                     serializer = PostSerializer(post_obj)
                     return Response(
-                        {"query": "post","post": serializer.data})
+                        {"query": "post", "post": serializer.data})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
@@ -230,7 +230,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"query": "posts", "success": False, "message": 'No X-Request-User-ID'},
                     status=status.HTTP_400_BAD_REQUEST)
-         
+
     def destroy(self, request, pk, *args, **kwargs):
         post = get_object_or_404(Post, pk=pk)
         if post.author.id == request.user.profile.id:
@@ -238,5 +238,3 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(status=204)
         else:
             return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
-
-   
