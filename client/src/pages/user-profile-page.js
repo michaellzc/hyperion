@@ -3,7 +3,9 @@ import { Row, Col, Tabs } from 'antd';
 import AppLayout from '../components/app-layout';
 import PostsStream from '../components/posts-stream';
 import FriendList from '../components/friend-list';
-
+import ProfileCard from '../components/profile-card';
+// import { StickyContainer, Sticky } from 'react-sticky';
+import Sticky from 'react-stickynode';
 function callback(key) {
   console.log(key);
 }
@@ -14,7 +16,9 @@ const ProfilePage = ({ postId }) => {
     <AppLayout className="user-profile-page">
       <Row gutter={24} type="flex" justify="center" align="top">
         <Col xs={20} sm={8} md={8} lg={7} xl={6} xxl={6}>
-          This is a place holder for user profile card.
+          <Sticky enabled={true} top={80}>
+            <ProfileCard />
+          </Sticky>
         </Col>
         <Col xs={20} sm={15} md={14} lg={13} xl={11} xxl={10}>
           <Tabs onChange={callback} type="card">

@@ -21,7 +21,7 @@ const CardMetaTitle = ({ displayName, extra }) => (
         padding-top: 16px;
       `}
     >
-      Hi my name is {displayName}!
+      Hello, my name is {displayName}
     </div>
   </Fragment>
 );
@@ -49,9 +49,6 @@ const FriendList = ({
     let id = str.split('https://cmput404-front.herokuapp.com/author/')[1];
     await friendStore.getFriends(id);
     setLoading(false);
-    let friendList = friendStore.friends;
-    console.log(friendList);
-    console.log(friendList.length);
   };
 
   useEffect(() => {
