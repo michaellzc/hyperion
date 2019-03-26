@@ -6,18 +6,23 @@ import { inject } from '../utils';
 import FriendCard from './friend-card';
 
 // Comment out username for now as API does not supply this field
-const CardMetaTitle = ({ displayName, username, extra }) => (
+const CardMetaTitle = ({ displayName, extra }) => (
   <Fragment>
     {displayName}{' '}
-    <small
+    <span
       css={css`
-        font-weight: lighter;
-        padding-left: 8px;
+        float: right;
       `}
     >
-      {username}
-    </small>
-    {extra}
+      {extra}
+    </span>
+    <div
+      css={css`
+        padding-top: 16px;
+      `}
+    >
+      Hi my name is {displayName}!
+    </div>
   </Fragment>
 );
 
@@ -85,7 +90,7 @@ const FriendList = ({
       {isLoading ? (
         <Loading />
       ) : (
-        <Row gutter={24} type="flex" justify="center" align="top">
+        <Row gutter={24} type="flex" justify="left" align="top">
           {friends}
         </Row>
       )}
