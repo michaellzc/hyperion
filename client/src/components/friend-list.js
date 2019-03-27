@@ -69,7 +69,6 @@ const FriendList = ({ authorId, stores: [authStore] }) => {
   }, [authorId]);
 
   let handleUnfriend = async friendId => {
-    console.log('unfriend clicked');
     try {
       await API.Friend.unfriend(
         {

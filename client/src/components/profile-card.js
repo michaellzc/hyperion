@@ -13,7 +13,7 @@ const ProfileCard = ({ authorId, ...props }) => {
     setAuthorProfile(author);
     setLoading(false);
   };
-  console.debug(authorId);
+
   useEffect(() => {
     fetchAuthorProfile();
   }, [authorId]);
