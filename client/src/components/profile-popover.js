@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/macro';
 import { Link } from '@reach/router';
-import { Avatar, Popover, Card, Button } from 'antd';
+import { Avatar, Popover, Card, Button, message } from 'antd';
 import * as API from '../api';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
@@ -35,7 +35,12 @@ function ProfilePopover({ author, stores: [authStore] }) {
 
   let addFriend = async () => {
     setLoading(true);
-    await API.Friend.sendFriendRequest(authStore.user, author);
+    try {
+      await API.Friend.sendFriendRequest(authStore.user, author);
+      message.info('Sent friend request.');
+    } catch (error) {
+      message.error('Opps! Please try again.');
+    }
     setLoading(false);
   };
 
@@ -60,7 +65,7 @@ function ProfilePopover({ author, stores: [authStore] }) {
                 // Handling for authors from foreign servers
                 window.OUR_HOSTNAME.includes(author.host)
                   ? `/${author.id.substr(author.id.lastIndexOf('/') + 1)}`
-                  : `/${author.id}`
+                  : `/${encodeURIComponent(author.id)}`
               }
             >
               {author.displayName}

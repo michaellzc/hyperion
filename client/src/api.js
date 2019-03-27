@@ -44,8 +44,8 @@ const Author = {
 const Friend = {
   fetchFriendRequest: () => request.get('/friendrequest'),
   sendFriendRequest: (author, friend) => {
-    let filteredAuthor = pick(author, ['id', 'url', 'host']);
-    let filteredFriend = pick(friend, ['id', 'url', 'host']);
+    let filteredAuthor = pick(author, ['id', 'url', 'host', 'displayName']);
+    let filteredFriend = pick(friend, ['id', 'url', 'host', 'displayName']);
     return request.post('/friendrequest', {
       query: 'friendrequest',
       author: filteredAuthor,
