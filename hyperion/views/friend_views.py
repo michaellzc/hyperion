@@ -342,3 +342,56 @@ def action_friend_request(request, friendrequest_id):
             _get_error_response("friendrequestAction", False, str(some_error)),
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@api_view(["POST"])
+@authentication_classes((HyperionBasicAuthentication,))
+@permission_classes((permissions.IsAuthenticated, permissions.AllowAny))
+def unfollow_request(request):
+    # so far only local user can do unfriend action
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+
+        if body["query"] != "unfollow":
+            raise Exception("query should be unfollow")
+
+        # get the host from url to compare with host attribute
+        # https://stackoverflow.com/questions/9626535/get-protocol-host-name-from-url
+        # host_name = "{uri.scheme}://{uri.netloc}".format(uri=urlparse(body["author"]["id"]))
+        # if host_name != body["author"]["host"]:
+        #     raise Exception("we can't save the profile which host != url.host")
+
+        is_local = False
+        try:
+            server = request.user.server
+        except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+            is_local = True
+
+        if not is_local:
+            raise Exception("so far, only can handle local user request")
+
+        # check if the unfriend person exist on our server
+        friend_url = body["friend"]["id"]
+        friend_profile = UserProfile.objects.get(url=friend_url)
+
+        # check and get author profile
+        author_url = body["author"]["id"]
+        author_profile = UserProfile.objects.get(url=author_url)
+
+        # check if the request user does friend with aim person
+        qs1 = Friend.objects.filter(profile1=friend_profile, profile2=author_profile)
+        qs2 = Friend.objects.filter(profile1=author_profile, profile2=friend_profile)
+        if (not qs1.exists()) and (not qs2.exists()):
+            raise Exception("they are not friend")
+        else:
+            qs1.delete()
+            qs2.delete()
+
+        content = {"query": "unfollow", "success": True, "message": "unfollow succeed"}
+        return Response(content, status=status.HTTP_200_OK)
+
+    except Exception as some_error:
+        return Response(
+            _get_error_response("unfollow", False, str(some_error)),
+            status=status.HTTP_400_BAD_REQUEST,
+        )

@@ -477,3 +477,64 @@ class FriendViewTestCase(TestCase):
         #     content_type='application/json')
         # print(response.data)
         # self.assertEqual(response.status_code, 200)
+
+    def test_unfollow_request(self):
+        # scenario #1 u1 unfollow u2 (exist friendship)
+        u1_serializer = UserProfileSerializer(
+            self.u1.profile, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+
+        u2_serializer = UserProfileSerializer(
+            self.u2.profile, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+
+        post_body = {
+            "query": "unfollow",
+            "author": u1_serializer.data,
+            "friend": u2_serializer.data,
+        }
+        self.assertTrue(self.u2.profile in self.u1.profile.get_friends())
+        response = self.client.post("/unfollow", post_body, content_type="application/json")
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.u2.profile in self.u1.profile.get_friends())
+
+        # scenario #2 u1 unfollow u4 (not friend)
+        u4_serializer = UserProfileSerializer(
+            self.u4.profile, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+        post_body = {
+            "query": "unfollow",
+            "author": u1_serializer.data,
+            "friend": u4_serializer.data,
+        }
+        response = self.client.post("/unfollow", post_body, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["message"], "they are not friend")
+
+        # scenario #3 u1 unfollow remote user fu1 (exist friendship)
+        fu1_serializer = UserProfileSerializer(
+            self.fu1, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+        post_body = {
+            "query": "unfollow",
+            "author": u1_serializer.data,
+            "friend": fu1_serializer.data,
+        }
+        self.assertTrue(self.fu1 in self.u1.profile.get_friends())
+        response = self.client.post("/unfollow", post_body, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.fu1 in self.u1.profile.get_friends())
+
+        # scenario #4 u1 unfollow remote user fu2 (not friend)
+        fu2_serializer = UserProfileSerializer(
+            self.fu2, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+        post_body = {
+            "query": "unfollow",
+            "author": u1_serializer.data,
+            "friend": fu2_serializer.data,
+        }
+        response = self.client.post("/unfollow", post_body, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["message"], "they are not friend")
