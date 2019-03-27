@@ -90,10 +90,12 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
           <img
             src={logo}
             alt="logo"
+            onClick={() => navigate('/')}
             css={css`
               max-height: 35px;
               height: 72px;
               line-height: 72px;
+              cursor: pointer;
               @media (max-width: 567px) {
                 display: none;
               }
