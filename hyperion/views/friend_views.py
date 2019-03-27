@@ -361,22 +361,59 @@ def unfollow_request(request):
         # if host_name != body["author"]["host"]:
         #     raise Exception("we can't save the profile which host != url.host")
 
+        friend_host_name = "{uri.scheme}://{uri.netloc}".format(uri=urlparse(body["friend"]["id"]))
+
         is_local = False
         try:
-            server = request.user.server
+            _ = request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
             is_local = True
 
-        if not is_local:
-            raise Exception("so far, only can handle local user request")
+        if is_local:  # the request user is local
+            author_id = int(body["author"]["id"].split("/")[-1])
+            if request.user.id != author_id:
+                raise Exception("request user is not the author")
+            author_profile = User.objects.get(pk=author_id).profile
 
-        # check if the unfriend person exist on our server
-        friend_url = body["friend"]["id"]
-        friend_profile = UserProfile.objects.get(url=friend_url)
+            # check if the friend is local or remote
+            if friend_host_name == settings.HYPERION_HOSTNAME:  # friend is local
+                friend_profile = User.objects.get(
+                    pk=int(body["friend"]["id"].split("/")[-1])
+                ).profile
+            else:  # friend is remote
+                friend_profile = UserProfile.objects.get(url=body["friend"]["id"])
 
-        # check and get author profile
-        author_url = body["author"]["id"]
-        author_profile = UserProfile.objects.get(url=author_url)
+                # send unfollow request to remote server
+                unfollow_body = {
+                    "query": "unfollow",
+                    "author": UserProfileSerializer(
+                        author_profile, context={"fields": ["id", "host", "display_name", "url"]}
+                    ).data,
+                    "friend": UserProfileSerializer(
+                        friend_profile, context={"fields": ["id", "host", "display_name", "url"]}
+                    ).data,
+                }
+                foreign_server = Server.objects.get(url=friend_host_name)
+                resp = ForeignServerHttpUtils.post(foreign_server, "/unfollow", json=unfollow_body)
+                if resp.status_code != 200:
+                    raise Exception(
+                        "send unfollow to remote server failed, reason={}".format(resp.content)
+                    )
+        else:  # if the author is remote
+            author_profile = UserProfile.objects.get(url=body["author"]["id"])
+            friend_profile = User.objects.get(pk=int(body["friend"]["id"].split("/")[-1])).profile
+
+        # if not is_local:
+        #     raise Exception("so far, only can handle local user request")
+
+        # # check if the unfriend person exist on our server
+        # friend_url = body["friend"]["id"]
+        # friend_profile = UserProfile.objects.get(url=friend_url)
+        #
+        # # check and get author profile
+        # author_url = body["author"]["id"]
+        # author_profile = UserProfile.objects.get(url=author_url)
+        #
 
         # check if the request user does friend with aim person
         qs1 = Friend.objects.filter(profile1=friend_profile, profile2=author_profile)
