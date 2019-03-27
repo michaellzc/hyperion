@@ -1,12 +1,13 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
-import { Empty, Spin, Button, Row, Col } from 'antd';
-import { AuthStore, FriendsStore } from '../stores';
+import { Empty, Spin, Button, Row, Col, message } from 'antd';
+import { AuthStore } from '../stores';
 import { inject } from '../utils';
+import * as API from '../api';
 import FriendCard from './friend-card';
 
 // Comment out username for now as API does not supply this field
-const CardMetaTitle = ({ displayName, extra }) => (
+const CardMetaTitle = ({ displayName, bio, extra }) => (
   <Fragment>
     <span
       css={css`
@@ -30,7 +31,7 @@ const CardMetaTitle = ({ displayName, extra }) => (
         font-weight: normal;
       `}
     >
-      Hello, my name is {displayName}
+      {bio || `Hi, this is ${displayName}`}
     </div>
   </Fragment>
 );
@@ -45,46 +46,63 @@ const Loading = () => (
   </div>
 );
 
-const FriendList = ({
-  //   postId: openPostId,
-  stores: [authStore, friendStore],
-}) => {
-  //   let [postId, setPostId] = useState(null);
+const FriendList = ({ authorId, stores: [authStore] }) => {
   let [isLoading, setLoading] = useState(false);
+  let [friendList, setFriendList] = useState([]);
 
-  let loadFriends = async () => {
+  let fetchFriendList = async () => {
     setLoading(true);
-    let str = authStore.user.id;
-    let id = str.split('https://cmput404-front.herokuapp.com/author/')[1];
-    await friendStore.getFriends(id);
+    // TODO(fixme)
+    // - backend API is flawed, it should be authors instead of author
+    if (!authorId.startsWith('https')) {
+      let { author } = await API.Friend.fetchFriendList(authorId);
+      setFriendList(author);
+    } else {
+      // Workaround, since /author/:id/friends does not support server-to-server request
+      message.warn('External author friend list is not supported.');
+    }
     setLoading(false);
-    console.log(friendStore.friends);
   };
 
   useEffect(() => {
-    loadFriends();
-  }, []);
+    fetchFriendList();
+  }, [authorId]);
 
-  let handleUnfriend = id => {
+  let handleUnfriend = async friendId => {
     console.log('unfriend clicked');
-    console.log(id);
+    try {
+      await API.Friend.unfriend(
+        {
+          id: authStore.user.id,
+        },
+        {
+          id: friendId,
+        }
+      );
+      message.info('Successfuly unfriend.');
+    } catch (error) {
+      message.error('Opps! Please try again.');
+    }
+    fetchFriendList();
   };
 
-  let friendList = friendStore.friends;
   let friends =
     friendList.length > 0 ? (
-      friendList.map(({ id, displayName }) => (
-        <Col xs={22} sm={22} md={12} lg={12} xl={12} xxl={12}>
+      friendList.map(({ id, bio, displayName }) => (
+        <Col key={id} xs={22} sm={22} md={12} lg={12} xl={12} xxl={12}>
           <FriendCard
-            key={id}
             id={id}
             onLoad={handleUnfriend}
             metaTitle={
               <CardMetaTitle
                 id={id}
                 displayName={displayName}
+                bio={bio}
                 extra={
-                  <Button onClick={() => handleUnfriend(id)}>Unfriend</Button>
+                  // do not render unfriend button
+                  authStore.userPk === authorId ? (
+                    <Button onClick={() => handleUnfriend(id)}>Unfriend</Button>
+                  ) : null
                 }
               />
             }
@@ -100,7 +118,7 @@ const FriendList = ({
       {isLoading ? (
         <Loading />
       ) : (
-        <Row gutter={24} type="flex" justify="left" align="top">
+        <Row gutter={24} type="flex" justify="start" align="top">
           {friends}
         </Row>
       )}
@@ -108,4 +126,4 @@ const FriendList = ({
   );
 };
 
-export default inject([AuthStore, FriendsStore])(FriendList);
+export default inject([AuthStore])(FriendList);

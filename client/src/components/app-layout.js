@@ -55,12 +55,9 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   let redirect = e => {
     if (e.key === 'home') {
       navigate('/');
-    } else if (e.key === 'profilepage') {
+    } else if (e.key === 'profile') {
       navigate(
-        '/userprofile/' +
-          authStore.user.id.split(
-            'https://cmput404-front.herokuapp.com/author/'
-          )[1]
+        `/${authStore.user.id.substr(authStore.user.id.lastIndexOf('/') + 1)}`
       );
     }
   };
@@ -68,16 +65,16 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   let menu = (
     <Menu className="menu" selectable={false}>
       <Menu.Item key="home" onClick={redirect}>
-        <Icon type="info-circle" />
+        <Icon type="home" />
         Home
       </Menu.Item>
-      <Menu.Item key="Profile" onClick={toggleProfile}>
+      <Menu.Item key="settings" onClick={toggleProfile}>
         <Icon type="info-circle" />
-        User Profile
+        Settings
       </Menu.Item>
-      <Menu.Item key="profilepage" onClick={redirect}>
-        <Icon type="team" />
-        My Posts and Friends
+      <Menu.Item key="profile" onClick={redirect}>
+        <Icon type="user" />
+        Profile
       </Menu.Item>
       <Menu.Item key="logout" onClick={authStore.logout}>
         <Icon type="logout" />

@@ -1,34 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { inject } from '../utils';
 import { Card, Icon } from 'antd';
+import * as API from '../api';
 import './profile-card.scss';
-import { AuthorStore } from '../stores';
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-const ProfileCard = ({ stores: [authorStore], location, ...props }) => {
+const ProfileCard = ({ authorId, ...props }) => {
   let [loading, setLoading] = useState(false);
-  let user = authorStore.author;
+  let [user, setAuthorProfile] = useState(null);
 
-  let setBaseInfo = async () => {
-    authorStore.getAuthor(location.split('/userprofile/')[1]);
+  let fetchAuthorProfile = async () => {
     setLoading(true);
-    await sleep(1000);
+    let author = await API.Author.getAuthorById(encodeURIComponent(authorId));
+    setAuthorProfile(author);
     setLoading(false);
   };
-
+  console.debug(authorId);
   useEffect(() => {
-    setBaseInfo();
-  }, []);
+    fetchAuthorProfile();
+  }, [authorId]);
 
   return (
     <Card
       className="profile-card"
       bordered={false}
-      {...props}
       loading={loading}
+      {...props}
     >
       <Icon
         type="user"
@@ -39,19 +34,22 @@ const ProfileCard = ({ stores: [authorStore], location, ...props }) => {
         <div className="displayName">{user ? user.displayName : ''}</div>
         <div className="username">{user ? '@' + user.username : ''}</div>
         <div className="bio">{user ? user.bio : ''}</div>
-        <div className="github">
-          <Icon type="github" />
-          {user ? (
-            <a id="github1" href={user.github}>
+        {user && user.github ? (
+          <div className="github">
+            <Icon type="github" />
+            <a
+              id="github1"
+              href={user.github}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Github
             </a>
-          ) : (
-            <a id="github1">Github</a>
-          )}
-        </div>
+          </div>
+        ) : null}
       </div>
     </Card>
   );
 };
 
-export default inject([AuthorStore])(ProfileCard);
+export default ProfileCard;

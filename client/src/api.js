@@ -27,8 +27,8 @@ const Post = {
 };
 
 const Author = {
-  getauthorbyID: id => {
-    return request.get('/author/' + id);
+  getAuthorById: id => {
+    return request.get(`/author/${id}`);
   },
   updateProfile: author => {
     let filteredProfile = pick(author, [
@@ -67,6 +67,13 @@ const Friend = {
     }),
   fetchFriendList: id => {
     return request.get(`/author/${id}/friends`);
+  },
+  unfriend: (author, friend) => {
+    return request.post('/unfollow', {
+      query: 'unfollow',
+      author,
+      friend,
+    });
   },
 };
 

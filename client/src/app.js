@@ -35,8 +35,8 @@ class App extends Component {
           <LoginPage path="login" />
           <SignupPage path="signup" />
           <InactivePage path="inactive" />
+          <PrivateRoute as={UserProfilePage} path=":authorId" />
           <NotFoundPage default />
-          <PrivateRoute as={UserProfilePage} path="userprofile/:authorId" />
         </Router>
       </Provider>
     );

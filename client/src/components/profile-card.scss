@@ -5,29 +5,31 @@
     top: 50px;
 }
 
-#github1 {
-    padding-left: 0.6em;
-    font-size: 15px;
-    padding-bottom: 10px;
-}
+.profile-card {
+    #github1 {
+        padding-left: 0.6em;
+        font-size: 15px;
+        padding-bottom: 10px;
+    }
 
-.userinfo {
-    text-align: left;
-}
+    .userinfo {
+        text-align: left;
+    }
 
-.displayName {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-size: 30px;
-    color: black;
-}
+    .displayName {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 30px;
+        color: black;
+    }
 
-.username {
-    padding-bottom: 10px;
-    color: #777f88;
-}
+    .username {
+        padding-bottom: 10px;
+        color: #777f88;
+    }
 
-.bio {
-    padding-bottom: 10px;
-    color: rgba(0, 0, 0, 0.801);
+    .bio {
+        padding-bottom: 10px;
+        color: rgba(0, 0, 0, 0.801);
+    }
 }
