@@ -7,6 +7,7 @@
     "ant-design-pro": "^2.2.1",
     "antd": "^3.13.0",
     "camelcase-keys": "^5.0.0",
+    "compression": "^1.7.4",
     "draft-js": "^0.10.5",
     "draft-js-markdown-plugin": "^3.0.5",
     "draft-js-plugins-editor": "^2.1.1",
