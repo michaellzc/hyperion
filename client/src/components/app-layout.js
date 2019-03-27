@@ -7,6 +7,7 @@ import { AuthStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 import ProfileBox from '../components/profile-box';
+import { navigate } from '@reach/router';
 
 let { Header, Content, Footer } = Layout;
 
@@ -51,11 +52,27 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
     setVisible(!visible);
   };
 
+  let redirect = e => {
+    if (e.key === 'home') {
+      navigate('/');
+    } else if (e.key === 'profile') {
+      navigate(`/${authStore.userPk}`);
+    }
+  };
+
   let menu = (
     <Menu className="menu" selectable={false}>
-      <Menu.Item key="Profile" onClick={toggleProfile}>
+      <Menu.Item key="home" onClick={redirect}>
+        <Icon type="home" />
+        Home
+      </Menu.Item>
+      <Menu.Item key="settings" onClick={toggleProfile}>
         <Icon type="info-circle" />
-        User Profile
+        Settings
+      </Menu.Item>
+      <Menu.Item key="profile" onClick={redirect}>
+        <Icon type="user" />
+        Profile
       </Menu.Item>
       <Menu.Item key="logout" onClick={authStore.logout}>
         <Icon type="logout" />
@@ -71,10 +88,12 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
           <img
             src={logo}
             alt="logo"
+            onClick={() => navigate('/')}
             css={css`
               max-height: 35px;
               height: 72px;
               line-height: 72px;
+              cursor: pointer;
               @media (max-width: 567px) {
                 display: none;
               }
