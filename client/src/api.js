@@ -21,6 +21,8 @@ const Post = {
   fetchAll: () => request.get('/author/posts'),
   fetch: id => request.get(`/posts/${id}`),
   create: post => request.post('/author/posts', { query: 'createPost', post }),
+  update: (id, post) =>
+    request.put(`/posts/${id}`, { query: 'updatePost', post }),
   delete: id => request.delete(`/posts/${id}`),
   addComment: (id, url, comment) =>
     request.post(`/posts/${id}/comments`, {
