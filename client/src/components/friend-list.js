@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
 import { Empty, Spin, Button, Row, Col } from 'antd';
-import { PostStore, AuthStore, FriendsStore } from '../stores';
+import { AuthStore, FriendsStore } from '../stores';
 import { inject } from '../utils';
 import FriendCard from './friend-card';
 
@@ -47,7 +47,7 @@ const Loading = () => (
 
 const FriendList = ({
   //   postId: openPostId,
-  stores: [postStore, authStore, friendStore],
+  stores: [authStore, friendStore],
 }) => {
   //   let [postId, setPostId] = useState(null);
   let [isLoading, setLoading] = useState(false);
@@ -58,6 +58,7 @@ const FriendList = ({
     let id = str.split('https://cmput404-front.herokuapp.com/author/')[1];
     await friendStore.getFriends(id);
     setLoading(false);
+    console.log(friendStore.friends);
   };
 
   useEffect(() => {
@@ -66,27 +67,30 @@ const FriendList = ({
 
   let handleUnfriend = id => {
     console.log('unfriend clicked');
+    console.log(id);
   };
 
   let friendList = friendStore.friends;
   let friends =
     friendList.length > 0 ? (
-      friendList.map(
-        ({ id, contentType, displayName, origin, comments, ...props }) => (
-          <Col xs={22} sm={22} md={12} lg={12} xl={12} xxl={12}>
-            <FriendCard
-              key={id}
-              id={id}
-              metaTitle={
-                <CardMetaTitle
-                  displayName={displayName}
-                  extra={<Button onClick={handleUnfriend}>Unfriend</Button>}
-                />
-              }
-            />
-          </Col>
-        )
-      )
+      friendList.map(({ id, displayName }) => (
+        <Col xs={22} sm={22} md={12} lg={12} xl={12} xxl={12}>
+          <FriendCard
+            key={id}
+            id={id}
+            onLoad={handleUnfriend}
+            metaTitle={
+              <CardMetaTitle
+                id={id}
+                displayName={displayName}
+                extra={
+                  <Button onClick={() => handleUnfriend(id)}>Unfriend</Button>
+                }
+              />
+            }
+          />
+        </Col>
+      ))
     ) : (
       <Empty />
     );
@@ -104,4 +108,4 @@ const FriendList = ({
   );
 };
 
-export default inject([PostStore, AuthStore, FriendsStore])(FriendList);
+export default inject([AuthStore, FriendsStore])(FriendList);

@@ -27,6 +27,9 @@ const Post = {
 };
 
 const Author = {
+  getauthorbyID: id => {
+    return request.get('/author/' + id);
+  },
   updateProfile: author => {
     let filteredProfile = pick(author, [
       'email',

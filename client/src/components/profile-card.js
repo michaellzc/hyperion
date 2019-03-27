@@ -2,17 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { inject } from '../utils';
 import { Card, Icon } from 'antd';
 import './profile-card.scss';
-import { AuthStore } from '../stores';
+import { AuthorStore } from '../stores';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const ProfileCard = ({ stores: [authStore], ...props }) => {
+const ProfileCard = ({ stores: [authorStore], location, ...props }) => {
   let [loading, setLoading] = useState(false);
-  let user = authStore.user;
+  let user = authorStore.author;
 
   let setBaseInfo = async () => {
+    authorStore.getAuthor(location.split('/userprofile/')[1]);
     setLoading(true);
     await sleep(1000);
     setLoading(false);
@@ -53,4 +54,4 @@ const ProfileCard = ({ stores: [authStore], ...props }) => {
   );
 };
 
-export default inject([AuthStore])(ProfileCard);
+export default inject([AuthorStore])(ProfileCard);

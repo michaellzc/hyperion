@@ -56,7 +56,12 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
     if (e.key === 'home') {
       navigate('/');
     } else if (e.key === 'profilepage') {
-      navigate('/userprofile');
+      navigate(
+        '/userprofile/' +
+          authStore.user.id.split(
+            'https://cmput404-front.herokuapp.com/author/'
+          )[1]
+      );
     }
   };
 

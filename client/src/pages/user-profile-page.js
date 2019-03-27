@@ -4,18 +4,21 @@ import AppLayout from '../components/app-layout';
 import FriendList from '../components/friend-list';
 import ProfileCard from '../components/profile-card';
 import Sticky from 'react-stickynode';
+import { inject } from '../utils';
+import { AuthorStore } from '../stores';
+
 function callback(key) {
   console.log(key);
 }
 const TabPane = Tabs.TabPane;
 
-const ProfilePage = ({ postId }) => {
+const ProfilePage = ({ ...props }) => {
   return (
     <AppLayout className="user-profile-page">
       <Row gutter={24} type="flex" justify="center" align="top">
         <Col xs={20} sm={8} md={8} lg={7} xl={6} xxl={6}>
           <Sticky enabled={true} top={80}>
-            <ProfileCard />
+            <ProfileCard location={props.location.pathname} />
           </Sticky>
         </Col>
         <Col xs={20} sm={15} md={14} lg={13} xl={11} xxl={10}>
@@ -31,4 +34,4 @@ const ProfilePage = ({ postId }) => {
   );
 };
 
-export default ProfilePage;
+export default inject([AuthorStore])(ProfilePage);
