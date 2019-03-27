@@ -7,7 +7,7 @@ import ProfileCard from '../components/profile-card';
 
 const TabPane = Tabs.TabPane;
 
-const ProfilePage = ({ authorId, ...props }) => {
+const AuthorProfilePage = ({ authorId, ...props }) => {
   return (
     <AppLayout className="user-profile-page">
       <Row gutter={24} type="flex" justify="center" align="top">
@@ -32,4 +32,4 @@ const ProfilePage = ({ authorId, ...props }) => {
   );
 };
 
-export default ProfilePage;
+export default AuthorProfilePage;
