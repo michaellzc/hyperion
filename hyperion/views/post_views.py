@@ -59,8 +59,9 @@ class PostViewSet(viewsets.ModelViewSet):
             # local user shoud not have an one-to-one relationship with Server
             is_local = True
 
-        response = super().list(request)
-        data = response.data
+        posts = self.queryset.filter(visibility="PUBLIC")
+        serializer = PostSerializer(posts, many=True)
+        data = serializer.data
 
         foreign_public_posts = []
         if is_local:
@@ -69,13 +70,15 @@ class PostViewSet(viewsets.ModelViewSet):
             for server in Server.objects.all():
                 try:
                     posts_response = ForeignServerHttpUtils.get(server, "/posts")
-                    foreign_public_posts.append(posts_response.json().get("posts", []))
+                    foreign_public_posts += posts_response.json().get("posts", [])
                 except requests.exceptions.RequestException as exception:
                     print(exception)
         else:
             pass
-        response.data = {"query": "posts", "count": len(data), "posts": data + foreign_public_posts}
-        return response
+        data += foreign_public_posts
+        return Response({
+            "query": "posts", "count": len(data), "posts": data
+        }, status=200)
 
     # pylint: disable=too-many-locals
     @action(detail=True, methods=["GET"], name="get_auth_posts")
