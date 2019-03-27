@@ -56,9 +56,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
     if (e.key === 'home') {
       navigate('/');
     } else if (e.key === 'profile') {
-      navigate(
-        `/${authStore.user.id.substr(authStore.user.id.lastIndexOf('/') + 1)}`
-      );
+      navigate(`/${authStore.userPk}`);
     }
   };
 
