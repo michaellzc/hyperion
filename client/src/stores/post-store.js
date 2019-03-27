@@ -36,7 +36,7 @@ class PostsStore extends Container {
             id: encodeURIComponent(`${post.author.host}/posts/${post.id}`),
             author: {
               ...post.author,
-              id: encodeURIComponent(post.author.id),
+              id: post.author.id,
             },
           };
           posts.set(post.id, post);
