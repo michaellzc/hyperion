@@ -1,7 +1,6 @@
 import React from 'react';
 import { Row, Col, Tabs } from 'antd';
 import AppLayout from '../components/app-layout';
-import PostsStream from '../components/posts-stream';
 import FriendList from '../components/friend-list';
 import ProfileCard from '../components/profile-card';
 import Sticky from 'react-stickynode';
@@ -21,9 +20,7 @@ const ProfilePage = ({ postId }) => {
         </Col>
         <Col xs={20} sm={15} md={14} lg={13} xl={11} xxl={10}>
           <Tabs onChange={callback} type="card">
-            <TabPane tab="My Posts" key="1">
-              <PostsStream postId={parseInt(postId)} />
-            </TabPane>
+            <TabPane tab="My Posts" key="1" />
             <TabPane tab="Friends" key="2">
               <FriendList />
             </TabPane>
