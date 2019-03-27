@@ -59,8 +59,8 @@ function ProfilePopover({ author, stores: [authStore] }) {
               to={
                 // Handling for authors from foreign servers
                 window.OUR_HOSTNAME.includes(author.host)
-                  ? author.id
-                  : author.id
+                  ? `/${author.id.substr(author.id.lastIndexOf('/') + 1)}`
+                  : `/${author.id}`
               }
             >
               {author.displayName}

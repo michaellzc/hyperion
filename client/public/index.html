@@ -25,9 +25,17 @@
     <title>Hyperion - A CMPUT 404 Project</title>
     <script>
       // Our primary server hostname, it is here for the convinence of local development
-      window.OUR_HOSTNAME = [
-        'https://cmput404-front.herokuapp.com'
-      ];
+      let { host, protocol } = window.location;
+      if ('%NODE_ENV%' === 'production') {
+        window.OUR_HOSTNAME = [
+          `${protocol}//${host}`
+        ];
+      } else {
+        window.OUR_HOSTNAME = [
+          'https://cmput404-front.herokuapp.com',
+          `${protocol}//${host}`
+        ];
+      }
     </script>
   </head>
   <body>
