@@ -1,6 +1,6 @@
 [build]
   base = "client"
-  command = "yarn build"
+  command = "REACT_APP_NETLIFY=true yarn build"
   publish = "client/build/"
 
 [build.environment]
