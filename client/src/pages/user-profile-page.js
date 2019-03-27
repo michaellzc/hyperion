@@ -21,7 +21,7 @@ const ProfilePage = ({ authorId, ...props }) => {
         </Col>
         <Col xs={20} sm={15} md={14} lg={13} xl={11} xxl={10}>
           <Tabs type="card">
-            <TabPane tab="My Posts" key="1" />
+            <TabPane tab="Posts" key="1" />
             <TabPane tab="Friends" key="2">
               <FriendList authorId={authorId} />
             </TabPane>
