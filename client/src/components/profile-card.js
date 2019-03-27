@@ -10,36 +10,17 @@ function sleep(ms) {
 
 const ProfileCard = ({ stores: [authStore], ...props }) => {
   let [loading, setLoading] = useState(false);
+  let user = authStore.user;
 
   let setBaseInfo = async () => {
     setLoading(true);
-    // await authStore.getUserInfo(false);
-    // https://www.reddit.com/r/javascript/comments/5abyi2/is_there_a_way_to_implement_sleep_with_es6/
     await sleep(1000);
     setLoading(false);
-    let user = authStore.user;
-    if (!user) return;
-    document.getElementsByClassName('displayName')[0].innerHTML =
-      user.displayName;
-    document.getElementsByClassName('username')[0].innerHTML =
-      '@' + user.username;
-    if (user.bio === '') {
-      document.getElementsByClassName('bio')[0].innerHTML =
-        'Hello, my name is ' + user.displayName;
-    } else {
-      document.getElementsByClassName('bio')[0].innerHTML = user.bio;
-    }
-    if (authStore.user.github !== '') {
-      console.log(authStore.user.github);
-      document
-        .getElementById('github1')
-        .setAttribute('href', authStore.user.github);
-    }
   };
 
   useEffect(() => {
     setBaseInfo();
-  }, [authStore.user]);
+  }, []);
 
   return (
     <Card
@@ -54,12 +35,18 @@ const ProfileCard = ({ stores: [authStore], ...props }) => {
         theme="outlined"
       />
       <div className="userinfo">
-        <div className="displayName" />
-        <div className="username" />
-        <div className="bio" />
+        <div className="displayName">{user ? user.displayName : ''}</div>
+        <div className="username">{user ? '@' + user.username : ''}</div>
+        <div className="bio">{user ? user.bio : ''}</div>
         <div className="github">
           <Icon type="github" />
-          <a id="github1">Github</a>
+          {user ? (
+            <a id="github1" href={user.github}>
+              Github
+            </a>
+          ) : (
+            <a id="github1">Github</a>
+          )}
         </div>
       </div>
     </Card>
