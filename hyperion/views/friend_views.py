@@ -206,7 +206,7 @@ def friend_request(request):
                     author_profile = UserProfile.objects.get(url=body["author"]["id"])
                 except UserProfile.DoesNotExist:
                     author_profile = UserProfile.objects.create(
-                        # display_name=body["author"]["display_name"],
+                        display_name=body["author"].get("displayName", ""),
                         host=server,
                         url=body["author"]["id"],
                     )

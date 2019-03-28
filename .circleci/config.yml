@@ -1,0 +1,94 @@
+executors:
+  node:
+    parameters:
+      image:
+        type: string
+        default: "10"
+    docker:
+      - image: circleci/node:<< parameters.image >>
+
+  python:
+    docker:
+      - image: circleci/python:3.6.4
+
+aliases:
+  restore_cache: &restore_cache
+    restore_cache:
+      name: Restore node_modules cache
+      keys:
+        - yarn-packages-{{ checksum "yarn.lock" }}
+
+  install_node_modules: &install_node_modules
+    run:
+      name: Install node modules
+      command: yarn --frozen-lockfile
+
+  persist_cache: &persist_cache
+    save_cache:
+      name: Save node modules cache
+      key: yarn-packages-{{ checksum "yarn.lock" }}
+      paths:
+        - ~/.cache
+
+  restore_python_cache: &restore_python_cache
+    restore_cache:
+      name: Restore python site-packages cache
+      keys:
+        - deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+
+  install_python_packages: &install_python_packages
+    run:
+      name: Install python packages
+      command: sudo pip install -r requirements.txt
+
+  persist_python_cache: &persist_python_cache
+    save_cache:
+      key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      paths:
+        - ".venv"
+        - "/usr/local/bin"
+        - "/usr/local/lib/python3.6/site-packages"
+
+version: 2.1
+
+jobs:
+  frontend_build_test:
+    working_directory: ~/hyperion/client
+    executor: node
+    steps:
+      - checkout:
+          path: ~/hyperion
+      - <<: *restore_cache
+      - <<: *install_node_modules
+      - <<: *persist_cache
+      - run:
+          name: Lint
+          command: yarn lint
+      - run:
+          name: Unit test
+          command: yarn test
+
+  backend_build_test:
+    working_directory: ~/hyperion
+    executor: python
+    steps:
+      - checkout:
+          path: ~/hyperion
+      # - <<: *restore_python_cache
+      - <<: *install_python_packages
+      # - <<: *persist_python_cache
+      - run: export TEST_POSTGRES_NAME=${CIRCLE_SHA1::8}
+      - run: echo $TEST_POSTGRES_NAME
+      - run:
+          name: Unit test
+          command: python manage.py test --noinput
+      - run:
+          name: Lint
+          command: pylint api && pylint hyperion
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+      - frontend_build_test
+      - backend_build_test
