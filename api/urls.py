@@ -55,7 +55,7 @@ urlpatterns = [
     ),
     path("posts", post_views.PostViewSet.as_view({"get": "list"})),
     path(
-        "posts/<int:pk>", post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"})
+        "posts/<path:post_id>", post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"})
     ),
     path("posts/<int:pk>/comments", comment_views.CommentViewSet.as_view({"post": "new_comment"})),
     url(

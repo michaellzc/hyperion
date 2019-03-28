@@ -1,4 +1,5 @@
 # pylint: disable=arguments-differ
+from urllib.parse import urlparse
 import requests
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -7,7 +8,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets, status
-
 
 from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
@@ -202,26 +202,55 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({"query": "posts", "count": len(data), "posts": data})
 
     # pylint: disable=too-many-return-statements
-    def retrieve(self, request, pk):
+    def retrieve(self, request, post_id):
         """
         GET /posts/{post_id}
         """
         # check if local user
+        is_local = False
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
-            post_obj = get_object_or_404(Post, pk=pk)
-            if post_obj.is_accessible(post_obj, request.user.profile):
-                serializer = PostSerializer(post_obj)
-                return Response({"query": "post", "post": serializer.data})
+            is_local = True
+
+        if is_local:
+            if isinstance(post_id, int):
+                # check if acessible
+                post_obj = get_object_or_404(Post, pk=post_id)
+                if post_obj.is_accessible(post_obj, request.user.profile):
+                    serializer = PostSerializer(post_obj)
+                    return Response({"query": "post", "post": serializer.data})
+                else:
+                    return Response(
+                        {"query": "posts", "success": False, "message": "Post not accessible"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
             else:
-                return Response(
-                    {"query": "posts", "success": False, "message": "Post not accessible"},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+                try:
+                    # parse foreign user id
+                    parsed_url = urlparse(post_id)
+                    foreign_server = Server.objects.get(
+                        url="{}://{}".format(parsed_url.scheme, parsed_url.netloc)
+                    )
+                    response = requests.get(
+                        "{}{}".format(foreign_server.endpoint, parsed_url.path),
+                        auth=(foreign_server.foreign_db_username, foreign_server.foreign_db_password),
+                    )
+                    return Response(response.json())
+                    # foreignsever does not exist
+                except Server.DoesNotExist:
+                    return Response(
+                        {"succcess": False, "message": "Foreign server does not exist."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                except requests.exceptions.RequestException:
+                    return Response(
+                        {"succcess": False, "message": "Failed to retrieve foreign server profile."},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
         else:
             # foreign user
-            post_obj = get_object_or_404(Post, pk=pk)
+            post_obj = get_object_or_404(Post, pk=post_id)
             try:
                 # grab request user information from request header
                 foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
