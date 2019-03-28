@@ -202,19 +202,20 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({"query": "posts", "count": len(data), "posts": data})
 
     # pylint: disable=too-many-return-statements
+    # pylint: disable=too-many-branches
     def retrieve(self, request, post_id):
         """
         GET /posts/{post_id}
         """
         # check if local user
+
         is_local = False
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
             is_local = True
-
         if is_local:
-            if isinstance(post_id, int):
+            if post_id.isdigit():
                 # check if acessible
                 post_obj = get_object_or_404(Post, pk=post_id)
                 if post_obj.is_accessible(post_obj, request.user.profile):
@@ -229,12 +230,15 @@ class PostViewSet(viewsets.ModelViewSet):
                 try:
                     # parse foreign user id
                     parsed_url = urlparse(post_id)
+                    local_url = request.user.profile.get_url()
+                    headers = {"X-Request-User-ID": str(local_url)}
                     foreign_server = Server.objects.get(
                         url="{}://{}".format(parsed_url.scheme, parsed_url.netloc)
                     )
                     response = requests.get(
                         "{}{}".format(foreign_server.endpoint, parsed_url.path),
                         auth=(foreign_server.foreign_db_username, foreign_server.foreign_db_password),
+                        headers=headers
                     )
                     return Response(response.json())
                     # foreignsever does not exist
@@ -264,7 +268,6 @@ class PostViewSet(viewsets.ModelViewSet):
                         {"query": "posts", "success": False, "message": "Post not accessible"},
                         status=status.HTTP_403_FORBIDDEN,
                     )
-
             # foreign user is not in our db
             except UserProfile.DoesNotExist:
                 if post_obj.visibility == "PUBLIC":
@@ -281,10 +284,14 @@ class PostViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-    def destroy(self, request, pk, *args, **kwargs):
-        post = get_object_or_404(Post, pk=pk)
-        if post.author.id == request.user.profile.id:
-            self.perform_destroy(post)
-            return Response(status=204)
+    def destroy(self, request, post_id, *args, **kwargs):
+        if post_id.isdigit():
+            pk = int(post_id)
+            post = get_object_or_404(Post, pk=pk)
+            if post.author.id == request.user.profile.id:
+                self.perform_destroy(post)
+                return Response(status=204)
+            else:
+                return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
         else:
-            return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
+            return Response(data={"success": False, "msg": "Method is not allowed for foreign posts"}, status=405)
