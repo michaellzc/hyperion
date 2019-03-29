@@ -57,13 +57,15 @@ class PostsStore extends Container {
    */
 
   getAuthorPosts = async authorId => {
-    let { cached } = this.state;
-    if (cached === authorId && this.state.posts.size > 0) return;
-    let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorId);
-    if (count > 0) {
+    // let { cached } = this.state;
+    // if (cached === authorId && this.state.posts.size > 0) return;
+
+    let response = await API.Post.fetchAuthorPosts(authorId);
+    console.log(response, '?!'); // eslint-disable-line no-console
+    if (response.count > 0) {
       let posts = new Map();
-      postsList = camelcaseKeys(postsList, { deep: true });
-      postsList.forEach(post => {
+      response.posts = camelcaseKeys(response.posts, { deep: true });
+      response.posts.forEach(post => {
         if (!window.OUR_HOSTNAME.includes(post.author.host)) {
           // foreign post
           // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
