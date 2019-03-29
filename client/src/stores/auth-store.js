@@ -19,6 +19,13 @@ class AuthStore extends Container {
     } else return null;
   }
 
+  // Currently login user's primary key
+  get userPk() {
+    return this.user
+      ? this.user.id.substr(this.user.id.lastIndexOf('/') + 1)
+      : null;
+  }
+
   getUserInfo = async (cached = true) => {
     if (window.localStorage.getItem('basic_auth') && this.state.user) {
       if (cached) return this.state.user;

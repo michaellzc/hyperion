@@ -21,6 +21,7 @@
     ],
     "jsx-a11y/anchor-is-valid": ["disabled"],
     "getter-return": "off",
-    "react-hooks/rules-of-hooks": "error"
+    "react-hooks/rules-of-hooks": "error",
+    "no-console": ["error", { "allow": ["error"] }]
   }
 }

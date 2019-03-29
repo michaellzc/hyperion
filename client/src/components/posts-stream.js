@@ -61,11 +61,10 @@ const PostsStream = ({
   }, []);
 
   // TODO - implement reply
-  let handleReply = async (event, id) => {
+  let handleReply = async event => {
     // https://stackoverflow.com/a/2385180
     // Prevent onClick event propagation to outter div
     event.stopPropagation();
-    console.info('click reply button');
   };
 
   let handleShare = async (event, origin) => {

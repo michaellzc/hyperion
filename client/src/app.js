@@ -10,6 +10,7 @@ import LoginPage from './pages/login-page';
 import SignupPage from './pages/signup-page';
 import InactivePage from './pages/inactive-page';
 import NotFoundPage from './pages/not-found-page';
+import AuthorProfilePage from './pages/author-profile-page';
 
 if (process.env.NODE_ENV === 'development') {
   UNSTATED.logStateChanges = true;
@@ -34,6 +35,7 @@ class App extends Component {
           <LoginPage path="login" />
           <SignupPage path="signup" />
           <InactivePage path="inactive" />
+          <PrivateRoute as={AuthorProfilePage} path=":authorId" />
           <NotFoundPage default />
         </Router>
       </Provider>
