@@ -68,8 +68,6 @@ class CommentViewSet(viewsets.ModelViewSet):
                         foreign_server, "/posts/{}/comments".format(post_pk), json=body
                     )
                     if resp.status_code != 200:
-                        print(resp.content)
-                        print(resp.json())
                         return Response(
                             {"query": "addComment", "success": False, "message": resp.content},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
