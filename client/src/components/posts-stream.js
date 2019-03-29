@@ -49,6 +49,8 @@ const PostsStream = ({
   let [isLoading, setLoading] = useState(false);
 
   let loadPosts = async () => {
+    let user = await authStore.getUserInfo(false);
+    console.log(user); // eslint-disable-line no-console
     setLoading(true);
     if (currentAuthorId === undefined) {
       await postStore.getAll();
