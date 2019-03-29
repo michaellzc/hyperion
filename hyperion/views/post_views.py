@@ -241,9 +241,10 @@ class PostViewSet(viewsets.ModelViewSet):
                         ),
                         headers=headers,
                     )
-                    print(response)
-                    print(response.content)
-                    print(response.json())
+                    if response.status_code != 200:
+                        return Response(
+                            {"query": "getPost", "success": True, "error": response.content}
+                        )
                     return Response(response.json())
                     # foreignsever does not exist
                 except Server.DoesNotExist:
