@@ -63,7 +63,14 @@ class CommentViewSet(viewsets.ModelViewSet):
                 # comment on foreign post
                 try:
                     foreign_server = Server.objects.get(url=post_url_host)
-                    ForeignServerHttpUtils.post(foreign_server, "/posts/1/comments", json=body)
+                    resp = ForeignServerHttpUtils.post(
+                        foreign_server, "/posts/1/comments", json=body
+                    )
+                    if resp.status_code != 200:
+                        return Response(
+                            {"query": "addComment", "success": False, "message": resp.content},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
                     return Response(
                         {"query": "addComment", "success": True, "message": "Comment Created"}
                     )

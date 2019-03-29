@@ -95,6 +95,8 @@ class PostsStore extends Container {
       comment: text,
       contentType: 'text/plain',
     };
+    // console.debug(postId);
+    // console.debug(Number.isNaN(postId));
     if (Number.isNaN(postId)) postId = 1;
     await API.Post.addComment(postId, post.source, comment);
   };
