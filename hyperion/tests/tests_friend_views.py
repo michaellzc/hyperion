@@ -154,7 +154,7 @@ class FriendViewTestCase(TestCase):
     def test_friend_list_post(self):
         post_body = {
             "query": "friends",
-            "author": "{}".format(self.u1.id),
+            "author": "{}".format(self.u1.profile.url),
             "authors": [
                 # local user (friend with u1)
                 "https://cmput404-front.herokuapp.com/author/{}".format(self.u2.id),
@@ -184,8 +184,9 @@ class FriendViewTestCase(TestCase):
 
         response_data = response.data
         self.assertTrue(self._check_list_equal(result_body["authors"], response_data["authors"]))
+        # print(response_data)
         self.assertEqual(response_data["query"], "friends")
-        self.assertEqual(response_data["author"], str(self.u1.id))
+        self.assertEqual(response_data["author"], self.u1.profile.url)
 
     def test_check_friendship(self):
         # check remote friend (not friend with author1)

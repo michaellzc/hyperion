@@ -46,10 +46,11 @@ def friend_list(request, author_id):
             if body["query"] != "friends":
                 raise Exception("query should be friends")
 
-            author = User.objects.get(pk=int(body["author"]))
+            # author = User.objects.get(pk=int(body["author"]))
+            author_profile = UserProfile.objects.get(url=body["author"])
 
             # get friend url with author
-            author_friend_list = list(author.profile.get_friends().values_list("url", flat=True))
+            author_friend_list = list(author_profile.get_friends().values_list("url", flat=True))
             pending_friend_list = body["authors"]
             # https://stackoverflow.com/questions/3697432/how-to-find-list-intersection/33067553
 
