@@ -76,9 +76,7 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             pass
         data += foreign_public_posts
-        return Response({
-            "query": "posts", "count": len(data), "posts": data
-        }, status=200)
+        return Response({"query": "posts", "count": len(data), "posts": data}, status=200)
 
     # pylint: disable=too-many-locals
     @action(detail=True, methods=["GET"], name="get_auth_posts")
@@ -237,9 +235,15 @@ class PostViewSet(viewsets.ModelViewSet):
                     )
                     response = requests.get(
                         "{}{}".format(foreign_server.endpoint, parsed_url.path),
-                        auth=(foreign_server.foreign_db_username, foreign_server.foreign_db_password),
-                        headers=headers
+                        auth=(
+                            foreign_server.foreign_db_username,
+                            foreign_server.foreign_db_password,
+                        ),
+                        headers=headers,
                     )
+                    print(response)
+                    print(response.content)
+                    print(response.json())
                     return Response(response.json())
                     # foreignsever does not exist
                 except Server.DoesNotExist:
@@ -249,7 +253,10 @@ class PostViewSet(viewsets.ModelViewSet):
                     )
                 except requests.exceptions.RequestException:
                     return Response(
-                        {"succcess": False, "message": "Failed to retrieve foreign server profile."},
+                        {
+                            "succcess": False,
+                            "message": "Failed to retrieve foreign server profile.",
+                        },
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     )
         else:
@@ -294,4 +301,7 @@ class PostViewSet(viewsets.ModelViewSet):
             else:
                 return Response(data={"success": False, "msg": "Forbidden access"}, status=403)
         else:
-            return Response(data={"success": False, "msg": "Method is not allowed for foreign posts"}, status=405)
+            return Response(
+                data={"success": False, "msg": "Method is not allowed for foreign posts"},
+                status=405,
+            )
