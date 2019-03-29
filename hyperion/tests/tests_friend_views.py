@@ -15,6 +15,9 @@ class FriendViewTestCase(TestCase):
     remote_server_username = "testRemoteServer"
     remote_server_password = "testRemote"
 
+    local_remote_server_username = "localRemoteServer"
+    local_remote_server_password = "localRemote"
+
     def setUp(self):
         credentials = base64.b64encode(
             "{}:{}".format(self.username, self.password).encode()
@@ -25,6 +28,15 @@ class FriendViewTestCase(TestCase):
             "{}:{}".format(self.remote_server_username, self.remote_server_password).encode()
         ).decode()
         self.remote_client = Client(HTTP_AUTHORIZATION="Basic {}".format(credentials_remote))
+
+        credentials_local_remote = base64.b64encode(
+            "{}:{}".format(
+                self.local_remote_server_username, self.local_remote_server_password
+            ).encode()
+        ).decode()
+        self.local_remote_client = Client(
+            HTTP_AUTHORIZATION="Basic {}".format(credentials_local_remote)
+        )
 
     @classmethod
     def setUpTestData(cls):
@@ -59,14 +71,18 @@ class FriendViewTestCase(TestCase):
         cls.u5.profile.url = cls.u5.profile.get_full_id()
         cls.u5.save()
 
-        # logined remote server
+        # logined remote server s1
         cls.s1_represent = User.objects.create(username="testRemoteServer")
         cls.s1_represent.set_password("testRemote")
         cls.s1_represent.profile.url = "https://cmput404-front-t2.herokuapp.com"
         cls.s1_represent.save()
 
         s1 = Server.objects.create(
-            author=cls.s1_represent, foreign_db_username="s1", foreign_db_password="111"
+            author=cls.s1_represent,
+            foreign_db_username="s1",
+            foreign_db_password="111",
+            url="https://cmput404-front-t2.herokuapp.com",
+            endpoint="https://cmput404-front-t2.herokuapp.com/api",
         )
 
         # remote user fu1
@@ -81,10 +97,37 @@ class FriendViewTestCase(TestCase):
             url="https://cmput404-front-t2.herokuapp.com/author/sdfsdfsdfsdfwerfsdfs342sdfgdsfgds",
         )
 
+        # logined localhost remote server s2
+        cls.s2_represent = User.objects.create(username="localRemoteServer")
+        cls.s2_represent.set_password("localRemote")
+        cls.s2_represent.profile.url = "http://127.0.0.1:5000"
+        cls.s2_represent.save()
+
+        s2 = Server.objects.create(
+            author=cls.s2_represent,
+            foreign_db_username="s2",
+            foreign_db_password="222",
+            url="http://127.0.0.1:5000",
+            endpoint="http://127.0.0.1:5000/api",
+        )
+
+        cls.fu3 = UserProfile.objects.create(
+            display_name="localhost_test",
+            host=s2,
+            url="http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471",
+        )
+
+        cls.fu4 = UserProfile.objects.create(
+            display_name="localhost_test_2",
+            host=s2,
+            url="http://127.0.0.1:5000/author/sdf2342sfs234sdfg354fsr23423sdfg2",
+        )
+
         Friend.objects.create(profile1=cls.u1.profile, profile2=cls.u2.profile)
         Friend.objects.create(profile1=cls.u1.profile, profile2=cls.u3.profile)
         Friend.objects.create(profile1=cls.u1.profile, profile2=cls.fu1)
         # Friend.objects.create(profile1=cls.u2.profile, profile2=cls.u3.profile)
+        Friend.objects.create(profile1=cls.u1.profile, profile2=cls.fu4)
 
     @staticmethod
     def _check_list_equal(l1, l2):  # pylint: disable=invalid-name
@@ -315,6 +358,42 @@ class FriendViewTestCase(TestCase):
         )
         self.assertTrue(fu3 in author_list)
 
+        # # scenario u1 send request to remote fu3 (trusted server and exist profile) (need local host)
+        # post_body = {
+        #     "query": "friendrequest",
+        #     "author": {
+        #         "id": u1_serializer.data["id"]
+        #     },
+        #     "friend": {
+        #         "id": "http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471",
+        #
+        #     },
+        # }
+        # response = self.client.post(
+        #     "/friendrequest", post_body, content_type="application/json"
+        # )
+        # self.assertEqual(response.status_code, 200)
+        # friend_profile = UserProfile.objects.get(url="http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471")
+        # FriendRequest.objects.get(from_profile=self.u1.profile, to_profile=friend_profile)
+        #
+        # # scenario u1 send request (trusted server and non-exist profile) (need local host)
+        # post_body = {
+        #     "query": "friendrequest",
+        #     "author": {
+        #         "id": u1_serializer.data["id"]
+        #     },
+        #     "friend": {
+        #         "id": "http://127.0.0.1:5000/author/rwerw34234dsfgd2343",
+        #
+        #     },
+        # }
+        # response = self.client.post(
+        #     "/friendrequest", post_body, content_type="application/json"
+        # )
+        # self.assertEqual(response.status_code, 200)
+        # friend_profile = UserProfile.objects.get(url="http://127.0.0.1:5000/author/rwerw34234dsfgd2343")
+        # FriendRequest.objects.get(from_profile=self.u1.profile, to_profile=friend_profile)
+
     def test_friend_request_get(self):
         # send request firstly
         u1_serializer = UserProfileSerializer(
@@ -477,3 +556,108 @@ class FriendViewTestCase(TestCase):
         #     content_type='application/json')
         # print(response.data)
         # self.assertEqual(response.status_code, 200)
+
+        # scenario remote send friendrequest to u1, u1 accept (need local host serrver)
+        # post_body = {
+        #     "query": "friendrequest",
+        #     "author": {
+        #         "id": "http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471",
+        #     },
+        #     "friend": u1_serializer.data,
+        # }
+        # response = self.remote_client.post(
+        #     "/friendrequest", post_body, content_type="application/json"
+        # )
+        # self.assertEqual(response.status_code, 200)
+        #
+        # friend_request = FriendRequest.objects.get(from_profile=self.fu3, to_profile=self.u1.profile)
+        # put_body = {
+        #     "query": "friendrequestAction",
+        #     # "friendrequest": serializer.data,
+        #     "accepted": True,
+        # }
+        # response = self.client.put(
+        #     "/friendrequest/{}".format(friend_request.id),
+        #     json.dumps(put_body),
+        #     content_type="application/json",
+        # )
+        # self.assertEqual(response.status_code, 200)
+        # self.assertEqual(len(Friend.objects.filter(profile1=self.u1.profile, profile2=self.fu3)),1)
+
+    def test_unfollow_request(self):
+        # scenario #1 u1 unfollow u2 (exist friendship)
+        u1_serializer = UserProfileSerializer(
+            self.u1.profile, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+
+        u2_serializer = UserProfileSerializer(
+            self.u2.profile, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+
+        post_body = {
+            "query": "unfollow",
+            "author": u1_serializer.data,
+            "friend": u2_serializer.data,
+        }
+        self.assertTrue(self.u2.profile in self.u1.profile.get_friends())
+        response = self.client.post("/unfollow", post_body, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.u2.profile in self.u1.profile.get_friends())
+
+        # scenario #2 u1 unfollow u4 (not friend)
+        u4_serializer = UserProfileSerializer(
+            self.u4.profile, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+        post_body = {
+            "query": "unfollow",
+            "author": u1_serializer.data,
+            "friend": u4_serializer.data,
+        }
+        response = self.client.post("/unfollow", post_body, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["message"], "they are not friend")
+
+        # # scenario #3 u1 unfollow remote user fu4 (exist friendship) (need local host)
+        # fu4_serializer = UserProfileSerializer(
+        #     self.fu4, context={"fields": ["id", "host", "display_name", "url"]}
+        # )
+        # post_body = {
+        #     "query": "unfollow",
+        #     "author": u1_serializer.data,
+        #     "friend": fu4_serializer.data,
+        # }
+        # self.assertTrue(self.fu4 in self.u1.profile.get_friends())
+        # response = self.client.post("/unfollow", post_body, content_type="application/json")
+        # print(response.data)
+        # self.assertEqual(response.status_code, 200)
+        # self.assertFalse(self.fu4 in self.u1.profile.get_friends())
+        # Friend.objects.create(profile1=self.u1.profile, profile2=self.fu4)
+        #
+        # # scenario #4 u1 unfollow remote user fu3 (not friend) (need local host)
+        # fu3_serializer = UserProfileSerializer(
+        #     self.fu3, context={"fields": ["id", "host", "display_name", "url"]}
+        # )
+        # post_body = {
+        #     "query": "unfollow",
+        #     "author": u1_serializer.data,
+        #     "friend": fu3_serializer.data,
+        # }
+        # response = self.client.post("/unfollow", post_body, content_type="application/json")
+        # self.assertEqual(response.status_code, 400)
+        # self.assertEqual(response.data["message"], "they are not friend")
+
+        # scenario #5 remote fu4 unfollow u1
+        fu4_serializer = UserProfileSerializer(
+            self.fu4, context={"fields": ["id", "host", "display_name", "url"]}
+        )
+        post_body = {
+            "query": "unfollow",
+            "author": fu4_serializer.data,
+            "friend": u1_serializer.data,
+        }
+        self.assertTrue(self.fu4 in self.u1.profile.get_friends())
+        response = self.local_remote_client.post(
+            "/unfollow", post_body, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.fu4 in self.u1.profile.get_friends())

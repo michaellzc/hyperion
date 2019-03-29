@@ -50,6 +50,7 @@ urlpatterns = [
         friend_views.action_friend_request,
         name="action_friend_request",
     ),
+    path("unfollow", friend_views.unfollow_request, name="unfollow_request"),
     path(
         "author/posts",
         post_views.PostViewSet.as_view({"get": "get_auth_posts", "post": "post_auth_posts"}),
