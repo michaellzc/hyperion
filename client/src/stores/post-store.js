@@ -92,11 +92,11 @@ class PostsStore extends Container {
     let post = await this.state.posts.get(postId);
     let comment = {
       author,
-      post: post.source,
       comment: text,
       contentType: 'text/plain',
     };
-    await API.Post.addComment(postId, comment);
+    if (!Number.isNaN(postId)) postId = 1;
+    await API.Post.addComment(postId, post.source, comment);
   };
 }
 
