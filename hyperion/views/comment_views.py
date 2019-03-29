@@ -63,8 +63,9 @@ class CommentViewSet(viewsets.ModelViewSet):
                 # comment on foreign post
                 try:
                     foreign_server = Server.objects.get(url=post_url_host)
+                    post_pk = post_url.path.split("/")[-1]
                     resp = ForeignServerHttpUtils.post(
-                        foreign_server, "/posts/1/comments", json=body
+                        foreign_server, "/posts/{}/comments".format(post_pk), json=body
                     )
                     if resp.status_code != 200:
                         return Response(
