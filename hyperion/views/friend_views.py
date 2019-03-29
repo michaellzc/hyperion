@@ -32,10 +32,18 @@ def friend_list(request, author_id):
         # get all friends to this authenticated author
         friends = list(author_profile.get_friends())
         # https://stackoverflow.com/questions/47119879/how-to-get-specific-field-from-serializer-of-django-rest-framework
+        result = ""
+        result = result + str(friends) + "\n"
         serializer = UserProfileSerializer(
             friends, many=True, context={"fields": ["id", "host", "display_name", "url"]}
         )
-        content = {"query": "friends", "count": len(friends), "author": serializer.data}
+        result = result + str(serializer.data) + "\n"
+        content = {
+            "query": "friends",
+            "count": len(friends),
+            "author": serializer.data,
+            "debug": result,
+        }
         return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
     elif request.method == "POST":

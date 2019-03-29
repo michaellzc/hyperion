@@ -74,9 +74,15 @@ class UserProfile(models.Model):
         # including can be ['all','host','foreign']
         # from hyperion.models import UserProfile
         apps.get_model("hyperion", "UserProfile")
-        query_set = UserProfile.objects.filter(friends__profile1=self) | UserProfile.objects.filter(
-            friends_of__profile2=self
+        query_set = (
+            (
+                UserProfile.objects.filter(friends__profile1=self)
+                | UserProfile.objects.filter(friends_of__profile2=self)
+            )
+            .order_by("url")
+            .distinct("url")
         )
+
         if including == "foreign":
             return query_set.difference(query_set.filter(host=None))
         elif including == "host":
