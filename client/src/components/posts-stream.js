@@ -39,8 +39,10 @@ const Loading = () => (
 );
 
 const PostsStream = ({
+  authorId: currentAuthorId,
   postId: openPostId = null,
   stores: [postStore, authStore],
+  ...props
 }) => {
   let [isVisible, setVisibility] = useState(false);
   let [postId, setPostId] = useState(null);
@@ -48,7 +50,11 @@ const PostsStream = ({
 
   let loadPosts = async () => {
     setLoading(true);
-    await postStore.getAll();
+    if (currentAuthorId === undefined) {
+      await postStore.getAll();
+    } else {
+      await postStore.getAuthorPosts(currentAuthorId);
+    }
     setLoading(false);
   };
 
@@ -58,7 +64,7 @@ const PostsStream = ({
       setVisibility(true);
     }
     loadPosts();
-  }, []);
+  }, [props.props.location]);
 
   // TODO - implement reply
   let handleReply = async event => {

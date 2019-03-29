@@ -4,10 +4,11 @@ import { Row, Col, Tabs } from 'antd';
 import AppLayout from '../components/app-layout';
 import FriendList from '../components/friend-list';
 import ProfileCard from '../components/profile-card';
+import PostsStream from '../components/posts-stream';
 
 const TabPane = Tabs.TabPane;
 
-const AuthorProfilePage = ({ authorId, ...props }) => {
+const AuthorProfilePage = ({ authorId, postId, ...props }) => {
   return (
     <AppLayout className="user-profile-page">
       <Row gutter={24} type="flex" justify="center" align="top">
@@ -21,7 +22,13 @@ const AuthorProfilePage = ({ authorId, ...props }) => {
         </Col>
         <Col xs={20} sm={15} md={14} lg={13} xl={11} xxl={10}>
           <Tabs type="card">
-            <TabPane tab="Posts" key="1" />
+            <TabPane tab="Posts" key="1">
+              <PostsStream
+                authorId={authorId}
+                postId={parseInt(postId)}
+                props={props}
+              />
+            </TabPane>
             <TabPane tab="Friends" key="2">
               <FriendList authorId={authorId} />
             </TabPane>

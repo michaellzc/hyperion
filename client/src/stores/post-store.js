@@ -6,6 +6,7 @@ import * as API from '../api';
 class PostsStore extends Container {
   state = {
     posts: new Map(),
+    cached: -1, // -1 not cached, 0 public cached, >0 author's posts cached
   };
 
   get posts() {
@@ -20,8 +21,9 @@ class PostsStore extends Container {
    * etch all public posts
    * @param {bool} cached - Whether or not to re-fetch posts from remote
    */
-  getAll = async (cached = true) => {
-    if (cached && this.state.posts.size > 0) return;
+  getAll = async () => {
+    let { cached } = this.state;
+    if (cached === 0 && this.state.posts.size > 0) return;
     let { posts: postsList, count } = await API.Post.fetchAll();
     if (count > 0) {
       let { posts } = this.state;
@@ -45,7 +47,42 @@ class PostsStore extends Container {
           posts.set(post.id, post);
         }
       });
-      this.setState({ posts });
+      this.setState({ posts, cached: 0 });
+    }
+  };
+
+  /**
+   * fetch all author's posts viewable by current user
+   * @param {int} authorId
+   */
+
+  getAuthorPosts = async authorId => {
+    let { cached } = this.state;
+    if (cached === authorId && this.state.posts.size > 0) return;
+    let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorId);
+    if (count > 0) {
+      let posts = new Map();
+      postsList = camelcaseKeys(postsList, { deep: true });
+      postsList.forEach(post => {
+        if (!window.OUR_HOSTNAME.includes(post.author.host)) {
+          // foreign post
+          // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
+          // then escape post.id and post.author.id to play well in actual URL.
+          post = {
+            ...post,
+            id: encodeURIComponent(`${post.author.host}/posts/${post.id}`),
+            author: {
+              ...post.author,
+              id: post.author.id,
+            },
+          };
+          posts.set(post.id, post);
+        } else {
+          // local post
+          posts.set(post.id, post);
+        }
+      });
+      this.setState({ posts, cached: authorId });
     }
   };
 
