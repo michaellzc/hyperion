@@ -34,6 +34,12 @@ let errorHandler = async response => {
 };
 
 let requests = {
+  raw: (method, url, opts = {}) => {
+    return fetch(url, {
+      ...opts,
+      method,
+    }).then(errorHandler);
+  },
   get: (url, opts = {}) => {
     let headers = getDefaultHeaders();
     return fetch(`${API_ROOT}${url}`, {
