@@ -51,11 +51,11 @@ const PostsStream = ({
   let loadPosts = async () => {
     setLoading(true);
     if (currentAuthorId === null) {
-      await postStore.getAll();
+      await postStore.getAll().then(setLoading(false));
     } else {
-      await postStore.getAuthorPosts(currentAuthorId);
+      postStore.getAuthorPosts(currentAuthorId).then(setLoading(false));
     }
-    setLoading(false);
+    // setLoading(false);
   };
 
   useLayoutEffect(() => {
@@ -65,6 +65,14 @@ const PostsStream = ({
     }
     loadPosts();
   }, [props.props.location]);
+
+  // useEffect(() => {
+  //   if (openPostId) {
+  //     setPostId(openPostId);
+  //     setVisibility(true);
+  //   }
+  //   loadPosts();
+  // }, [props.props.location]);
 
   // TODO - implement reply
   let handleReply = async event => {
