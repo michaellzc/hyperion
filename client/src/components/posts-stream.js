@@ -52,13 +52,26 @@ const PostsStream = ({
     setLoading(false);
   };
 
+  let loadGithubEvents = async () => {
+    try {
+      let { github } = authStore.user;
+      if (github) {
+        let githubUsername = github.substr(github.lastIndexOf('/') + 1);
+        await postStore.getGithubStream(githubUsername);
+      }
+    } catch (error) {
+      message.error('Failed to fetch github events.');
+    }
+  };
+
   useEffect(() => {
     if (openPostId) {
       setPostId(openPostId);
       setVisibility(true);
     }
     loadPosts();
-  }, []);
+    loadGithubEvents();
+  }, [authStore.user]);
 
   // TODO - implement reply
   let handleReply = async event => {
@@ -104,12 +117,25 @@ const PostsStream = ({
   let posts =
     postsList.length > 0 ? (
       postsList.map(
-        ({ id, contentType, author: user, origin, comments, ...props }) => (
+        ({
+          id,
+          contentType,
+          author: user,
+          origin,
+          comments,
+          github,
+          ...props
+        }) => (
           <PostCard
             key={id}
             id={id}
             avatar={<ProfileOverlay author={user} />}
-            onClick={() => handleOpenPost(id)}
+            // prettier-ignore
+            onClick={
+              github
+                ? () => message.warn('Github event does not support such action.')
+                : () => handleOpenPost(id)
+            }
             metaTitle={
               <CardMetaTitle
                 displayName={user.displayName}
@@ -129,6 +155,10 @@ const PostsStream = ({
                       >
                         <Icon style={{ float: 'right' }} type="down" />
                       </Dropdown>
+                    </Tooltip>
+                  ) : github ? (
+                    <Tooltip title={`Github Event`}>
+                      <Icon style={{ float: 'right' }} type="github" />
                     </Tooltip>
                   ) : !window.OUR_HOSTNAME.includes(user.host) ? (
                     <Tooltip title={`Post from ${user.host}`}>

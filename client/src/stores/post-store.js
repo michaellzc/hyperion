@@ -49,6 +49,34 @@ class PostsStore extends Container {
     }
   };
 
+  getGithubStream = async username => {
+    let events = await API.Post.getGithubEvents(username);
+    events = camelcaseKeys(events, { deep: true });
+    let { posts } = this.state;
+    events.forEach(event => {
+      let post = {
+        id: event.id,
+        title: event.type,
+        content: '## Preview not avaliable',
+        description: '',
+        contentType: 'text/markdown',
+        source: `https://api.github.com/users/${username}/events`,
+        origin: `https://api.github.com/users/${username}/events`,
+        published: event.createdAt,
+        github: true,
+        author: {
+          id: `https://api.github.com/users/${username}`,
+          url: `https://api.github.com/users/${username}`,
+          displayName: event.actor.login,
+          username: event.actor.login,
+          host: 'https://github.com',
+        },
+      };
+      posts.set(post.id, post);
+    });
+    this.setState({ posts });
+  };
+
   // TODO
   /**
    * Fetch a post by post ID
