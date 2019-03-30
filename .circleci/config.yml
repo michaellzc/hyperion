@@ -7,9 +7,10 @@ executors:
     docker:
       - image: circleci/node:<< parameters.image >>
 
-  python:
+  django:
     docker:
       - image: circleci/python:3.6.4
+      - image: circleci/postgres:11.2
 
 aliases:
   restore_cache: &restore_cache
@@ -70,15 +71,13 @@ jobs:
 
   backend_build_test:
     working_directory: ~/hyperion
-    executor: python
+    executor: django
     steps:
       - checkout:
           path: ~/hyperion
       # - <<: *restore_python_cache
       - <<: *install_python_packages
       # - <<: *persist_python_cache
-      - run: export TEST_POSTGRES_NAME=${CIRCLE_SHA1::8}
-      - run: echo $TEST_POSTGRES_NAME
       - run:
           name: Unit test
           command: python manage.py test --noinput
