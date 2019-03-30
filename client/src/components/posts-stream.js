@@ -49,13 +49,13 @@ const PostsStream = ({
   let [isLoading, setLoading] = useState(false);
 
   let loadPosts = async () => {
-    setLoading(true);
+    // setLoading(true);
     if (currentAuthorId === null) {
-      await postStore.getAll().then(setLoading(false));
+      await postStore.getAll();
     } else {
-      postStore.getAuthorPosts(currentAuthorId).then(setLoading(false));
+      postStore.getAuthorPosts(currentAuthorId);
     }
-    // setLoading(false);
+    setLoading(false);
   };
 
   useLayoutEffect(() => {
