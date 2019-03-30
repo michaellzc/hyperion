@@ -1,6 +1,8 @@
 # pylint: disable=arguments-differ
+import json
 from urllib.parse import urlparse
 import requests
+
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
@@ -142,37 +144,61 @@ class PostViewSet(viewsets.ModelViewSet):
         """
         GET /author/{author_id}/posts
         """
-        try:
-            pk = User.objects.get(pk=pk).profile.id
-        except User.DoesNotExist:
-            return Response(
-                {
-                    "query": "posts",
-                    "success": False,
-                    "message": "Only can get the posts from our user (id exists)",
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         # target_posts are posts created by author with id = pk
         target_posts = None
 
         # check if local user
-        result = []
+        is_local = False
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
-            # local user
-            # find all PUBLIC and SERVERONLY post create by this author with id=pk
-            # add not_own_posts_visible_to_me posts
-            if int(request.user.profile.id) == int(pk):
-                # add unlisted posts
-                target_posts = Post.objects.filter(author=pk)
+            is_local = True
+
+        result = []
+        if is_local:
+            if pk.isdigit():
+                # local user
+                # find all PUBLIC and SERVERONLY post create by this author with id=pk
+                # add not_own_posts_visible_to_me posts
+                pk = User.objects.get(pk=pk).profile.id
+                if int(request.user.profile.id) == int(pk):
+                    # add unlisted posts
+                    target_posts = Post.objects.filter(author=pk)
+                else:
+                    target_posts = self.queryset.filter(author=pk)
+                result = list(
+                    target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
+                ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
             else:
-                target_posts = self.queryset.filter(author=pk)
-            result = list(
-                target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
-            ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
+                # foreign user
+                try:
+                    parsed_url = urlparse(pk)
+                    foreign_server = Server.objects.get(
+                        url="{}://{}".format(parsed_url.scheme, parsed_url.netloc)
+                    )
+                    foreign_post_id = parsed_url.path.split("/")[-1]
+                    response = ForeignServerHttpUtils.get(
+                        foreign_server,
+                        "/author/{}/posts".format(foreign_post_id),
+                        headers={"X-Request-User-ID": request.user.profile.get_url()},
+                    )
+                    if response.status_code == 200:
+                        return Response(response.json())
+                    else:
+                        return Response(
+                            {
+                                "query": "getAuthorPost",
+                                "success": False,
+                                "message": "Foreign server error",
+                                "error": json.dumps(response.json()),
+                            },
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
+                except Server.DoesNotExist:
+                    return Response(
+                        {"succcess": False, "message": "Foreign server does not exist."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
         else:
             # foreign user
             # grab request user information from request header
