@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useLayoutEffect, useState } from 'react';
 import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import { message, Icon, Tooltip, Dropdown, Menu, Empty, Spin } from 'antd';
@@ -39,7 +39,7 @@ const Loading = () => (
 );
 
 const PostsStream = ({
-  authorId: currentAuthorId,
+  authorId: currentAuthorId = null,
   postId: openPostId = null,
   stores: [postStore, authStore],
   ...props
@@ -49,10 +49,8 @@ const PostsStream = ({
   let [isLoading, setLoading] = useState(false);
 
   let loadPosts = async () => {
-    let user = await authStore.getUserInfo(false);
-    console.log(user); // eslint-disable-line no-console
     setLoading(true);
-    if (currentAuthorId === undefined) {
+    if (currentAuthorId === null) {
       await postStore.getAll();
     } else {
       await postStore.getAuthorPosts(currentAuthorId);
@@ -60,7 +58,7 @@ const PostsStream = ({
     setLoading(false);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (openPostId) {
       setPostId(openPostId);
       setVisibility(true);
