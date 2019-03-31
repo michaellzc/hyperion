@@ -62,20 +62,23 @@ class PostsStore extends Container {
     // if (cached === authorId && this.state.posts.size > 0) return;
     // clean state
     // if (cached && this.state.posts.size > 0) return;
-    setTimeout({}, 5000);
-    let response = await API.Post.fetchAuthorPosts(authorId);
-    if (response.count > 0) {
+    // setTimeout({}, 5000);
+    let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorId);
+    // let { posts: postsList, count } = await API.Post.fetchAll();
+    if (count > 0) {
       let { posts } = this.state;
       posts.clear();
-      response.posts = camelcaseKeys(response.posts, { deep: true });
-      response.posts.forEach(post => {
+      postsList = camelcaseKeys(postsList, { deep: true });
+      postsList.forEach(post => {
         if (!window.OUR_HOSTNAME.includes(post.author.host)) {
           // foreign post
           // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
           // then escape post.id and post.author.id to play well in actual URL.
           post = {
             ...post,
-            id: encodeURIComponent(`${post.author.host}/posts/${post.id}`),
+            id: encodeURIComponent(
+              normalize(`${post.author.host}/posts/${post.id}`)
+            ),
             author: {
               ...post.author,
               id: post.author.id,
@@ -87,6 +90,7 @@ class PostsStore extends Container {
           posts.set(post.id, post);
         }
       });
+      console.log(posts); //eslint-disable-line no-console
       this.setState({ posts });
     }
   };
