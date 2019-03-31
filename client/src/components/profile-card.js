@@ -8,7 +8,7 @@ const ProfileCard = ({ authorId, ...props }) => {
   let [user, setAuthorProfile] = useState(null);
 
   let fetchAuthorProfile = async () => {
-    // setLoading(true);
+    setLoading(true);
     let author = await API.Author.getAuthorById(encodeURIComponent(authorId));
     setAuthorProfile(author);
     setLoading(false);
