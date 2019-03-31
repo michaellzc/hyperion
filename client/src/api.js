@@ -29,6 +29,8 @@ const Post = {
       post: url,
       comment,
     }),
+  getGithubEvents: username =>
+    request.raw('GET', `https://api.github.com/users/${username}/events`),
 };
 
 const Author = {

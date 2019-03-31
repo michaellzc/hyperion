@@ -44,7 +44,8 @@ function ProfilePopover({ author, stores: [authStore] }) {
     setLoading(false);
   };
 
-  return authStore.user.username === author.username ? (
+  // prettier-ignore
+  return author.host === 'https://github.com' || authStore.user.id === author.id ? (
     <Avatar icon="user" />
   ) : (
     <Popover

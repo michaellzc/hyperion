@@ -64,7 +64,9 @@ const PostsStream = ({
       setVisibility(true);
     }
     loadPosts();
-  }, [props.props.location]);
+
+    loadGithubEvents();
+  }, [authStore.user, props.props.location]);
 
   // useEffect(() => {
   //   if (openPostId) {
@@ -72,7 +74,20 @@ const PostsStream = ({
   //     setVisibility(true);
   //   }
   //   loadPosts();
-  // }, [props.props.location]);
+  //   loadGithubEvents();
+  // }, [authStore.user, props.props.location]);
+
+  let loadGithubEvents = async () => {
+    try {
+      let { github } = authStore.user;
+      if (github) {
+        let githubUsername = github.substr(github.lastIndexOf('/') + 1);
+        await postStore.getGithubStream(githubUsername);
+      }
+    } catch (error) {
+      message.error('Failed to fetch github events.');
+    }
+  };
 
   // TODO - implement reply
   let handleReply = async event => {
@@ -118,12 +133,25 @@ const PostsStream = ({
   let posts =
     postsList.length > 0 ? (
       postsList.map(
-        ({ id, contentType, author: user, origin, comments, ...props }) => (
+        ({
+          id,
+          contentType,
+          author: user,
+          origin,
+          comments,
+          github,
+          ...props
+        }) => (
           <PostCard
             key={id}
             id={id}
             avatar={<ProfileOverlay author={user} />}
-            onClick={() => handleOpenPost(id)}
+            // prettier-ignore
+            onClick={
+              github
+                ? () => message.warn('Github event does not support such action.')
+                : () => handleOpenPost(id)
+            }
             metaTitle={
               <CardMetaTitle
                 displayName={user.displayName}
@@ -143,6 +171,10 @@ const PostsStream = ({
                       >
                         <Icon style={{ float: 'right' }} type="down" />
                       </Dropdown>
+                    </Tooltip>
+                  ) : github ? (
+                    <Tooltip title={`Github Event`}>
+                      <Icon style={{ float: 'right' }} type="github" />
                     </Tooltip>
                   ) : !window.OUR_HOSTNAME.includes(user.host) ? (
                     <Tooltip title={`Post from ${user.host}`}>

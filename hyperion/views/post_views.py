@@ -1,6 +1,9 @@
-# pylint: disable=arguments-differ
+# pylint: disable=arguments-differ,invalid-name
+import json
 from urllib.parse import urlparse
+import logging
 import requests
+
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
@@ -13,6 +16,8 @@ from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post, UserProfile, Server
 from hyperion.utils import ForeignServerHttpUtils
+
+logger = logging.getLogger(__name__)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -142,37 +147,61 @@ class PostViewSet(viewsets.ModelViewSet):
         """
         GET /author/{author_id}/posts
         """
-        try:
-            pk = User.objects.get(pk=pk).profile.id
-        except User.DoesNotExist:
-            return Response(
-                {
-                    "query": "posts",
-                    "success": False,
-                    "message": "Only can get the posts from our user (id exists)",
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         # target_posts are posts created by author with id = pk
         target_posts = None
 
         # check if local user
-        result = []
+        is_local = False
         try:
             request.user.server
         except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
-            # local user
-            # find all PUBLIC and SERVERONLY post create by this author with id=pk
-            # add not_own_posts_visible_to_me posts
-            if int(request.user.profile.id) == int(pk):
-                # add unlisted posts
-                target_posts = Post.objects.filter(author=pk)
+            is_local = True
+
+        result = []
+        if is_local:
+            if pk.isdigit():
+                # local user
+                # find all PUBLIC and SERVERONLY post create by this author with id=pk
+                # add not_own_posts_visible_to_me posts
+                pk = User.objects.get(pk=pk).profile.id
+                if int(request.user.profile.id) == int(pk):
+                    # add unlisted posts
+                    target_posts = Post.objects.filter(author=pk)
+                else:
+                    target_posts = self.queryset.filter(author=pk)
+                result = list(
+                    target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
+                ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
             else:
-                target_posts = self.queryset.filter(author=pk)
-            result = list(
-                target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
-            ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
+                # foreign user
+                try:
+                    parsed_url = urlparse(pk)
+                    foreign_server = Server.objects.get(
+                        url="{}://{}".format(parsed_url.scheme, parsed_url.netloc)
+                    )
+                    foreign_post_id = parsed_url.path.split("/")[-1]
+                    response = ForeignServerHttpUtils.get(
+                        foreign_server,
+                        "/author/{}/posts".format(foreign_post_id),
+                        headers={"X-Request-User-ID": request.user.profile.get_url()},
+                    )
+                    if response.status_code == 200:
+                        return Response(response.json())
+                    else:
+                        return Response(
+                            {
+                                "query": "getAuthorPost",
+                                "success": False,
+                                "message": "Foreign server error",
+                                "error": json.dumps(response.json()),
+                            },
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
+                except Server.DoesNotExist:
+                    return Response(
+                        {"succcess": False, "message": "Foreign server does not exist."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
         else:
             # foreign user
             # grab request user information from request header
@@ -218,7 +247,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 post_obj = get_object_or_404(Post, pk=post_id)
                 if post_obj.is_accessible(post_obj, request.user.profile):
                     serializer = PostSerializer(post_obj)
-                    return Response({"query": "post", "post": serializer.data})
+                    return Response({"query": "post", "count": 1, "posts": [serializer.data]})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
@@ -242,8 +271,10 @@ class PostViewSet(viewsets.ModelViewSet):
                         headers=headers,
                     )
                     if response.status_code != 200:
+                        logger.error(response.content)
                         return Response(
-                            {"query": "getPost", "success": True, "error": response.content}
+                            {"query": "getPost", "success": False, "error": response.content},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         )
                     return Response(response.json())
                     # foreignsever does not exist
