@@ -1,6 +1,7 @@
 import { Container } from 'unstated';
 import camelcaseKeys from 'camelcase-keys';
 import snakecaseKeys from 'snakecase-keys';
+import normalize from 'normalize-url';
 import * as API from '../api';
 
 class PostsStore extends Container {
@@ -33,7 +34,9 @@ class PostsStore extends Container {
           // then escape post.id and post.author.id to play well in actual URL.
           post = {
             ...post,
-            id: encodeURIComponent(`${post.author.host}/posts/${post.id}`),
+            id: encodeURIComponent(
+              normalize(`${post.author.host}/posts/${post.id}`)
+            ),
             author: {
               ...post.author,
               id: post.author.id,
@@ -85,25 +88,28 @@ class PostsStore extends Container {
   get = async (id, cached = true) => {
     let post = this.state.posts.get(id);
     if (!post || !cached) {
-      let { post: resp } = await API.Post.fetch(id);
-      post = camelcaseKeys(resp);
+      let {
+        posts: [resp],
+      } = await API.Post.fetch(id);
       let { posts } = this.state;
-      if (!window.OUR_HOSTNAME.includes(post.author.host)) {
+      if (!window.OUR_HOSTNAME.includes(resp.author.host)) {
         // foreign post
         // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
         // then escape post.id and post.author.id to play well in actual URL.
-        post = {
-          ...post,
-          id: encodeURIComponent(`${post.author.host}/posts/${post.id}`),
+        resp = {
+          ...resp,
+          id: encodeURIComponent(
+            normalize(`${resp.author.host}/posts/${resp.id}`)
+          ),
           author: {
-            ...post.author,
-            id: post.author.id,
+            ...resp.author,
+            id: resp.author.id,
           },
         };
-        posts.set(post.id, post);
+        posts.set(resp.id, resp);
       } else {
         // local post
-        posts.set(post.id, post);
+        posts.set(resp.id, resp);
       }
       this.setState({ posts });
     }

@@ -1,6 +1,7 @@
-# pylint: disable=arguments-differ
+# pylint: disable=arguments-differ,invalid-name
 import json
 from urllib.parse import urlparse
+import logging
 import requests
 
 from django.db.models import Q
@@ -15,6 +16,8 @@ from hyperion.authentication import HyperionBasicAuthentication
 from hyperion.serializers import PostSerializer
 from hyperion.models import Post, UserProfile, Server
 from hyperion.utils import ForeignServerHttpUtils
+
+logger = logging.getLogger(__name__)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -244,7 +247,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 post_obj = get_object_or_404(Post, pk=post_id)
                 if post_obj.is_accessible(post_obj, request.user.profile):
                     serializer = PostSerializer(post_obj)
-                    return Response({"query": "post", "post": serializer.data})
+                    return Response({"query": "post", "count": 1, "posts": [serializer.data]})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
@@ -268,8 +271,10 @@ class PostViewSet(viewsets.ModelViewSet):
                         headers=headers,
                     )
                     if response.status_code != 200:
+                        logger.error(response.content)
                         return Response(
-                            {"query": "getPost", "success": True, "error": response.content}
+                            {"query": "getPost", "success": False, "error": response.content},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         )
                     return Response(response.json())
                     # foreignsever does not exist
