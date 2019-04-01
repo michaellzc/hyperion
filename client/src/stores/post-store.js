@@ -21,7 +21,7 @@ class PostsStore extends Container {
    * etch all public posts
    * @param {bool} cached - Whether or not to re-fetch posts from remote
    */
-  getAll = async (cached = true) => {
+  getAll = async (cached = false) => {
     if (cached && this.state.posts.size > 0) return;
     let { posts: postsList, count } = await API.Post.fetchAll();
     if (count > 0) {

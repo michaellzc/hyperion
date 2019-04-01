@@ -3,7 +3,7 @@ import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
 import { inject } from '../utils';
-import { AuthStore, PostStore } from '../stores';
+import { AuthStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 import ProfileBox from '../components/profile-box';
@@ -44,12 +44,7 @@ let CustomFooter = styled(Footer)`
   text-align: center;
 `;
 
-const AppLayout = ({
-  children,
-  stores: [authStore, postStore],
-  header,
-  ...props
-}) => {
+const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   // TODO - implment logout
   let [visible, setVisible] = useState(false);
 
@@ -59,12 +54,9 @@ const AppLayout = ({
 
   let redirect = async e => {
     if (e.key === 'home') {
-      navigate('/');
+      await navigate('/');
     } else if (e.key === 'profile') {
-      navigate(`/${authStore.userPk}`);
-      // console.log(props.props.location);
-      await postStore.getAuthorPosts(42);
-      // console.log(props.props.location);
+      await navigate(`/${authStore.userPk}`);
     }
   };
 
@@ -96,7 +88,7 @@ const AppLayout = ({
           <img
             src={logo}
             alt="logo"
-            onClick={() => navigate('/')}
+            onClick={async () => await navigate('/')}
             css={css`
               max-height: 35px;
               height: 72px;
@@ -141,4 +133,4 @@ AppLayout.defaultProps = {
   header: true,
 };
 
-export default inject([AuthStore, PostStore])(AppLayout);
+export default inject([AuthStore])(AppLayout);
