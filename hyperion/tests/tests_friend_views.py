@@ -140,7 +140,8 @@ class FriendViewTestCase(TestCase):
         serializer = UserProfileSerializer(
             friends, many=True, context={"fields": ["id", "host", "display_name", "url"]}
         )
-        content = {"query": "friends", "count": len(friends), "author": serializer.data}
+        content = {"query": "friends", "count": len(friends), "authors": serializer.data}
+        # print(response.data)
         self.assertEqual(response.data, content)
 
         response = self.client.get("/author/{}/friends".format(self.u2.id))
@@ -148,7 +149,7 @@ class FriendViewTestCase(TestCase):
         serializer = UserProfileSerializer(
             friends_u2, many=True, context={"fields": ["id", "host", "display_name", "url"]}
         )
-        content = {"query": "friends", "count": len(friends_u2), "author": serializer.data}
+        content = {"query": "friends", "count": len(friends_u2), "authors": serializer.data}
         self.assertEqual(response.data, content)
 
     def test_friend_list_post(self):
