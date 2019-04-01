@@ -50,11 +50,7 @@ let requests = {
         ...opts.headers,
       },
       mode: 'no-cors',
-    })
-      .then(errorHandler)
-      .catch(error => {
-        console.log(error); //eslint-disable-line no-console
-      });
+    }).then(errorHandler);
   },
   post: (url, data, opts = {}) => {
     let headers = getDefaultHeaders();
