@@ -3,7 +3,7 @@ import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
 import { inject } from '../utils';
-import { AuthStore } from '../stores';
+import { AuthStore, PostStore } from '../stores';
 import Notification from './notification';
 import logo from '../assets/logo-horizontal.png';
 import ProfileBox from '../components/profile-box';
@@ -44,7 +44,12 @@ let CustomFooter = styled(Footer)`
   text-align: center;
 `;
 
-const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
+const AppLayout = ({
+  children,
+  stores: [authStore, postStore],
+  header,
+  ...props
+}) => {
   // TODO - implment logout
   let [visible, setVisible] = useState(false);
 
@@ -52,11 +57,14 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
     setVisible(!visible);
   };
 
-  let redirect = e => {
+  let redirect = async e => {
     if (e.key === 'home') {
       navigate('/');
     } else if (e.key === 'profile') {
       navigate(`/${authStore.userPk}`);
+      // console.log(props.props.location);
+      await postStore.getAuthorPosts(42);
+      // console.log(props.props.location);
     }
   };
 
@@ -133,4 +141,4 @@ AppLayout.defaultProps = {
   header: true,
 };
 
-export default inject([AuthStore])(AppLayout);
+export default inject([AuthStore, PostStore])(AppLayout);
