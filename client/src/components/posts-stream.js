@@ -51,9 +51,9 @@ const PostsStream = ({
   let loadPosts = async () => {
     setLoading(true);
     if (currentAuthorId === null) {
-      postStore.getAll();
+      await postStore.getAll();
     } else {
-      postStore.getAuthorPosts(currentAuthorId);
+      await postStore.getAuthorPosts(currentAuthorId);
     }
     setLoading(false);
   };
