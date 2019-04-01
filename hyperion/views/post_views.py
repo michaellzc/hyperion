@@ -345,7 +345,7 @@ class PostViewSet(viewsets.ModelViewSet):
             )
         if post_id.isdigit():
             # override partial_update
-            serializer = PostSerializer(data=post_data, partial=True, context={"request": request})
+            serializer = PostSerializer(instance=post, data=post_data, partial=True, context={"request": request})
             if serializer.is_valid():
                 serializer.save()
                 return Response({"query": "updatePost", "count": 1, "posts": serializer.data})
