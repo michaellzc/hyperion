@@ -49,29 +49,14 @@ const PostsStream = ({
   let [isLoading, setLoading] = useState(false);
 
   let loadPosts = async () => {
-    console.log(props.props.location); //eslint-disable-line no-console
     setLoading(true);
     if (currentAuthorId === null) {
       postStore.getAll();
-      console.log('2'); //eslint-disable-line no-console
     } else {
       postStore.getAuthorPosts(currentAuthorId);
-      console.log('3'); //eslint-disable-line no-console
     }
-    console.log('4'); //eslint-disable-line no-console
-    console.log('5' + currentAuthorId); //eslint-disable-line no-console
     setLoading(false);
   };
-
-  // useLayoutEffect(() => {
-  //   if (openPostId) {
-  //     setPostId(openPostId);
-  //     setVisibility(true);
-  //   }
-  //   loadPosts();
-
-  //   loadGithubEvents();
-  // }, [authStore.user, props.props.location]);
 
   useEffect(() => {
     if (openPostId) {
@@ -80,7 +65,6 @@ const PostsStream = ({
     }
     loadPosts();
     loadGithubEvents();
-    console.log('1'); //eslint-disable-line no-console
   }, [authStore.user, props.props.location]);
 
   let loadGithubEvents = async () => {

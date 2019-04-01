@@ -52,11 +52,11 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
     setVisible(!visible);
   };
 
-  let redirect = async e => {
+  let redirect = e => {
     if (e.key === 'home') {
-      await navigate('/');
+      navigate('/');
     } else if (e.key === 'profile') {
-      await navigate(`/${authStore.userPk}`);
+      navigate(`/${authStore.userPk}`);
     }
   };
 
@@ -88,7 +88,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
           <img
             src={logo}
             alt="logo"
-            onClick={async () => await navigate('/')}
+            onClick={() => navigate('/')}
             css={css`
               max-height: 35px;
               height: 72px;
