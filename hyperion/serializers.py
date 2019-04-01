@@ -174,6 +174,15 @@ class PostSerializer(serializers.ModelSerializer):
         post.save()
         return post
 
+    def update(self, instance, validated_data):
+        visible_to_data = validated_data.pop("visible_to", [])
+        post = super().update(instance, validated_data)
+        visible_to = [
+            User.objects.get(username=username).profile.pk for username in visible_to_data
+        ]
+        post.visible_to.set(visible_to)
+        return post
+
 
 class FriendRequestSerializer(serializers.ModelSerializer):
     # https://stackoverflow.com/questions/30560470/context-in-nested-serializers-django-rest-framework

@@ -323,6 +323,39 @@ class PostViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+    @action(detail=True, methods=["PUT"], name="partial_update")
+    def partial_update(self, request, post_id):
+        """
+        PUT /posts/:id
+        """
+        # request.data = request.data.copy()
+        body = request.data
+        query = body.get("query", None)
+        post_data = body.get("post", {})
+        if query != "updatePost":
+            return Response(data={"success": False, "msg": "Unknown query"}, status=400)
+        post = get_object_or_404(Post, pk=post_id)
+        if request.user.profile.id != post.author.id:
+            return Response(
+                data={"success": False, "msg": "current user is not able to update this post"},
+                status=405,
+            )
+        if post_id.isdigit():
+            # override partial_update
+            serializer = PostSerializer(
+                instance=post, data=post_data, partial=True, context={"request": request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"query": "updatePost", "count": 1, "posts": serializer.data})
+            else:
+                return Response(data={"success": False, "msg": serializer.errors}, status=400)
+        else:
+            return Response(
+                data={"success": False, "msg": "Method is not allowed for foreign posts"},
+                status=405,
+            )
+
     def destroy(self, request, post_id, *args, **kwargs):
         if post_id.isdigit():
             pk = int(post_id)
