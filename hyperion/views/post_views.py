@@ -112,8 +112,11 @@ class PostViewSet(viewsets.ModelViewSet):
                     print("Failed to get foreign posts")
                 if response.status_code == 200:
                     body = response.json()
-                    posts = body.get("posts", [])
-                    foreign_posts += posts
+                    if isinstance(body, dict):
+                        posts = body.get("posts", [])
+                        foreign_posts += posts
+                    else:
+                        print(server.url)
         else:
             # foreign user
             # grab request user information from request header
