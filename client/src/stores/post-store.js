@@ -23,7 +23,7 @@ class PostsStore extends Container {
    * @param {bool} cached - Whether or not to re-fetch posts from remote
    */
   getAll = async (cached = true) => {
-    let { cacheId } = this.status;
+    let { cacheId } = this.state;
     if (cached && this.state.posts.size > 0 && cacheId === 0) return;
     let { posts: postsList, count } = await API.Post.fetchAll();
     if (count > 0) {
@@ -55,7 +55,7 @@ class PostsStore extends Container {
   };
 
   getAuthorPosts = async (cached = true, authorID) => {
-    let { cacheId } = this.status;
+    let { cacheId } = this.state;
     if (cached && this.state.posts.size > 0 && cacheId === authorID) return;
     let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorID);
     if (count > 0) {
