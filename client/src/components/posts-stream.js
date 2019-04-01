@@ -50,6 +50,7 @@ const PostsStream = ({
 
   let loadPosts = async () => {
     setLoading(true);
+    await authStore.getUserInfo(false);
     if (currentAuthorId === null) {
       await postStore.getAll();
     } else {
