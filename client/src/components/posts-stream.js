@@ -51,13 +51,13 @@ const PostsStream = ({
   let loadPosts = async () => {
     console.log(props.props.location); //eslint-disable-line no-console
     setLoading(true);
-    // if (currentAuthorId === null) {
-    await postStore.getAll();
-    console.log('2'); //eslint-disable-line no-console
-    // } else {
-    // await postStore.getAuthorPosts(currentAuthorId);
-    console.log('3'); //eslint-disable-line no-console
-    // }
+    if (currentAuthorId === null) {
+      await postStore.getAll();
+      console.log('2'); //eslint-disable-line no-console
+    } else {
+      await postStore.getAuthorPosts(currentAuthorId);
+      console.log('3'); //eslint-disable-line no-console
+    }
     console.log('4'); //eslint-disable-line no-console
     console.log('5' + currentAuthorId); //eslint-disable-line no-console
     setLoading(false);
