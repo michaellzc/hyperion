@@ -53,7 +53,7 @@ const PostsStream = ({
     if (currentAuthorId === null) {
       await postStore.getAll();
     } else {
-      await postStore.getAll();
+      await postStore.getAuthorPosts(currentAuthorId);
     }
     setLoading(false);
   };

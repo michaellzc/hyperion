@@ -8,7 +8,6 @@ import PostsStream from '../components/posts-stream';
 
 const TabPane = Tabs.TabPane;
 
-// const AuthorProfilePage = ({ authorId, postId, ...props }) => {
 const AuthorProfilePage = ({ authorId, ...props }) => {
   return (
     <AppLayout className="user-profile-page">
