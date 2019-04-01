@@ -1,4 +1,4 @@
-import React, { useState, useRef, useReducer, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import PluginEditor from 'draft-js-plugins-editor';
 import createMarkdownPlugin from 'draft-js-markdown-plugin';
@@ -20,7 +20,7 @@ import {
   Select,
   Checkbox,
 } from 'antd';
-import { PostStore } from '../stores';
+import { PostStore, UIStore } from '../stores';
 import { inject, colors } from '../utils';
 import * as API from '../api';
 import 'draft-js-static-toolbar-plugin/lib/plugin.css';
@@ -104,27 +104,6 @@ let visibilityOptions = [
   },
 ];
 
-let reducer = (state, action) => {
-  switch (action.type) {
-    case 'title':
-      return { ...state, title: action.text };
-    case 'description':
-      return { ...state, description: action.text };
-    case 'content':
-      return { ...state, content: action.text };
-    case 'visibility':
-      return { ...state, visibility: action.text };
-    case 'visibleTo':
-      return { ...state, visibleTo: action.text };
-    case 'unlisted':
-      return { ...state, unlisted: action.checked };
-    case 'reset':
-      return initialState;
-    default:
-      throw new Error();
-  }
-};
-
 let staticToolbarPlugin = createToolbarPlugin();
 let markdownPlugin = createMarkdownPlugin();
 let plugins = [staticToolbarPlugin, markdownPlugin];
@@ -139,24 +118,19 @@ let UploadButton = (
   </div>
 );
 
-let initialState = {
-  title: null,
-  description: null,
-  content: null,
-  visibility: 'PRIVATE',
-  visibleTo: [],
-  unlisted: false,
-};
-
-const PostBox = ({ stores: [postStore] }) => {
-  let [isVisisble, setVisibility] = useState(false);
+const PostBox = ({ stores: [postStore, uiStore] }) => {
   let [tabKey, setTabKey] = useState('text');
   let [fileList, setFileList] = useState([]);
   let [previewVisible, setPreviewVisible] = useState(false);
   let [previewImage, setPreviewImage] = useState('');
-  let [editorState, setEditorState] = useState(EditorState.createEmpty());
   let [userList, setUserList] = useState([]);
-  let [state, dispatch] = useReducer(reducer, initialState);
+
+  let {
+    isPostBoxVisible: isVisisble,
+    editingPost: state,
+    editorState,
+  } = uiStore.state;
+  let { updateEditingPost: dispatch, setEditorState } = uiStore;
 
   let editorRef = useRef(null);
 
@@ -170,7 +144,8 @@ const PostBox = ({ stores: [postStore] }) => {
   }, []);
 
   let toggleModal = () => {
-    setVisibility(!isVisisble);
+    dispatch({ type: 'reset' });
+    uiStore.togglePostBox();
   };
 
   let onEditorChange = editorState => {
@@ -202,16 +177,22 @@ const PostBox = ({ stores: [postStore] }) => {
         contentType = `${file.type};base64`;
         content = fileList[0].thumbUrl;
       }
-      await postStore.create({
-        title,
-        description,
-        content,
-        contentType,
-        visibility,
-        visibleTo,
-        unlisted,
-      });
-      postStore.getAll();
+      if (state.id) {
+        // update existed post
+        await API.Post.update(state.id, state);
+      } else {
+        // create new post
+        await postStore.create({
+          title,
+          description,
+          content,
+          contentType,
+          visibility,
+          visibleTo,
+          unlisted,
+        });
+      }
+      postStore.getAll(false);
       dispatch({ type: 'reset' });
       setEditorState(
         EditorState.push(editorState, ContentState.createFromText(''))
@@ -248,7 +229,7 @@ const PostBox = ({ stores: [postStore] }) => {
           onCancel={toggleModal}
           maskClosable={false}
           onOk={onPost}
-          okText="Post"
+          okText={state.id ? 'Update' : 'Post'}
         >
           <Radio.Group
             name="visibility"
@@ -374,4 +355,4 @@ const PostBox = ({ stores: [postStore] }) => {
   );
 };
 
-export default inject([PostStore])(PostBox);
+export default inject([PostStore, UIStore])(PostBox);

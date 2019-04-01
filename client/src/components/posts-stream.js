@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import { message, Icon, Tooltip, Dropdown, Menu, Empty, Spin } from 'antd';
-import { PostStore, AuthStore } from '../stores';
+import { PostStore, AuthStore, UIStore } from '../stores';
 import { inject } from '../utils';
 import PostCard from './post-card';
 import TextCardContent from './text-card-content';
@@ -40,7 +40,7 @@ const Loading = () => (
 
 const PostsStream = ({
   postId: openPostId = null,
-  stores: [postStore, authStore],
+  stores: [postStore, authStore, uiStore],
 }) => {
   let [isVisible, setVisibility] = useState(false);
   let [postId, setPostId] = useState(null);
@@ -110,6 +110,14 @@ const PostsStream = ({
     e.stopPropagation();
     if (key === 'delete') {
       await postStore.delete(postId);
+    } else if (key === 'edit') {
+      let post = await postStore.state.posts.get(postId);
+      if (post.contentType.startsWith('image')) {
+        message.warn('Image post cannot be edited');
+      } else {
+        uiStore.setEditingPost(post);
+        uiStore.togglePostBox();
+      }
     }
   };
 
@@ -146,7 +154,15 @@ const PostsStream = ({
                       <Dropdown
                         overlay={
                           <Menu onClick={things => handleMenuClick(id, things)}>
-                            <Menu.Item key="delete">Delete Post</Menu.Item>
+                            <Menu.Item key="edit">
+                              <Icon type="edit" />
+                              Edit
+                            </Menu.Item>
+                            <Menu.Divider />
+                            <Menu.Item key="delete">
+                              <Icon type="delete" />
+                              Delete
+                            </Menu.Item>
                           </Menu>
                         }
                         onClick={e => e.stopPropagation()}
@@ -205,4 +221,4 @@ const PostsStream = ({
   );
 };
 
-export default inject([PostStore, AuthStore])(PostsStream);
+export default inject([PostStore, AuthStore, UIStore])(PostsStream);
