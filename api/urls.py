@@ -58,7 +58,10 @@ urlpatterns = [
     path("posts", post_views.PostViewSet.as_view({"get": "list"})),
     path(
         "posts/<path:post_id>",
-        post_views.PostViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
+        post_views.PostViewSet.as_view({
+            "get": "retrieve",
+            "delete": "destroy",
+            "put": "partial_update"}),
     ),
     url(
         r"^author/(?P<pk>.*)/posts$", post_views.PostViewSet.as_view({"get": "get_author_id_posts"})
