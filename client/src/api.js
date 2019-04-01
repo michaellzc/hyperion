@@ -32,6 +32,7 @@ const Post = {
     }),
   getGithubEvents: username =>
     request.raw('GET', `https://api.github.com/users/${username}/events`),
+  getPostsByAuthorId: authorId => request.get(`/author/${authorId}/posts`),
 };
 
 const Author = {

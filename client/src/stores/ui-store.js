@@ -14,6 +14,8 @@ let initialState = {
 class UIStore extends Container {
   state = {
     isPostBoxVisible: false,
+    isPostOverlayVisible: false,
+    currentOpenedPostId: null,
     editingPost: initialState,
     editorState: EditorState.createEmpty(),
   };
@@ -21,6 +23,20 @@ class UIStore extends Container {
   togglePostBox = () => {
     let { isPostBoxVisible } = this.state;
     this.setState({ isPostBoxVisible: !isPostBoxVisible });
+  };
+
+  openPostOverlay = postId => {
+    this.setState({
+      isPostOverlayVisible: true,
+      currentOpenedPostId: postId,
+    });
+  };
+
+  closePostOverlay = () => {
+    this.setState({
+      isPostOverlayVisible: false,
+      currentOpenedPostId: null,
+    });
   };
 
   setEditingPost = post => {

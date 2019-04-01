@@ -29,8 +29,8 @@
       if ('%REACT_APP_NETLIFY%' === 'true') {
         // Netlify preview
         window.OUR_HOSTNAME = [
-          `${protocol}//${host}`,
           'https://cmput404-front.herokuapp.com',
+          `${protocol}//${host}`,
         ];
       } else if ('%NODE_ENV%' === 'production') {
         // Heroku production
