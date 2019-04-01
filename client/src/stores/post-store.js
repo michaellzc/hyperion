@@ -52,43 +52,6 @@ class PostsStore extends Container {
     }
   };
 
-  /**
-   * fetch all author's posts viewable by current user
-   * @param {int} authorId
-   */
-
-  getAuthorPosts = async authorId => {
-    // if (cached && this.state.posts.size > 0) return;
-    let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorId);
-    if (count > 0) {
-      let { posts } = this.state;
-      posts.clear();
-      postsList = camelcaseKeys(postsList, { deep: true });
-      postsList.forEach(post => {
-        if (!window.OUR_HOSTNAME.includes(post.author.host)) {
-          // foreign post
-          // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
-          // then escape post.id and post.author.id to play well in actual URL.
-          post = {
-            ...post,
-            id: encodeURIComponent(
-              normalize(`${post.author.host}/posts/${post.id}`)
-            ),
-            author: {
-              ...post.author,
-              id: post.author.id,
-            },
-          };
-          posts.set(post.id, post);
-        } else {
-          // local post
-          posts.set(post.id, post);
-        }
-      });
-      this.setState({ posts });
-    }
-  };
-
   getGithubStream = async username => {
     let events = await API.Post.getGithubEvents(username);
     events = camelcaseKeys(events, { deep: true });
