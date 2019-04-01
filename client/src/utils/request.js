@@ -50,6 +50,7 @@ let requests = {
         ...opts.headers,
       },
       mode: 'no-cors',
+      credentials: 'include',
     }).then(errorHandler);
   },
   post: (url, data, opts = {}) => {
