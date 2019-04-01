@@ -112,8 +112,11 @@ class PostViewSet(viewsets.ModelViewSet):
                     print("Failed to get foreign posts")
                 if response.status_code == 200:
                     body = response.json()
-                    posts = body.get("posts", [])
-                    foreign_posts += posts
+                    if isinstance(body, dict):
+                        posts = body.get("posts", [])
+                        foreign_posts += posts
+                    else:
+                        print(server.url)
         else:
             # foreign user
             # grab request user information from request header
@@ -325,18 +328,15 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["PUT"], name="partial_update")
     def partial_update(self, request, post_id):
-        '''
+        """
         PUT /posts/:id
-        '''
+        """
         # request.data = request.data.copy()
         body = request.data
         query = body.get("query", None)
         post_data = body.get("post", {})
         if query != "updatePost":
-            return Response(
-                data={"success": False, "msg": "Unknown query"},
-                status=400,
-            )
+            return Response(data={"success": False, "msg": "Unknown query"}, status=400)
         post = get_object_or_404(Post, pk=post_id)
         if request.user.profile.id != post.author.id:
             return Response(
@@ -345,15 +345,14 @@ class PostViewSet(viewsets.ModelViewSet):
             )
         if post_id.isdigit():
             # override partial_update
-            serializer = PostSerializer(instance=post, data=post_data, partial=True, context={"request": request})
+            serializer = PostSerializer(
+                instance=post, data=post_data, partial=True, context={"request": request}
+            )
             if serializer.is_valid():
                 serializer.save()
                 return Response({"query": "updatePost", "count": 1, "posts": serializer.data})
             else:
-                return Response(
-                    data={"success": False, "msg": serializer.errors},
-                    status=400,
-                )
+                return Response(data={"success": False, "msg": serializer.errors}, status=400)
         else:
             return Response(
                 data={"success": False, "msg": "Method is not allowed for foreign posts"},
