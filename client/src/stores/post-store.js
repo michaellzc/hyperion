@@ -63,7 +63,10 @@ class PostsStore extends Container {
     // clean state
     // if (cached && this.state.posts.size > 0) return;
     // setTimeout({}, 5000);
+    // console.log(typeof(JSON.parse(await API.Post.fetchAuthorPosts(authorId))));
+    // let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorId);
     let { posts: postsList, count } = await API.Post.fetchAuthorPosts(authorId);
+    // console.log(typeof(await API.Post.fetchAuthorPosts(authorId)));
     // let { posts: postsList, count } = await API.Post.fetchAll();
     if (count > 0) {
       let { posts } = this.state;
