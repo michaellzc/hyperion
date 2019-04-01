@@ -49,6 +49,7 @@ let requests = {
         ...headers,
         ...opts.headers,
       },
+      mode: 'cors',
     }).then(errorHandler);
   },
   post: (url, data, opts = {}) => {
