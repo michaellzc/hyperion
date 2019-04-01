@@ -54,9 +54,13 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
 
   let redirect = e => {
     if (e.key === 'home') {
-      navigate('/');
+      Promise.resolve().then(() => {
+        navigate('/');
+      });
     } else if (e.key === 'profile') {
-      navigate(`/${authStore.userPk}`);
+      Promise.resolve().then(() => {
+        navigate(`/${authStore.userPk}`);
+      });
     }
   };
 
