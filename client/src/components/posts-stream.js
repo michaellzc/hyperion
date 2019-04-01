@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useLayoutEffect, useState } from 'react';
 import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import { message, Icon, Tooltip, Dropdown, Menu, Empty, Spin } from 'antd';
@@ -58,7 +58,7 @@ const PostsStream = ({
     setLoading(false);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (openPostId) {
       setPostId(openPostId);
       setVisibility(true);
