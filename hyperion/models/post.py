@@ -41,7 +41,7 @@ class Post(models.Model):
     last_modify_date = models.DateTimeField(default=timezone.now)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default="text/plain")
     visibility = models.CharField(max_length=20, choices=CHOICES, default="PUBLIC")
-    visible_to = ArrayField(models.CharField(max_length=500), blank=True, default = list)
+    visible_to = ArrayField(models.CharField(max_length=500), blank=True, default=list)
     description = models.TextField(null=True, blank=True)
     unlisted = models.BooleanField(default=False)
 
@@ -103,7 +103,7 @@ class Post(models.Model):
 
     def get_visible_to(self):
         return self.comments.all()
-        
+
     def get_source(self):
         host_name = settings.HYPERION_HOSTNAME
         return "{}/posts/{}".format(host_name, self.id)

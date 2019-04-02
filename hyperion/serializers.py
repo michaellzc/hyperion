@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User, Group
 from django.conf import settings
 from rest_framework import serializers
-from rest_framework.fields import ListField
 
 from hyperion.models import *
 
