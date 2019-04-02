@@ -41,6 +41,7 @@ class PostViewSet(viewsets.ModelViewSet):
         if post_query == "createPost" and post_data:
             post_data["visible_to"] = post_data.get("visible_to", [])
             serializer = PostSerializer(data=post_data, context={"request": request})
+            serializer.is_valid()
             if serializer.is_valid():
                 serializer.save()
                 return Response(

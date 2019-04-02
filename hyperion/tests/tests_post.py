@@ -47,4 +47,6 @@ class PostTestCase(TestCase):
             author=self.u_1.profile, title="1", content="test1")
         p.set_private_to_host_friend()
         self.assertEquals(p.visibility, 'PRIVATE')
-        self.assertEquals(len(p.visible_to.all()), 2)
+        self.assertEquals(len(p.visible_to), 2)
+
+                
