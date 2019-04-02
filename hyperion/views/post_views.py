@@ -407,7 +407,8 @@ def get_request_user_foaf_post(request_user_full_id):
         resp = ForeignServerHttpUtils.get(foreign_server, "/author/" + request_user_id + "/friends")
         if resp.status_code != 200:
             raise Exception("failed getting the friend_list")
-        request_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+        request_user_friend_list = resp.json()["authors"]
+        # request_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
         # print(request_user_friend_list)
 
         local_users = UserProfile.objects.filter(host=None)
@@ -443,7 +444,8 @@ def get_request_user_foaf_post_belong_local_author(request_user_full_id, local_a
         resp = ForeignServerHttpUtils.get(foreign_server, "/author/" + request_user_id + "/friends")
         if resp.status_code != 200:
             raise Exception("failed getting the friend_list")
-        request_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+        request_user_friend_list = resp.json()["authors"]
+        # request_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
         # print(request_user_friend_list)
 
         local_author_friend_list = list(

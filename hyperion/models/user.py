@@ -156,7 +156,9 @@ class UserProfile(models.Model):
             )
             if resp.status_code != 200:
                 raise Exception("failed getting the friend_list")
-            remote_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+            remote_user_friend_list = resp.json()["authors"]
+            # remote_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+            # print(remote_user_friend_list)
 
             own_friend_list = list(self.get_friends().values_list("url", flat=True))
             intersection_friends = list(set(remote_user_friend_list) & set(own_friend_list))
