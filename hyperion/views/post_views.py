@@ -208,6 +208,7 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             # foreign user
             # grab request user information from request header
+            pk = User.objects.get(pk=pk).profile.id
             target_posts = self.queryset.filter(author=pk)
             try:
                 foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
