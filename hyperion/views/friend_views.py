@@ -26,6 +26,11 @@ def _get_error_response(query_name, is_success, message):
 @permission_classes((permissions.IsAuthenticated, permissions.AllowAny))
 # don't know how to vendor error message to default error raise
 def friend_list(request, author_id):
+    is_local = False
+    try:
+        request.user.server
+    except User.server.RelatedObjectDoesNotExist:  # pylint: disable=no-member
+        is_local = True
 
     if request.method == "GET":
         author_profile = User.objects.get(id=author_id).profile
@@ -35,8 +40,17 @@ def friend_list(request, author_id):
         serializer = UserProfileSerializer(
             friends, many=True, context={"fields": ["id", "host", "display_name", "url"]}
         )
-        content = {"query": "friends", "count": len(friends), "authors": serializer.data}
-        return Response(content, content_type="application/json", status=status.HTTP_200_OK)
+
+        if is_local:
+            content = {"query": "friends", "count": len(friends), "authors": serializer.data}
+            return Response(content, content_type="application/json", status=status.HTTP_200_OK)
+        else:
+            content = {
+                "query": "friends",
+                "count": len(friends),
+                "authors": [author["id"] for author in serializer.data],
+            }
+            return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
     elif request.method == "POST":
         try:
@@ -57,8 +71,20 @@ def friend_list(request, author_id):
             result_friend_list = list(set(author_friend_list) & set(pending_friend_list))
             # print(result_friend_list)
 
-            content = {"query": "friends", "author": body["author"], "authors": result_friend_list}
-            return Response(content, content_type="application/json", status=status.HTTP_200_OK)
+            if is_local:
+                content = {
+                    "query": "friends",
+                    "author": body["author"],
+                    "authors": result_friend_list,
+                }
+                return Response(content, content_type="application/json", status=status.HTTP_200_OK)
+            else:
+                content = {
+                    "query": "friends",
+                    "count": len(friends),
+                    "authors": [author["id"] for author in result_friend_list],
+                }
+                return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response(
