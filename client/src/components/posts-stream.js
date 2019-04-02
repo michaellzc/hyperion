@@ -69,7 +69,6 @@ const PostsStream = ({
     if (openPostId) {
       setPostId(openPostId);
       setVisibility(true);
-      // uiStore.openPostOverlay(openPostId);
     }
     loadPosts();
   }, [openPostId]);
@@ -77,16 +76,6 @@ const PostsStream = ({
   useEffect(() => {
     loadGithubEvents();
   }, [authStore.user]);
-
-  // let loadAuthorPosts = async authorId => {
-  //   setLoading(true);
-  //   await postStore.fetchAuthorPosts(authorId);
-  //   setLoading(false);
-  // };
-
-  // useEffect(() => {
-  //   if (authorId) loadAuthorPosts(authorId);
-  // }, [authorId]);
 
   // TODO - implement reply
   let handleReply = async event => {
@@ -114,11 +103,6 @@ const PostsStream = ({
   let handleOpenPost = id => {
     setVisibility(true);
     navigate(`/posts/${id}`);
-    // if (authorId) {
-    // uiStore.openPostOverlay(id);
-    // } else {
-    // navigate(`/posts/${id}`);
-    // }
   };
 
   let toggleOverlay = () => {
@@ -142,9 +126,6 @@ const PostsStream = ({
   };
 
   let postsList = postStore.posts;
-  // if (authorId) {
-  //   postsList = postStore.getAuthorPost(authorId);
-  // }
   let posts =
     postsList.length > 0 ? (
       postsList.map(

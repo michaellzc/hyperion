@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { useState } from 'react';
 import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
@@ -82,60 +82,44 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
   );
 
   return (
-    <Fragment>
-      {/* <Location>
-        {({ location: { pathname } }) => (
-          <PostOverlay
-            onCancel={() => {
-              if (pathname.startsWith('/posts')) {
-                uiStore.closePostOverlay();
-                navigate('/');
-              } else {
-                uiStore.closePostOverlay();
+    <CustomLayout {...props}>
+      {header ? (
+        <CustomHeader>
+          <img
+            src={logo}
+            alt="logo"
+            onClick={() => navigate('/')}
+            css={css`
+              max-height: 35px;
+              height: 72px;
+              line-height: 72px;
+              cursor: pointer;
+              @media (max-width: 567px) {
+                display: none;
               }
-            }}
+            `}
           />
-        )}
-      </Location> */}
-      <CustomLayout {...props}>
-        {header ? (
-          <CustomHeader>
-            <img
-              src={logo}
-              alt="logo"
-              onClick={() => navigate('/')}
-              css={css`
-                max-height: 35px;
-                height: 72px;
-                line-height: 72px;
-                cursor: pointer;
-                @media (max-width: 567px) {
-                  display: none;
-                }
-              `}
-            />
-            <RightContainer>
-              <Notification />
-              <Dropdown overlay={menu}>
-                <span className="action account">
-                  <Avatar
-                    className="avatar"
-                    icon="user"
-                    style={{
-                      margin: '20px 8px 20px 0',
-                    }}
-                  />
-                  <span className="name">{authStore.user.displayName}</span>
-                </span>
-              </Dropdown>
-              <ProfileBox visible={visible} toggleModal={toggleProfile} />
-            </RightContainer>
-          </CustomHeader>
-        ) : null}
-        <CustomContent>{children}</CustomContent>
-        <CustomFooter>Copyright © 2019 CMPUT404W19T6</CustomFooter>
-      </CustomLayout>
-    </Fragment>
+          <RightContainer>
+            <Notification />
+            <Dropdown overlay={menu}>
+              <span className="action account">
+                <Avatar
+                  className="avatar"
+                  icon="user"
+                  style={{
+                    margin: '20px 8px 20px 0',
+                  }}
+                />
+                <span className="name">{authStore.user.displayName}</span>
+              </span>
+            </Dropdown>
+            <ProfileBox visible={visible} toggleModal={toggleProfile} />
+          </RightContainer>
+        </CustomHeader>
+      ) : null}
+      <CustomContent>{children}</CustomContent>
+      <CustomFooter>Copyright © 2019 CMPUT404W19T6</CustomFooter>
+    </CustomLayout>
   );
 };
 
