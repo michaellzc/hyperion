@@ -1,4 +1,5 @@
-# pylint: disable=arguments-differ,unused-argument
+# pylint: disable=arguments-differ,unused-argument, broad-except, len-as-condition
+from urllib.parse import urlparse
 
 from django.db import models
 from django.apps import apps
@@ -9,6 +10,8 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 
 from hyperion.errors import FriendAlreadyExist
+from hyperion.models.server import Server
+from hyperion.utils import ForeignServerHttpUtils
 
 
 class UserProfile(models.Model):
@@ -137,6 +140,34 @@ class UserProfile(models.Model):
         query = FriendRequest.objects.get(from_profile=from_profile, to_profile=self)
         if query:
             query.delete()
+
+    def check_remote_foaf_relationship(self, remote_user_full_id):
+        try:
+            # find the server first
+            remote_user_host_name = "{uri.scheme}://{uri.netloc}".format(
+                uri=urlparse(remote_user_full_id)
+            )
+            foreign_server = Server.objects.get(url=remote_user_host_name)
+            remote_user_id = remote_user_full_id.split("/author/")[-1]
+
+            # fetch friendlist
+            resp = ForeignServerHttpUtils.get(
+                foreign_server, "/author/" + remote_user_id + "/friends"
+            )
+            if resp.status_code != 200:
+                raise Exception("failed getting the friend_list")
+            remote_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+
+            own_friend_list = list(self.get_friends().values_list("url", flat=True))
+            intersection_friends = list(set(remote_user_friend_list) & set(own_friend_list))
+
+            return len(intersection_friends) > 0
+
+        except Exception as some_error:
+            # print(remote_user_full_id)
+            # print(remote_user_host_name)
+            print(some_error, "error in check_remote_foaf_relationship")
+            return False
 
     def save(self, *args, **kwargs):
         """

@@ -290,3 +290,13 @@ class PostViewTestCase(TestCase):
     #     # )
     #     # print(response.status_code)
     #     # print(response.data)
+    #
+    #     # test userprofile check_remote_foaf_relationship
+    #     is_foaf_1 = u1.profile.check_remote_foaf_relationship(
+    #         remote_user_full_id="http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471"
+    #     )
+    #     is_foaf_2 = u1.profile.check_remote_foaf_relationship(
+    #         remote_user_full_id="http://127.0.0.1:5000/author/1d698d25ff008f75as453c120f581471"
+    #     )
+    #     self.assertTrue(is_foaf_1)
+    #     self.assertFalse(is_foaf_2)

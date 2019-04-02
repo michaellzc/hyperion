@@ -313,9 +313,13 @@ class PostViewSet(viewsets.ModelViewSet):
             try:
                 # grab request user information from request header
                 foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
+
+                # check if it is remote relationsip
+                is_foaf = post_obj.author.check_remote_foaf_relationship(foreign_user_url)
+
                 # foreign user in our db
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
-                if post_obj.is_accessible(post_obj, foreign_user_profile):
+                if post_obj.is_accessible(post_obj, foreign_user_profile) or is_foaf:
                     serializer = PostSerializer(post_obj)
                     return Response({"query": "post", "count": 1, "posts": [serializer.data]})
                 else:
@@ -325,7 +329,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     )
             # foreign user is not in our db
             except UserProfile.DoesNotExist:
-                if post_obj.visibility == "PUBLIC":
+                if post_obj.visibility == "PUBLIC" or is_foaf:
                     serializer = PostSerializer(post_obj)
                     return Response({"query": "post", "post": serializer.data})
                 else:
