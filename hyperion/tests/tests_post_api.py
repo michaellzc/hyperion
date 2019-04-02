@@ -5,6 +5,7 @@ from hyperion.serializers import PostSerializer, UserProfileSerializer
 from hyperion.views import post_views
 from django.test import TestCase, Client
 from django.conf import settings
+import requests
 
 # python manage.py test -v=2 hyperion.tests.tests_post_api
 
@@ -149,3 +150,143 @@ class PostViewTestCase(TestCase):
         response = self.client.delete("/posts/{}".format(post.id))
         self.assertEqual(response.status_code, 204)
         self.assertEqual(len(Post.objects.all()), 1)
+
+    # def test_get_remote_foaf(self):
+    #     # only can be test if local server is running ("http://127.0.0.1:5000")
+    #     # if you need script of local server, please contact me (RAY)
+    #     # simulate remote server ask the foaf post
+    #
+    #     # setup user
+    #     credentials_remote_server = base64.b64encode(
+    #         "{}:{}".format("RemoteServerB", "RemoteServerB").encode()
+    #     ).decode()
+    #     remote_client = Client(HTTP_AUTHORIZATION="Basic {}".format(credentials_remote_server))
+    #
+    #     # logined remote server s1
+    #     s1_represent = User.objects.create(username="RemoteServerA")
+    #     s1_represent.set_password("RemoteServerA")
+    #     s1_represent.profile.url = "https://cmput404-front-A.herokuapp.com"
+    #     s1_represent.save()
+    #
+    #     s1 = Server.objects.create(
+    #         author=s1_represent,
+    #         foreign_db_username="s1",
+    #         foreign_db_password="111",
+    #         url="https://cmput404-front-S1.herokuapp.com",
+    #         endpoint="https://cmput404-front-S1.herokuapp.com/api",
+    #     )
+    #
+    #     # logined remote server s2
+    #     s2_represent = User.objects.create(username="RemoteServerB")
+    #     s2_represent.set_password("RemoteServerB")
+    #     s2_represent.profile.url = "http://127.0.0.1:5000"
+    #     s2_represent.save()
+    #
+    #     s2 = Server.objects.create(
+    #         author=s2_represent,
+    #         foreign_db_username="s2",
+    #         foreign_db_password="222",
+    #         url="http://127.0.0.1:5000",
+    #         endpoint="http://127.0.0.1:5000/api",
+    #     )
+    #
+    #     # local user u1
+    #     u1 = User.objects.create_user(username="testUser", first_name="test", last_name="user")
+    #     u1.set_password("test")
+    #     u1.profile.display_name = "testUser"
+    #     u1.profile.url = u1.profile.get_full_id()
+    #     u1.save()
+    #
+    #     # local user u2
+    #     u2 = User.objects.create_user(username="6zhi", first_name="zhi", last_name="li")
+    #     u2.profile.display_name = "zhili"
+    #     u2.profile.url = u2.profile.get_full_id()
+    #     u2.save()
+    #
+    #     # remote users in Server S1
+    #     s1_u1 = UserProfile.objects.create(
+    #         display_name="haotian",
+    #         host=s1,
+    #         url="https://cmput404-front-S1.herokuapp.com/author/1d698d25ff008f7538453c120f581471",
+    #     )
+    #
+    #     s1_u2 = UserProfile.objects.create(
+    #         display_name="aaa",
+    #         host=s1,
+    #         url="https://cmput404-front-S1.herokuapp.com/author/sdfsdfsdfsdfwerfsdfs342sdfgdsfgds",
+    #     )
+    #
+    #     # remote users in Server S2
+    #     s2_u1 = UserProfile.objects.create(
+    #         display_name="localhost_test",
+    #         host=s2,
+    #         url="http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471",
+    #     )
+    #
+    #     Friend.objects.create(profile1=u1.profile, profile2=u2.profile)
+    #     Friend.objects.create(profile1=u1.profile, profile2=s1_u1)
+    #     Friend.objects.create(profile1=u2.profile, profile2=s1_u2)
+    #     # Friend.objects.create(profile1=s1_u1, profile2=s2_u1)
+    #     # Friend.objects.create(profile1=s1_u2, profile2=s2_u1)
+    #
+    #     foaf_post_1 = Post.objects.create(
+    #         author=u1.profile,
+    #         title="foaf test post 1",
+    #         visibility="FOAF",
+    #         unlisted=False
+    #     )
+    #
+    #     foaf_post_2 = Post.objects.create(
+    #         author=u1.profile,
+    #         title="foaf test post 2",
+    #         visibility="FOAF",
+    #         unlisted=False
+    #     )
+    #
+    #     foaf_post_3 = Post.objects.create(
+    #         author=u2.profile,
+    #         title="foaf test post 3",
+    #         visibility="FOAF",
+    #         unlisted=False
+    #     )
+    #
+    #     post_list_1 = post_views.get_request_user_foaf_post_belong_local_author(
+    #         request_user_full_id="http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471",
+    #         local_author_profile_id=u1.profile.id
+    #     )
+    #
+    #     self.assertEqual(len(post_list_1), 2)
+    #     # print([post.title for post in post_list])
+    #     self.assertTrue(foaf_post_1 in post_list_1)
+    #     self.assertTrue(foaf_post_2 in post_list_1)
+    #
+    #     post_list_2 = post_views.get_request_user_foaf_post(
+    #         request_user_full_id="http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471"
+    #     )
+    #     self.assertEqual(len(post_list_2), 3)
+    #     self.assertTrue(foaf_post_1 in post_list_2)
+    #     self.assertTrue(foaf_post_2 in post_list_2)
+    #     self.assertTrue(foaf_post_3 in post_list_2)
+    #
+    #     # if need test here you have to change little bit code in post review
+    #     # add foreign_user_url = request.META["headers"]["X-Request-User-ID"]  # RAY TEST
+    #
+    #     # headers = {"X-Request-User-ID": "http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471"}
+    #     # response = remote_client.get(
+    #     #     "/author/{}/posts".format(u1.id),
+    #     #     headers=headers,
+    #     #     auth=('RemoteServerB', 'RemoteServerB')
+    #     # )
+    #     #
+    #     #
+    #     # print(response.status_code)
+    #     # print(response.data)
+    #
+    #     # headers = {"X-Request-User-ID": "http://127.0.0.1:5000/author/1d698d25ff008f7538453c120f581471"}
+    #     # response = remote_client.get(
+    #     #     "/author/posts",
+    #     #     headers=headers,
+    #     #     auth=('RemoteServerB', 'RemoteServerB')
+    #     # )
+    #     # print(response.status_code)
+    #     # print(response.data)
