@@ -35,7 +35,7 @@ def friend_list(request, author_id):
         serializer = UserProfileSerializer(
             friends, many=True, context={"fields": ["id", "host", "display_name", "url"]}
         )
-        content = {"query": "friends", "count": len(friends), "author": serializer.data}
+        content = {"query": "friends", "count": len(friends), "authors": serializer.data}
         return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
     elif request.method == "POST":
