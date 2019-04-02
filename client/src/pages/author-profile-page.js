@@ -4,6 +4,7 @@ import { Row, Col, Tabs } from 'antd';
 import AppLayout from '../components/app-layout';
 import FriendList from '../components/friend-list';
 import ProfileCard from '../components/profile-card';
+import AuthorPosts from '../components/author-posts';
 
 const TabPane = Tabs.TabPane;
 
@@ -21,7 +22,9 @@ const AuthorProfilePage = ({ authorId, ...props }) => {
         </Col>
         <Col xs={20} sm={15} md={14} lg={13} xl={11} xxl={10}>
           <Tabs type="card">
-            <TabPane tab="Posts" key="1" />
+            <TabPane tab="Posts" key="1">
+              <AuthorPosts authorId={authorId} />
+            </TabPane>
             <TabPane tab="Friends" key="2">
               <FriendList authorId={authorId} />
             </TabPane>

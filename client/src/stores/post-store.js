@@ -17,6 +17,15 @@ class PostsStore extends Container {
     );
   }
 
+  getAuthorPost(authorId) {
+    if (!isNaN(authorId)) {
+      authorId = `${window.OUR_HOSTNAME[0]}/author/${authorId}`;
+    }
+    return [...this.state.posts.values()].filter(
+      post => post.author.id === authorId
+    );
+  }
+
   /**
    * etch all public posts
    * @param {bool} cached - Whether or not to re-fetch posts from remote
@@ -25,6 +34,36 @@ class PostsStore extends Container {
     if (cached && this.state.posts.size > 0) return;
     let { posts: postsList, count } = await API.Post.fetchAll();
     if (count > 0) {
+      let { posts } = this.state;
+      postsList = camelcaseKeys(postsList, { deep: true });
+      postsList.forEach(post => {
+        if (!window.OUR_HOSTNAME.includes(post.author.host)) {
+          // foreign post
+          // overwrite post.id to `http(s)://<foreign_hostname>/posts/<id>`
+          // then escape post.id and post.author.id to play well in actual URL.
+          post = {
+            ...post,
+            id: encodeURIComponent(
+              normalize(`${post.author.host}/posts/${post.id}`)
+            ),
+            author: {
+              ...post.author,
+              id: post.author.id,
+            },
+          };
+          posts.set(post.id, post);
+        } else {
+          // local post
+          posts.set(post.id, post);
+        }
+      });
+      this.setState({ posts });
+    }
+  };
+
+  fetchAuthorPosts = async authorId => {
+    let { posts: postsList } = await API.Post.getPostsByAuthorId(authorId);
+    if (postsList.length > 0) {
       let { posts } = this.state;
       postsList = camelcaseKeys(postsList, { deep: true });
       postsList.forEach(post => {

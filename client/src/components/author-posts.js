@@ -1,5 +1,4 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import { navigate } from '@reach/router';
 import { css } from 'styled-components/macro';
 import { message, Icon, Tooltip, Dropdown, Menu, Empty, Spin } from 'antd';
 import { PostStore, AuthStore, UIStore } from '../stores';
@@ -38,44 +37,23 @@ const Loading = () => (
   </div>
 );
 
-const PostsStream = ({
-  // authorId = null,
-  postId: openPostId = null,
+const AuthorPosts = ({
+  authorId = null,
   stores: [postStore, authStore, uiStore],
 }) => {
   let [isVisible, setVisibility] = useState(false);
   let [postId, setPostId] = useState(null);
   let [isLoading, setLoading] = useState(false);
 
-  let loadPosts = async () => {
+  let loadAuthorPosts = async authorId => {
     setLoading(true);
-    await postStore.getAll();
+    await postStore.fetchAuthorPosts(authorId);
     setLoading(false);
   };
 
-  let loadGithubEvents = async () => {
-    try {
-      let { github } = authStore.user;
-      if (github) {
-        let githubUsername = github.substr(github.lastIndexOf('/') + 1);
-        await postStore.getGithubStream(githubUsername);
-      }
-    } catch (error) {
-      message.error('Failed to fetch github events.');
-    }
-  };
-
   useEffect(() => {
-    if (openPostId) {
-      setPostId(openPostId);
-      setVisibility(true);
-    }
-    loadPosts();
-  }, [openPostId]);
-
-  useEffect(() => {
-    loadGithubEvents();
-  }, [authStore.user]);
+    if (authorId) loadAuthorPosts(authorId);
+  }, [authorId]);
 
   // TODO - implement reply
   let handleReply = async event => {
@@ -100,14 +78,9 @@ const PostsStream = ({
     }
   };
 
-  let handleOpenPost = id => {
-    setVisibility(true);
-    navigate(`/posts/${id}`);
-  };
-
-  let toggleOverlay = () => {
-    navigate('/');
-    setVisibility(false);
+  let toggleOverlay = id => {
+    setPostId(id);
+    setVisibility(!isVisible);
   };
 
   let handleMenuClick = async (postId, { key, domEvent: e }) => {
@@ -125,7 +98,7 @@ const PostsStream = ({
     }
   };
 
-  let postsList = postStore.posts;
+  let postsList = postStore.getAuthorPost(authorId);
   let posts =
     postsList.length > 0 ? (
       postsList.map(
@@ -146,7 +119,7 @@ const PostsStream = ({
             onClick={
               github
                 ? () => message.warn('Github event does not support such action.')
-                : () => handleOpenPost(id)
+                : () => toggleOverlay(id)
             }
             metaTitle={
               <CardMetaTitle
@@ -217,12 +190,12 @@ const PostsStream = ({
     <Fragment>
       {isLoading ? <Loading /> : posts}
       <PostOverlay
-        postId={openPostId || postId}
+        postId={postId}
         isVisible={isVisible}
-        onCancel={toggleOverlay}
+        onCancel={() => toggleOverlay(null)}
       />
     </Fragment>
   );
 };
 
-export default inject([PostStore, AuthStore, UIStore])(PostsStream);
+export default inject([PostStore, AuthStore, UIStore])(AuthorPosts);

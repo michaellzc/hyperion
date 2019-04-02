@@ -305,7 +305,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
                 if post_obj.is_accessible(post_obj, foreign_user_profile):
                     serializer = PostSerializer(post_obj)
-                    return Response({"query": "post", "post": serializer.data})
+                    return Response({"query": "post", "count": 1, "posts": [serializer.data]})
                 else:
                     return Response(
                         {"query": "posts", "success": False, "message": "Post not accessible"},
