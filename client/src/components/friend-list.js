@@ -55,8 +55,8 @@ const FriendList = ({ authorId, stores: [authStore] }) => {
     // TODO(fixme)
     // - backend API is flawed, it should be authors instead of author
     if (!authorId.startsWith('https')) {
-      let { author } = await API.Friend.fetchFriendList(authorId);
-      setFriendList(author);
+      let { authors } = await API.Friend.fetchFriendList(authorId);
+      setFriendList(authors);
     } else {
       // Workaround, since /author/:id/friends does not support server-to-server request
       message.warn('External author friend list is not supported.');
