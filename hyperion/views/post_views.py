@@ -170,12 +170,12 @@ class PostViewSet(viewsets.ModelViewSet):
                 pk = User.objects.get(pk=pk).profile.id
                 if int(request.user.profile.id) == int(pk):
                     # add unlisted posts
-                    target_posts = Post.objects.filter(author=pk)
+                    result = Post.objects.filter(author=pk)
                 else:
                     target_posts = self.queryset.filter(author=pk)
-                result = list(
-                    target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
-                ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
+                    result = list(
+                        target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
+                    ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
             else:
                 # foreign user
                 try:
