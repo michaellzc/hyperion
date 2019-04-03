@@ -1,4 +1,4 @@
-# pylint: disable=arguments-differ,invalid-name
+# pylint: disable=arguments-differ,invalid-name, broad-except, len-as-condition
 import json
 from urllib.parse import urlparse
 import logging
@@ -129,10 +129,12 @@ class PostViewSet(viewsets.ModelViewSet):
                 result = list(
                     self.queryset.filter(visibility="PUBLIC")
                 ) + Post.not_own_posts_visible_to_me(foreign_user_profile)
+                result = result + get_request_user_foaf_post(foreign_user_url)
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
                 result = list(self.queryset.filter(visibility="PUBLIC"))
+                result = result + get_request_user_foaf_post(foreign_user_url)
             except KeyError:
                 return Response(
                     {"query": "posts", "success": False, "message": "No X-Request-User-ID"},
@@ -175,7 +177,9 @@ class PostViewSet(viewsets.ModelViewSet):
                     target_posts = self.queryset.filter(author=pk)
                     result = list(
                         target_posts.filter(Q(visibility="PUBLIC") | Q(visibility="SERVERONLY"))
-                    ) + Post.not_own_posts_visible_to_me(request.user.profile, queryset=target_posts)
+                    ) + Post.not_own_posts_visible_to_me(
+                        request.user.profile, queryset=target_posts
+                    )
             else:
                 # foreign user
                 try:
@@ -209,6 +213,7 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             # foreign user
             # grab request user information from request header
+            # print(request.META)
             pk = User.objects.get(pk=pk).profile.id
             target_posts = self.queryset.filter(author=pk)
             try:
@@ -218,10 +223,17 @@ class PostViewSet(viewsets.ModelViewSet):
                 result = list(
                     target_posts.filter(Q(visibility="PUBLIC"))
                 ) + Post.not_own_posts_visible_to_me(foreign_user_profile, queryset=target_posts)
+                # plus remote foaf
+                result = result + get_request_user_foaf_post_belong_local_author(
+                    foreign_user_url, pk
+                )
             except UserProfile.DoesNotExist:
                 # foreign user is not in our db
                 # directly return public
                 result = list(target_posts.filter(visibility="PUBLIC"))
+                result = result + get_request_user_foaf_post_belong_local_author(
+                    foreign_user_url, pk
+                )
             except KeyError:
                 return Response(
                     {"query": "posts", "success": False, "message": "No X-Request-User-ID"},
@@ -302,9 +314,13 @@ class PostViewSet(viewsets.ModelViewSet):
             try:
                 # grab request user information from request header
                 foreign_user_url = request.META["HTTP_X_REQUEST_USER_ID"]
+
+                # check if it is remote relationsip
+                is_foaf = post_obj.author.check_remote_foaf_relationship(foreign_user_url)
+
                 # foreign user in our db
                 foreign_user_profile = UserProfile.objects.get(url=foreign_user_url)
-                if post_obj.is_accessible(post_obj, foreign_user_profile):
+                if post_obj.is_accessible(post_obj, foreign_user_profile) or is_foaf:
                     serializer = PostSerializer(post_obj)
                     return Response({"query": "post", "count": 1, "posts": [serializer.data]})
                 else:
@@ -314,7 +330,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     )
             # foreign user is not in our db
             except UserProfile.DoesNotExist:
-                if post_obj.visibility == "PUBLIC":
+                if post_obj.visibility == "PUBLIC" or is_foaf:
                     serializer = PostSerializer(post_obj)
                     return Response({"query": "post", "post": serializer.data})
                 else:
@@ -375,3 +391,86 @@ class PostViewSet(viewsets.ModelViewSet):
                 data={"success": False, "msg": "Method is not allowed for foreign posts"},
                 status=405,
             )
+
+
+def get_request_user_foaf_post(request_user_full_id):
+    result = []
+    try:
+        # in this case request_user_id should be foreign user id
+        request_user_host_name = "{uri.scheme}://{uri.netloc}".format(
+            uri=urlparse(request_user_full_id)
+        )
+        foreign_server = Server.objects.get(url=request_user_host_name)
+        request_user_id = request_user_full_id.split("/author/")[-1]
+        # print(request_user_id, "request_user_id")
+
+        # fetch friendlist
+        resp = ForeignServerHttpUtils.get(foreign_server, "/author/" + request_user_id + "/friends")
+        if resp.status_code != 200:
+            raise Exception("failed getting the friend_list")
+        request_user_friend_list = resp.json()["authors"]
+        # request_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+        # print(request_user_friend_list)
+
+        local_users = UserProfile.objects.filter(host=None)
+        # print(local_users)
+        for local_user in local_users:
+            local_author_friend_list = list(local_user.get_friends().values_list("url", flat=True))
+            intersection_friends = list(
+                set(request_user_friend_list) & set(local_author_friend_list)
+            )
+            if len(intersection_friends) > 0:
+                result.extend(
+                    list(Post.objects.filter(author=local_user, unlisted=False, visibility="FOAF"))
+                )
+        # print(result)
+        return result
+    except Exception as some_error:
+        print(some_error, "foaf1 error")
+        return result
+
+
+def get_request_user_foaf_post_belong_local_author(request_user_full_id, local_author_profile_id):
+    # in this case request_user_id should be foreign user id
+    try:
+        # find the server first
+        request_user_host_name = "{uri.scheme}://{uri.netloc}".format(
+            uri=urlparse(request_user_full_id)
+        )
+        foreign_server = Server.objects.get(url=request_user_host_name)
+        request_user_id = request_user_full_id.split("/author/")[-1]
+        # print(request_user_id, "request_user_id")
+
+        # fetch friendlist
+        resp = ForeignServerHttpUtils.get(foreign_server, "/author/" + request_user_id + "/friends")
+        if resp.status_code != 200:
+            raise Exception("failed getting the friend_list")
+        request_user_friend_list = resp.json()["authors"]
+        # request_user_friend_list = [friend["id"] for friend in resp.json()["authors"]]
+        # print(request_user_friend_list)
+
+        local_author_friend_list = list(
+            UserProfile.objects.get(id=local_author_profile_id)
+            .get_friends()
+            .values_list("url", flat=True)
+        )
+        # print(local_author_friend_list)
+
+        intersection_friends = list(set(request_user_friend_list) & set(local_author_friend_list))
+        # print(intersection_friends)
+
+        if len(intersection_friends) > 0:  # is friend of friend
+            result = list(
+                Post.objects.filter(
+                    author_id=local_author_profile_id, unlisted=False, visibility="FOAF"
+                )
+            )
+        else:  # is not friend of friend
+            result = []
+
+        # print(result)
+        return result
+
+    except Exception as some_error:
+        print(some_error, "foaf2 error")
+        return []

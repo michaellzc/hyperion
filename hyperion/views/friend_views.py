@@ -71,20 +71,9 @@ def friend_list(request, author_id):
             result_friend_list = list(set(author_friend_list) & set(pending_friend_list))
             # print(result_friend_list)
 
-            if is_local:
-                content = {
-                    "query": "friends",
-                    "author": body["author"],
-                    "authors": result_friend_list,
-                }
-                return Response(content, content_type="application/json", status=status.HTTP_200_OK)
-            else:
-                content = {
-                    "query": "friends",
-                    "count": len(friends),
-                    "authors": [author["id"] for author in result_friend_list],
-                }
-                return Response(content, content_type="application/json", status=status.HTTP_200_OK)
+            content = {"query": "friends", "author": body["author"], "authors": result_friend_list}
+            # print(content)
+            return Response(content, content_type="application/json", status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response(

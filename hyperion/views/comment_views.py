@@ -49,6 +49,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         post_id = body.get("post", None)
         post_url = urlparse(post_id)
         author_profile = None
+        is_foaf = False
 
         if is_local:
             # handle local author request
@@ -100,9 +101,13 @@ class CommentViewSet(viewsets.ModelViewSet):
             author_profile, _ = UserProfile.objects.filter(Q(url=author_id)).get_or_create(
                 url=author_id, display_name=author.get("display_name", None), host=server
             )
+
             post_pk = post_url.path.split("/")[-1]
             comment_data["post"] = post_pk
             comment_data["author"] = str(author_profile.id)
+
+            # check if they are foaf
+            is_foaf = Post.objects.get(pk=post_pk).author.check_remote_foaf_relationship(author_id)
 
         post_data = get_object_or_404(Post, pk=post_pk)
         accessible = post_data.is_accessible(post_data, author_profile)
@@ -115,7 +120,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             )
 
         # validate accessibility
-        if not accessible:
+        if not accessible and not is_foaf:
             return Response(
                 {"query": "addComment", "success": False, "message": "Forbidden access"},
                 status=status.HTTP_403_FORBIDDEN,
