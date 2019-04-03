@@ -167,7 +167,7 @@ class PostSerializer(serializers.ModelSerializer):
         visible_to_data = validated_data.pop("visible_to", [])
         post = Post.objects.create(author=user.profile, **validated_data)
         visible_to = [
-            User.objects.get(username=username).profile.url for username in visible_to_data
+            UserProfile.objects.get(url=url).profile.url for url in visible_to_data
         ]
         post.visible_to = visible_to
         post.save()
@@ -177,7 +177,7 @@ class PostSerializer(serializers.ModelSerializer):
         visible_to_data = validated_data.pop("visible_to", [])
         post = super().update(instance, validated_data)
         visible_to = [
-            User.objects.get(username=username).profile.url for username in visible_to_data
+            UserProfile.objects.get(url=url).profile.url for url in visible_to_data
         ]
         post.visible_to = visible_to
         return post
