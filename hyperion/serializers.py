@@ -164,22 +164,12 @@ class PostSerializer(serializers.ModelSerializer):
         # https://stackoverflow.com/questions/30203652/how-to-get-request-user-in-django-rest-framework-serializer
         # if there are some visible_to user profiel
         user = self.context["request"].user
-        visible_to_data = validated_data.pop("visible_to", [])
         post = Post.objects.create(author=user.profile, **validated_data)
-        visible_to = [
-            UserProfile.objects.get(url=url).profile.url for url in visible_to_data
-        ]
-        post.visible_to = visible_to
         post.save()
         return post
 
     def update(self, instance, validated_data):
-        visible_to_data = validated_data.pop("visible_to", [])
         post = super().update(instance, validated_data)
-        visible_to = [
-            UserProfile.objects.get(url=url).profile.url for url in visible_to_data
-        ]
-        post.visible_to = visible_to
         return post
 
 
