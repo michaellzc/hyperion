@@ -4,7 +4,7 @@ import logging
 import requests
 import humps
 
-from hyperion.models import Server
+from hyperion.models.server import Server
 
 logger = logging.getLogger(__name__)
 
