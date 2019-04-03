@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User, Group
 from django.conf import settings
 from rest_framework import serializers
+
 from hyperion.models import *
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -145,9 +146,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     author = UserProfileSerializer(read_only=True)
     comments = CommentSerializer(source="get_comments", many=True, read_only=True)
-    visible_to = serializers.PrimaryKeyRelatedField(
-        queryset=UserProfile.objects.all(), many=True, required=False
-    )
+    visible_to = serializers.ListField(child=serializers.CharField())
     source = serializers.CharField(source="get_source", max_length=200, required=False)
     origin = serializers.CharField(source="get_source", max_length=200, required=False)
 
@@ -155,32 +154,22 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = "__all__"
 
-    def to_internal_value(self, data):
-        visible_to = data.pop("visible_to", [])
-        data = super().to_internal_value(data)
-        data["visible_to"] = visible_to
-        return data
+    # def to_internal_value(self, data):
+    #     visible_to = data.pop("visible_to", [])
+    #     data = super().to_internal_value(data)
+    #     data["visible_to"] = visible_to
+    #     return data
 
     def create(self, validated_data):
         # https://stackoverflow.com/questions/30203652/how-to-get-request-user-in-django-rest-framework-serializer
         # if there are some visible_to user profiel
         user = self.context["request"].user
-        visible_to_data = validated_data.pop("visible_to", [])
         post = Post.objects.create(author=user.profile, **validated_data)
-        visible_to = [
-            User.objects.get(username=username).profile.pk for username in visible_to_data
-        ]
-        post.visible_to.set(visible_to)
         post.save()
         return post
 
     def update(self, instance, validated_data):
-        visible_to_data = validated_data.pop("visible_to", [])
         post = super().update(instance, validated_data)
-        visible_to = [
-            User.objects.get(username=username).profile.pk for username in visible_to_data
-        ]
-        post.visible_to.set(visible_to)
         return post
 
 
@@ -206,3 +195,4 @@ class FriendRequestSerializer(serializers.ModelSerializer):
             obj.to_profile, read_only=True, context={"fields": user_fields}
         )
         return serializer.data
+        

@@ -3,6 +3,8 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+
 from hyperion.models.user import UserProfile
 
 
@@ -39,7 +41,7 @@ class Post(models.Model):
     last_modify_date = models.DateTimeField(default=timezone.now)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES, default="text/plain")
     visibility = models.CharField(max_length=20, choices=CHOICES, default="PUBLIC")
-    visible_to = models.ManyToManyField(UserProfile, related_name="visible")
+    visible_to = ArrayField(models.CharField(max_length=500), blank=True, default=list)
     description = models.TextField(null=True, blank=True)
     unlisted = models.BooleanField(default=False)
 
@@ -47,10 +49,10 @@ class Post(models.Model):
         return super().__str__() + " post: " + str(self.author.pk)
 
     def visible_to_me(self):
-        self.visible_to.add(self.author)
+        self.visible_to.add(self.author.get.get_url())
 
     def visible_to_another_author(self, user_profile):
-        self.visible_to.add(user_profile)
+        self.visible_to.add(user_profile.get_url())
 
     def is_accessible(self, post, user_profile):
         is_accessible = False
@@ -71,7 +73,7 @@ class Post(models.Model):
                     is_accessible = True
             elif post.visibility == "PUBLIC":
                 is_accessible = True
-            elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
+            elif post.visibility == "PRIVATE" and user_profile.get_url() in post.visible_to:
                 is_accessible = True
             else:
                 is_accessible = False
@@ -92,11 +94,14 @@ class Post(models.Model):
                 visible_post.append(post)
             elif post.visibility == "FOAF" and post.author in friends_of_friends:
                 visible_post.append(post)
-            elif post.visibility == "PRIVATE" and user_profile in post.visible_to.all():
+            elif post.visibility == "PRIVATE" and user_profile.get_url() in post.visible_to:
                 visible_post.append(post)
         return visible_post
 
     def get_comments(self):
+        return self.comments.all()
+
+    def get_visible_to(self):
         return self.comments.all()
 
     def get_source(self):
@@ -106,4 +111,4 @@ class Post(models.Model):
     def set_private_to_host_friend(self):
         self.visibility = "PRIVATE"
         friends = [u.id for u in self.author.get_friends(including="host")]
-        self.visible_to.set(friends)
+        self.visible_to = friends

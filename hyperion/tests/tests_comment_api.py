@@ -71,9 +71,8 @@ class CommentViewTestCase(TestCase):
             content="some post content",
             visibility="PRIVATE",
             unlisted="False",
+            visible_to = [self.u_1.profile.get_url(), self.u_3.profile.get_url()]
         )
-
-        self.p_1.visible_to.set([self.u_1.profile, self.u_3.profile])
 
         self.p_2 = Post.objects.create(
             title="A post title",
@@ -99,7 +98,6 @@ class CommentViewTestCase(TestCase):
             "{}:{}".format(self.username_3, self.password_3).encode()
         ).decode()
         self.client = Client(HTTP_AUTHORIZATION="Basic {}".format(credentials))
-
         data = {
             "query": "addComment",
             "post": "{}/posts/{}".format(self.home_host, str(self.p_1.id)),
