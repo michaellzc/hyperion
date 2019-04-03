@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { css } from 'styled-components/macro';
-import { Empty, Spin, Button, Row, Col, message } from 'antd';
+import { Empty, Spin, Button, Row, Col, message, Tooltip, Icon } from 'antd';
 import { AuthStore } from '../stores';
 import { inject } from '../utils';
 import * as API from '../api';
@@ -87,7 +87,7 @@ const FriendList = ({ authorId, stores: [authStore] }) => {
 
   let friends =
     friendList.length > 0 ? (
-      friendList.map(({ id, bio, displayName }) => (
+      friendList.map(({ id, bio, host, displayName }) => (
         <Col key={id} xs={22} sm={22} md={12} lg={12} xl={12} xxl={12}>
           <FriendCard
             id={id}
@@ -98,9 +98,23 @@ const FriendList = ({ authorId, stores: [authStore] }) => {
                 displayName={displayName}
                 bio={bio}
                 extra={
-                  // do not render unfriend button
                   authStore.userPk === authorId ? (
-                    <Button onClick={() => handleUnfriend(id)}>Unfriend</Button>
+                    <Fragment>
+                      <Button
+                        style={{ marginLeft: '-6px' }}
+                        onClick={() => handleUnfriend(id)}
+                      >
+                        Unfriend
+                      </Button>
+                      {!window.OUR_HOSTNAME.includes(host) ? (
+                        <Tooltip title={`External author from ${host}`}>
+                          <Icon
+                            style={{ paddingLeft: '6px' }}
+                            type="info-circle"
+                          />
+                        </Tooltip>
+                      ) : null}
+                    </Fragment>
                   ) : null
                 }
               />

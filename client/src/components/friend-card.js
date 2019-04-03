@@ -6,7 +6,7 @@ let { Meta } = Card;
 
 const FriendCard = ({ metaTitle, ...props }) => (
   <Card className="friend-card" bordered={false} {...props}>
-    <Meta title={metaTitle} />
+    <Meta style={{ margin: '-4px -4px' }} title={metaTitle} />
   </Card>
 );
 
