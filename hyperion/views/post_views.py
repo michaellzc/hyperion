@@ -108,8 +108,11 @@ class PostViewSet(viewsets.ModelViewSet):
                 local_url = request.user.profile.get_url()
                 headers = {"X-Request-User-ID": str(local_url)}
                 try:
-                    response = ForeignServerHttpUtils.get(server, "/author/posts", headers=headers)
+                    response = ForeignServerHttpUtils.get(
+                        server, "/author/posts", headers=headers, timeout=5
+                    )
                 except requests.exceptions.RequestException:
+                    print(server.url, "Foreign server fucked up")
                     print("Failed to get foreign posts")
                 if response.status_code == 200:
                     body = response.json()
