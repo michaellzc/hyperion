@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components/macro';
+import styled, { createGlobalStyle } from 'styled-components/macro';
 import { Link } from '@reach/router';
 import AppLayout from '../components/app-layout';
 import { Exception } from 'ant-design-pro';
@@ -11,9 +11,23 @@ let Wrapper = styled.div`
   height: 75vh;
 `;
 
+let GlobalStyle = createGlobalStyle`
+  @media (max-width: 768px) {
+    .antd-pro-exception-imgBlock {
+      display: none;
+    }
+
+    .antd-pro-exception-content {
+      margin-top: 15vh;
+      max-width: 80vw;
+    }
+  }
+`;
+
 function InactivePage() {
   return (
     <AppLayout header={false}>
+      <GlobalStyle />
       <Wrapper>
         <Exception
           title="Pending Approval"
