@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ProgressBar } from 'react-fetch-progressbar';
 import { bool, node, array } from 'prop-types';
 import { Layout, Dropdown, Avatar, Menu, Icon } from 'antd';
 import styled, { css } from 'styled-components/macro';
@@ -83,6 +84,7 @@ const AppLayout = ({ children, stores: [authStore], header, ...props }) => {
 
   return (
     <CustomLayout {...props}>
+      <ProgressBar style={{ backgroundColor: '#4a4a4a', height: '2px' }} />
       {header ? (
         <CustomHeader>
           <img
