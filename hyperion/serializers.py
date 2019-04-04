@@ -154,11 +154,21 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = "__all__"
 
-    # def to_internal_value(self, data):
-    #     visible_to = data.pop("visible_to", [])
-    #     data = super().to_internal_value(data)
-    #     data["visible_to"] = visible_to
-    #     return data
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        visible_to = []
+        for visible_to_id in data.get("visible_to", []):
+            try:
+                user_profile = UserProfile.objects.get(url=visible_to_id)
+                visible_to.append(UserProfileSerializer(user_profile).data)
+            except UserProfile.DoesNotExist:
+                fake_user_profile = {
+                    'id': visible_to_id,
+                    'display_name': None,
+                }
+                visible_to.append(fake_user_profile)
+        data["visible_to"] = visible_to
+        return data
 
     def create(self, validated_data):
         # https://stackoverflow.com/questions/30203652/how-to-get-request-user-in-django-rest-framework-serializer
@@ -195,4 +205,3 @@ class FriendRequestSerializer(serializers.ModelSerializer):
             obj.to_profile, read_only=True, context={"fields": user_fields}
         )
         return serializer.data
-        
