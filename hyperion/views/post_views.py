@@ -2,6 +2,7 @@
 import json
 from urllib.parse import urlparse
 import logging
+import grequests
 import requests
 
 from django.db.models import Q
@@ -84,6 +85,9 @@ class PostViewSet(viewsets.ModelViewSet):
         data += foreign_public_posts
         return Response({"query": "posts", "count": len(data), "posts": data}, status=200)
 
+    def _exception_handler(self, request, exception):
+        print(exception)
+
     # pylint: disable=too-many-locals
     @action(detail=True, methods=["GET"], name="get_auth_posts")
     def get_auth_posts(self, request):
@@ -104,23 +108,27 @@ class PostViewSet(viewsets.ModelViewSet):
                     | Q(visibility="SERVERONLY")
                 )
             ) + Post.not_own_posts_visible_to_me(request.user.profile)
+
+            # fetch foreign posts concurrently
+            foreign_reqs = []
             for server in Server.objects.all():
                 local_url = request.user.profile.get_url()
                 headers = {"X-Request-User-ID": str(local_url)}
-                try:
-                    response = ForeignServerHttpUtils.get(
+                foreign_reqs.append(
+                    ForeignServerHttpUtils.parallel_get(
                         server, "/author/posts", headers=headers, timeout=5
                     )
-                    if response.status_code == 200:
-                        body = response.json()
-                        if isinstance(body, dict):
-                            posts = body.get("posts", [])
-                            foreign_posts += posts
-                        else:
-                            print(server.url)
-                except requests.exceptions.RequestException:
-                    print(server.url, "Foreign server fucked up")
-                    print("Failed to get foreign posts")
+                )
+
+            responses = grequests.map(foreign_reqs, exception_handler=self._exception_handler)
+            for response in responses:
+                if not response:
+                    continue
+                if response.status_code == 200:
+                    body = response.json()
+                    if isinstance(body, dict):
+                        posts = body.get("posts", [])
+                        foreign_posts += posts
         else:
             # foreign user
             # grab request user information from request header

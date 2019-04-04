@@ -15,6 +15,9 @@ django-heroku==0.3.1
 djangorestframework==3.9.1
 djangorestframework-camel-case==1.0.3
 Flask==1.0.2
+gevent==1.4.0
+greenlet==0.4.15
+grequests==0.3.0
 gunicorn==19.9.0
 idna==2.8
 isort==4.3.4
@@ -38,6 +41,7 @@ pylint-plugin-utils==0.4
 python-dateutil==2.8.0
 pytz==2018.9
 requests==2.21.0
+sentry-sdk==0.7.9
 six==1.12.0
 toml==0.10.0
 uritemplate==3.0.0
