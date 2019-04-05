@@ -35,6 +35,7 @@ class UIStore extends Container {
         ),
       });
     }
+    post.visibleTo = post.visibleTo.map(post => post.id);
     this.setState({ editingPost: post });
   };
 
