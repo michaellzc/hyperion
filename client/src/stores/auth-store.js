@@ -21,7 +21,7 @@ class AuthStore extends Container {
 
   // Currently login user's primary key
   get userPk() {
-    return this.user
+    return this.user && this.user.id
       ? this.user.id.substr(this.user.id.lastIndexOf('/') + 1)
       : null;
   }

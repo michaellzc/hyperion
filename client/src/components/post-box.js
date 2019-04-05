@@ -20,7 +20,7 @@ import {
   Select,
   Checkbox,
 } from 'antd';
-import { PostStore, UIStore } from '../stores';
+import { PostStore, UIStore, AuthStore } from '../stores';
 import { inject, colors } from '../utils';
 import * as API from '../api';
 import 'draft-js-static-toolbar-plugin/lib/plugin.css';
@@ -118,7 +118,7 @@ let UploadButton = (
   </div>
 );
 
-const PostBox = ({ stores: [postStore, uiStore] }) => {
+const PostBox = ({ stores: [postStore, uiStore, authStore] }) => {
   let [tabKey, setTabKey] = useState('text');
   let [fileList, setFileList] = useState([]);
   let [previewVisible, setPreviewVisible] = useState(false);
@@ -135,13 +135,15 @@ const PostBox = ({ stores: [postStore, uiStore] }) => {
   let editorRef = useRef(null);
 
   let getUserList = async () => {
-    let users = await API.Search.getUsers();
-    setUserList(users);
+    if (authStore.userPk) {
+      let { authors } = await API.Friend.fetchFriendList(authStore.userPk);
+      setUserList(authors);
+    }
   };
 
   useEffect(() => {
     getUserList();
-  }, []);
+  }, [authStore.userPk]);
 
   let toggleModal = () => {
     dispatch({ type: 'reset' });
@@ -275,8 +277,8 @@ const PostBox = ({ stores: [postStore, uiStore] }) => {
                 }
               >
                 {userList.map(each => (
-                  <Select.Option key={each.username}>
-                    {each.username}
+                  <Select.Option key={each.id}>
+                    {`${each.displayName} (${each.id})`}
                   </Select.Option>
                 ))}
               </Select>
@@ -355,4 +357,4 @@ const PostBox = ({ stores: [postStore, uiStore] }) => {
   );
 };
 
-export default inject([PostStore, UIStore])(PostBox);
+export default inject([PostStore, UIStore, AuthStore])(PostBox);
